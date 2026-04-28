@@ -50,4 +50,4 @@ docs/dev
 .specify/extensions/.cache/
 .specify/extensions/.backup/
 .specify/extensions/*/local-config.yml
-next-steps/
+next-steps/.claude/
