@@ -14,29 +14,33 @@
 
 ### Initialize a New Project
 
-The easiest way to get started is to initialize a new project. Pin a specific release tag for stability (check [Releases](https://github.com/github/spec-kit/releases) for the latest):
+The recommended path is to install `kite` persistently so the CLI is available in every directory after `kite init` (including the new project folder for `kite doctor` / `kite resume`):
 
 ```bash
-# Install from a specific stable release (recommended — replace vX.Y.Z with the latest tag)
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <PROJECT_NAME>
-
-# Or install latest from main (may include unreleased changes)
-uvx --from git+https://github.com/github/spec-kit.git kite init <PROJECT_NAME>
+# Persistent install (recommended) — gives you `kite` on PATH everywhere
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
+kite init <PROJECT_NAME>
 ```
 
 > [!NOTE]
-> For a persistent installation, `pipx` works equally well:
+> `pipx` works equally well for a persistent install:
 > ```bash
-> pipx install git+https://github.com/github/spec-kit.git@vX.Y.Z
+> pipx install git+https://github.com/Karnonson/kite.git
 > ```
-> The project uses a standard `hatchling` build backend and has no uv-specific dependencies.
+
+If you only want to scaffold a single project and don't need the CLI afterwards, you can run a one-shot init via `uvx`:
+
+```bash
+# One-shot — leaves no `kite` binary behind; `kite doctor` / `kite resume` won't work in the new dir
+uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
+```
 
 Or initialize in the current directory:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init .
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init .
 # or use the --here flag
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here
 ```
 
 ### Specify Integration
@@ -44,11 +48,11 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here
 You can proactively specify your coding agent integration during initialization:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration claude
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration gemini
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration copilot
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration codebuddy
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration pi
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration claude
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration gemini
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration codebuddy
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration pi
 ```
 
 ### Specify Script Type (Shell vs PowerShell)
@@ -64,8 +68,8 @@ Auto behavior:
 Force a specific script type:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --script sh
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --script ps
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --script sh
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --script ps
 ```
 
 ### Ignore Agent Tools Check
@@ -73,7 +77,7 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_
 If you prefer to get the templates without checking for the right tools:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration claude --ignore-agent-tools
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration claude --ignore-agent-tools
 ```
 
 ## Verification
@@ -81,7 +85,7 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_
 After installation, run the following command to confirm the correct version is installed:
 
 ```bash
-specify version
+kite version
 ```
 
 This helps verify you are running the official Kite build from GitHub, not an unrelated package with the same name.
@@ -104,7 +108,7 @@ If your environment blocks access to PyPI (you see 403 errors when running `uv t
 
 ```bash
 # Clone the repository
-git clone https://github.com/github/spec-kit.git
+git clone https://github.com/Karnonson/kite.git
 cd spec-kit
 
 # Build the wheel

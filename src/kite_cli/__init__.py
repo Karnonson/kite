@@ -1600,6 +1600,9 @@ def init(
     steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement each layer")
     steps_lines.append("")
     steps_lines.append(f"   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
+    steps_lines.append("")
+    steps_lines.append(f"   [bright_black]Tip: if [cyan]kite[/cyan] is not on your PATH (e.g. you used [cyan]uvx[/cyan] for a one-shot init), install it persistently with:[/bright_black]")
+    steps_lines.append(f"   [cyan]uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git[/cyan]")
 
     steps_panel = Panel("\n".join(steps_lines), title="Next Steps", border_style="cyan", padding=(1,2))
     console.print()

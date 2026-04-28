@@ -82,6 +82,17 @@
 - [ ] X04 Telemetry on workflow usage.
 - [ ] X05 Fast-follow integrations beyond Copilot/Claude/Codex.
 
+## Distribution / install UX (post-launch)
+
+Background: when users run `uvx --from git+https://github.com/Karnonson/kite.git kite init my-app`, the `kite` binary is only available inside that one-shot uvx environment. After init, `cd my-app && kite doctor` fails with "command not found". The post-init banner now points users at `uv tool install …` (commit pending), but the long-term fixes are:
+
+- [ ] D01 `[ops]` Publish `kite-cli` to PyPI under a unique name (e.g. `kite-cli-sdlc`) so users can run `uv tool install kite-cli-sdlc` without the git URL. Verify the name is not squatted.
+- [ ] D02 `[ops]` Add a GitHub Release workflow (`.github/workflows/release.yml`) that builds wheels and publishes to PyPI on tag push. Mirror the upstream spec-kit release flow.
+- [ ] D03 `[docs]` Once D01 lands, update [docs/installation.md](docs/installation.md) and [README.md](README.md) to lead with `uv tool install kite-cli-sdlc` and demote the git+https path to "from source".
+- [ ] D04 `[backend]` Detect ephemeral installs in `kite init` (e.g. `sys.argv[0]` inside a uvx cache dir) and print an explicit "kite is not installed permanently — run `uv tool install …` to keep it" warning, not just a tip.
+- [ ] D05 `[qa]` Add `tests/test_install_ux.py` smoke test that runs `uvx --from . kite init <tmpdir>/proj` end-to-end on Linux and asserts the post-init banner contains the persistent-install hint.
+- [ ] D06 `[ops]` Add a Homebrew tap (`Karnonson/homebrew-kite`) once D01 is published, so macOS users can `brew install kite-cli`.
+
 ---
 
 ## Acceptance gate (mirrors spec §10)
