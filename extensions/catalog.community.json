@@ -16,7 +16,7 @@
       "changelog": "https://github.com/mnriem/spec-kit-extensions/blob/main/aide/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.2.0"
+        "kite_version": ">=0.2.0"
       },
       "provides": {
         "commands": 7,
@@ -49,7 +49,7 @@
       "changelog": "https://github.com/xymelon/spec-kit-agent-assign/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 3,
@@ -81,7 +81,7 @@
       "changelog": "https://github.com/UmmeHabiba1312/spec-kit-architect-preview/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -113,7 +113,7 @@
       "changelog": "https://github.com/stn1slv/spec-kit-archive/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -144,7 +144,7 @@
       "changelog": "https://github.com/pragya247/spec-kit-azure-devops/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "az",
@@ -173,7 +173,7 @@
     "blueprint": {
       "name": "Blueprint",
       "id": "blueprint",
-      "description": "Stay code-literate in AI-driven development: review a complete code blueprint for every task from spec artifacts before /speckit.implement runs",
+      "description": "Stay code-literate in AI-driven development: review a complete code blueprint for every task from spec artifacts before /kite.implement runs",
       "author": "chordpli",
       "version": "1.0.0",
       "download_url": "https://github.com/chordpli/spec-kit-blueprint/archive/refs/tags/v1.0.0.zip",
@@ -183,7 +183,7 @@
       "changelog": "https://github.com/chordpli/spec-kit-blueprint/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.2.0"
+        "kite_version": ">=0.2.0"
       },
       "provides": {
         "commands": 2,
@@ -215,7 +215,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-branch-convention/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -247,7 +247,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-brownfield/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -279,7 +279,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-bugfix/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -311,7 +311,7 @@
       "changelog": "https://github.com/maximiliamus/spec-kit-canon/blob/master/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.3"
+        "kite_version": ">=0.4.3"
       },
       "provides": {
         "commands": 16,
@@ -346,7 +346,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-catalog-ci/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -378,7 +378,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-ci-guard/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 5,
@@ -411,7 +411,7 @@
       "changelog": "https://github.com/aaronrsun/spec-kit-checkpoint/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -440,7 +440,7 @@
       "changelog": "https://github.com/dsrednicki/spec-kit-cleanup/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -472,7 +472,7 @@
       "changelog": "https://github.com/twbrandon7/spec-kit-conduct-ext/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.1"
+        "kite_version": ">=0.3.1"
       },
       "provides": {
         "commands": 1,
@@ -502,7 +502,7 @@
       "changelog": "https://github.com/arunt14/spec-kit-critique/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -532,7 +532,7 @@
       "changelog": "https://github.com/aaronrsun/spec-kit-confluence/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -560,7 +560,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-diagram-/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -592,7 +592,7 @@
       "changelog": "https://github.com/raccioly/docguard/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "node",
@@ -624,7 +624,7 @@
     "doctor": {
       "name": "Project Health Check",
       "id": "doctor",
-      "description": "Diagnose a Spec Kit project and report health issues across structure, agents, features, scripts, extensions, and git.",
+      "description": "Diagnose a Kite project and report health issues across structure, agents, features, scripts, extensions, and git.",
       "author": "KhawarHabibKhan",
       "version": "1.0.0",
       "download_url": "https://github.com/KhawarHabibKhan/spec-kit-doctor/archive/refs/tags/v1.0.0.zip",
@@ -634,7 +634,7 @@
       "changelog": "https://github.com/KhawarHabibKhan/spec-kit-doctor/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -665,7 +665,7 @@
       "changelog": "https://github.com/mnriem/spec-kit-extensions/blob/main/extensify/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.8.0"
+        "kite_version": ">=0.8.0"
       },
       "provides": {
         "commands": 5,
@@ -696,7 +696,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-fix-findings/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -721,14 +721,14 @@
       "description": "Spec-aware bug fixing: maps bugs to spec artifacts, proposes a plan, applies minimal changes.",
       "author": "ismaelJimenez",
       "version": "1.0.0",
-      "download_url": "https://github.com/speckit-community/spec-kit-fixit/archive/refs/tags/v1.0.0.zip",
-      "repository": "https://github.com/speckit-community/spec-kit-fixit",
-      "homepage": "https://github.com/speckit-community/spec-kit-fixit",
-      "documentation": "https://github.com/speckit-community/spec-kit-fixit/blob/main/README.md",
-      "changelog": "https://github.com/speckit-community/spec-kit-fixit/blob/main/CHANGELOG.md",
+      "download_url": "https://github.com/kite-community/spec-kit-fixit/archive/refs/tags/v1.0.0.zip",
+      "repository": "https://github.com/kite-community/spec-kit-fixit",
+      "homepage": "https://github.com/kite-community/spec-kit-fixit",
+      "documentation": "https://github.com/kite-community/spec-kit-fixit/blob/main/README.md",
+      "changelog": "https://github.com/kite-community/spec-kit-fixit/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -759,7 +759,7 @@
       "changelog": "https://github.com/sharathsatish/spec-kit-fleet/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 2,
@@ -790,7 +790,7 @@
       "changelog": "https://github.com/Fatima367/spec-kit-github-issues/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "gh",
@@ -830,7 +830,7 @@
       "changelog": "https://github.com/aaronrsun/spec-kit-issue/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 3,
@@ -862,7 +862,7 @@
       "changelog": "https://github.com/imviancagrace/spec-kit-iterate/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 2,
@@ -892,7 +892,7 @@
       "changelog": "https://github.com/mbachorik/spec-kit-jira/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 3,
@@ -923,7 +923,7 @@
       "changelog": "https://github.com/imviancagrace/spec-kit-learn/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 2,
@@ -954,7 +954,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-ext/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 4,
@@ -987,7 +987,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-azure-devops/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1019,7 +1019,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-ci/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1052,7 +1052,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-github-projects/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1084,7 +1084,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-jira/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1116,7 +1116,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-linear/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1148,7 +1148,7 @@
       "changelog": "https://github.com/GenieRobot/spec-kit-maqa-trello/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.3.0"
+        "kite_version": ">=0.3.0"
       },
       "provides": {
         "commands": 2,
@@ -1170,7 +1170,7 @@
     "memory-loader": {
       "name": "Memory Loader",
       "id": "memory-loader",
-      "description": "Loads .specify/memory/ files before spec-kit lifecycle commands so LLM agents have project governance context",
+      "description": "Loads .kite/memory/ files before spec-kit lifecycle commands so LLM agents have project governance context",
       "author": "KevinBrown5280",
       "version": "1.0.0",
       "download_url": "https://github.com/KevinBrown5280/spec-kit-memory-loader/archive/refs/tags/v1.0.0.zip",
@@ -1180,7 +1180,7 @@
       "changelog": "https://github.com/KevinBrown5280/spec-kit-memory-loader/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.6.0"
+        "kite_version": ">=0.6.0"
       },
       "provides": {
         "commands": 1,
@@ -1201,7 +1201,7 @@
     "memory-md": {
       "name": "Memory MD",
       "id": "memory-md",
-      "description": "Repository-native durable memory for Spec Kit projects",
+      "description": "Repository-native durable memory for Kite projects",
       "author": "DyanGalih",
       "version": "0.6.2",
       "download_url": "https://github.com/DyanGalih/spec-kit-memory-hub/archive/refs/tags/v0.6.2.zip",
@@ -1211,7 +1211,7 @@
       "changelog": "https://github.com/DyanGalih/spec-kit-memory-hub/blob/main/docs/memory-workflow-v0.6.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.6.0"
+        "kite_version": ">=0.6.0"
       },
       "provides": {
         "commands": 5,
@@ -1243,7 +1243,7 @@
       "changelog": "https://github.com/RbBtSn0w/spec-kit-extensions/blob/main/memorylint/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.5.1"
+        "kite_version": ">=0.5.1"
       },
       "provides": {
         "commands": 1,
@@ -1275,7 +1275,7 @@
       "changelog": "https://github.com/dmux/spec-kit-onboard/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 7,
@@ -1308,7 +1308,7 @@
       "changelog": "https://github.com/sakitA/spec-kit-optimize/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 3,
@@ -1340,7 +1340,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-orchestrator/releases",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -1372,7 +1372,7 @@
       "changelog": "https://github.com/luno/spec-kit-plan-review-gate/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1403,7 +1403,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-pr-bridge-/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -1435,7 +1435,7 @@
       "changelog": "https://github.com/mnriem/spec-kit-extensions/blob/main/presetify/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.2.0"
+        "kite_version": ">=0.2.0"
       },
       "provides": {
         "commands": 4,
@@ -1459,14 +1459,14 @@
       "description": "Full product lifecycle from research to release — portfolio, lite mode, monorepo, optional V-Model",
       "author": "VaiYav",
       "version": "1.5.1",
-      "download_url": "https://github.com/VaiYav/speckit-product-forge/archive/refs/tags/v1.5.1.zip",
-      "repository": "https://github.com/VaiYav/speckit-product-forge",
-      "homepage": "https://github.com/VaiYav/speckit-product-forge",
-      "documentation": "https://github.com/VaiYav/speckit-product-forge/blob/main/README.md",
-      "changelog": "https://github.com/VaiYav/speckit-product-forge/blob/main/CHANGELOG.md",
+      "download_url": "https://github.com/VaiYav/kite-product-forge/archive/refs/tags/v1.5.1.zip",
+      "repository": "https://github.com/VaiYav/kite-product-forge",
+      "homepage": "https://github.com/VaiYav/kite-product-forge",
+      "documentation": "https://github.com/VaiYav/kite-product-forge/blob/main/README.md",
+      "changelog": "https://github.com/VaiYav/kite-product-forge/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 29,
@@ -1498,7 +1498,7 @@
       "changelog": "https://github.com/arunt14/spec-kit-qa/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1528,7 +1528,7 @@
       "changelog": "https://github.com/Rubiss/spec-kit-ralph/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "copilot",
@@ -1569,7 +1569,7 @@
       "changelog": "https://github.com/stn1slv/spec-kit-reconcile/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1590,7 +1590,7 @@
     "red-team": {
       "name": "Red Team",
       "id": "red-team",
-      "description": "Adversarial review of functional specs before /speckit.plan. Parallel adversarial lens agents catch hostile actors, silent failures, and regulatory blind spots that clarify/analyze cannot.",
+      "description": "Adversarial review of functional specs before /kite.plan. Parallel adversarial lens agents catch hostile actors, silent failures, and regulatory blind spots that clarify/analyze cannot.",
       "author": "Ash Brener",
       "version": "1.0.2",
       "download_url": "https://github.com/ashbrener/spec-kit-red-team/releases/download/v1.0.2/red-team-v1.0.2.zip",
@@ -1600,7 +1600,7 @@
       "changelog": "https://github.com/ashbrener/spec-kit-red-team/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 2,
@@ -1632,7 +1632,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-refine/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -1664,7 +1664,7 @@
       "changelog": "https://github.com/liuyiyu/spec-kit-repoindex/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "no need",
@@ -1701,7 +1701,7 @@
       "changelog": "https://github.com/arunt14/spec-kit-retro/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1731,7 +1731,7 @@
       "changelog": "https://github.com/emi-dm/spec-kit-retrospective/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1763,7 +1763,7 @@
       "changelog": "https://github.com/ismaelJimenez/spec-kit-review/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 7,
@@ -1797,7 +1797,7 @@
       "changelog": "https://github.com/chordpli/spec-kit-ripple/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.2.0"
+        "kite_version": ">=0.2.0"
       },
       "provides": {
         "commands": 3,
@@ -1829,7 +1829,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-scope-/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -1862,7 +1862,7 @@
       "changelog": "https://github.com/DyanGalih/spec-kit-security-review/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 3,
@@ -1882,7 +1882,7 @@
       "updated_at": "2026-04-03T04:15:00Z"
     },
     "sf": {
-      "name": "SFSpeckit — Salesforce Spec-Driven Development",
+      "name": "SFKite — Salesforce Spec-Driven Development",
       "id": "sf",
       "description": "Enterprise-Grade Spec-Driven Development (SDD) Framework for Salesforce.",
       "author": "Sumanth Yanamala",
@@ -1894,7 +1894,7 @@
       "changelog": "https://github.com/ysumanth06/spec-kit-sf/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0",
+        "kite_version": ">=0.4.0",
         "tools": [
           {
             "name": "sf",
@@ -1938,7 +1938,7 @@
       "changelog": "https://github.com/arunt14/spec-kit-ship/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -1968,7 +1968,7 @@
       "changelog": "https://github.com/KevinBrown5280/spec-kit-spec-reference-loader/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.6.0"
+        "kite_version": ">=0.6.0"
       },
       "provides": {
         "commands": 1,
@@ -1989,7 +1989,7 @@
     "spec-validate": {
       "name": "Spec Validate",
       "id": "spec-validate",
-      "description": "Comprehension validation, review gating, and approval state for spec-kit artifacts — staged-reveal quizzes, peer review SLA, and a hard gate before /speckit.implement.",
+      "description": "Comprehension validation, review gating, and approval state for spec-kit artifacts — staged-reveal quizzes, peer review SLA, and a hard gate before /kite.implement.",
       "author": "Ahmed Eltayeb",
       "version": "1.0.1",
       "download_url": "https://github.com/aeltayeb/spec-kit-spec-validate/archive/refs/tags/v1.0.1.zip",
@@ -1999,7 +1999,7 @@
       "changelog": "https://github.com/aeltayeb/spec-kit-spec-validate/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.5.0"
+        "kite_version": ">=0.5.0"
       },
       "provides": {
         "commands": 6,
@@ -2018,20 +2018,20 @@
       "created_at": "2026-04-20T00:00:00Z",
       "updated_at": "2026-04-21T00:00:00Z"
     },
-    "speckit-utils": {
+    "kite-utils": {
       "name": "SDD Utilities",
-      "id": "speckit-utils",
+      "id": "kite-utils",
       "description": "Resume interrupted workflows, validate project health, and verify spec-to-task traceability.",
       "author": "mvanhorn",
       "version": "1.0.0",
-      "download_url": "https://github.com/mvanhorn/speckit-utils/archive/refs/tags/v1.0.0.zip",
-      "repository": "https://github.com/mvanhorn/speckit-utils",
-      "homepage": "https://github.com/mvanhorn/speckit-utils",
-      "documentation": "https://github.com/mvanhorn/speckit-utils/blob/main/README.md",
-      "changelog": "https://github.com/mvanhorn/speckit-utils/blob/main/CHANGELOG.md",
+      "download_url": "https://github.com/mvanhorn/kite-utils/archive/refs/tags/v1.0.0.zip",
+      "repository": "https://github.com/mvanhorn/kite-utils",
+      "homepage": "https://github.com/mvanhorn/kite-utils",
+      "documentation": "https://github.com/mvanhorn/kite-utils/blob/main/README.md",
+      "changelog": "https://github.com/mvanhorn/kite-utils/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 3,
@@ -2063,7 +2063,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-spectest/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 4,
@@ -2096,7 +2096,7 @@
       "changelog": "https://github.com/arunt14/spec-kit-staff-review/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -2126,7 +2126,7 @@
       "changelog": "https://github.com/KhawarHabibKhan/spec-kit-status/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -2158,7 +2158,7 @@
       "changelog": "https://github.com/Open-Agent-Tools/spec-kit-status/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -2188,7 +2188,7 @@
       "changelog": "https://github.com/RbBtSn0w/spec-kit-extensions/blob/main/superpowers-bridge/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.3",
+        "kite_version": ">=0.4.3",
         "tools": [
           {
             "name": "superpowers",
@@ -2231,7 +2231,7 @@
       "changelog": "https://github.com/WangX0111/superspec/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 5,
@@ -2264,7 +2264,7 @@
       "changelog": "https://github.com/bgervin/spec-kit-sync/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 5,
@@ -2296,7 +2296,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-tinyspec/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -2328,7 +2328,7 @@
       "changelog": "https://github.com/leocamello/spec-kit-v-model/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 14,
@@ -2360,7 +2360,7 @@
       "changelog": "https://github.com/ismaelJimenez/spec-kit-verify/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -2392,7 +2392,7 @@
       "changelog": "https://github.com/datastone-inc/spec-kit-verify-tasks/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "commands": 1,
@@ -2423,7 +2423,7 @@
       "changelog": "https://github.com/KevinBrown5280/spec-kit-version-guard/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.2.0"
+        "kite_version": ">=0.2.0"
       },
       "provides": {
         "commands": 3,
@@ -2452,7 +2452,7 @@
       "documentation": "https://github.com/DevAbdullah90/spec-kit-whatif/blob/main/README.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.6.0"
+        "kite_version": ">=0.6.0"
       },
       "provides": {
         "commands": 1,
@@ -2472,7 +2472,7 @@
     "wireframe": {
       "name": "Wireframe Visual Feedback Loop",
       "id": "wireframe",
-      "description": "SVG wireframe generation, review, and sign-off for spec-driven development. Approved wireframes become spec constraints honored by /speckit.plan, /speckit.tasks, and /speckit.implement.",
+      "description": "SVG wireframe generation, review, and sign-off for spec-driven development. Approved wireframes become spec constraints honored by /kite.plan, /kite.tasks, and /kite.implement.",
       "author": "TortoiseWolfe",
       "version": "0.1.1",
       "download_url": "https://github.com/TortoiseWolfe/spec-kit-extension-wireframe/archive/refs/tags/v0.1.1.zip",
@@ -2482,7 +2482,7 @@
       "changelog": "https://github.com/TortoiseWolfe/spec-kit-extension-wireframe/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.6.0"
+        "kite_version": ">=0.6.0"
       },
       "provides": {
         "commands": 6,
@@ -2517,7 +2517,7 @@
       "changelog": "https://github.com/Quratulain-bilal/spec-kit-worktree/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,
@@ -2549,7 +2549,7 @@
       "changelog": "https://github.com/dango85/spec-kit-worktree-parallel/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.4.0"
+        "kite_version": ">=0.4.0"
       },
       "provides": {
         "commands": 3,

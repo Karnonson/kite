@@ -1,6 +1,6 @@
 """Shared test helpers for integration tests."""
 
-from specify_cli.integrations.base import MarkdownIntegration
+from kite_cli.integrations.base import MarkdownIntegration
 
 
 class StubIntegration(MarkdownIntegration):

@@ -5,16 +5,16 @@ Each per-agent test file sets ``KEY``, ``FOLDER``, ``COMMANDS_SUBDIR``,
 logic from ``SkillsIntegrationTests``.
 
 Mirrors ``MarkdownIntegrationTests`` / ``TomlIntegrationTests`` closely,
-adapted for the ``speckit-<name>/SKILL.md`` skills layout.
+adapted for the ``kite-<name>/SKILL.md`` skills layout.
 """
 
 import os
 
 import yaml
 
-from specify_cli.integrations import INTEGRATION_REGISTRY, get_integration
-from specify_cli.integrations.base import SkillsIntegration
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import INTEGRATION_REGISTRY, get_integration
+from kite_cli.integrations.base import SkillsIntegration
+from kite_cli.integrations.manifest import IntegrationManifest
 
 
 class SkillsIntegrationTests:
@@ -76,7 +76,7 @@ class SkillsIntegrationTests:
         for f in skill_files:
             assert f.exists()
             assert f.name == "SKILL.md"
-            assert f.parent.name.startswith("speckit-")
+            assert f.parent.name.startswith("kite-")
 
     def test_setup_writes_to_correct_directory(self, tmp_path):
         i = get_integration(self.KEY)
@@ -87,13 +87,13 @@ class SkillsIntegrationTests:
         skill_files = [f for f in created if "scripts" not in f.parts]
         assert len(skill_files) > 0, "No skill files were created"
         for f in skill_files:
-            # Each SKILL.md is in speckit-<name>/ under the skills directory
+            # Each SKILL.md is in kite-<name>/ under the skills directory
             assert f.resolve().parent.parent == expected_dir.resolve(), (
                 f"{f} is not under {expected_dir}"
             )
 
     def test_skill_directory_structure(self, tmp_path):
-        """Each command produces speckit-<name>/SKILL.md."""
+        """Each command produces kite-<name>/SKILL.md."""
         i = get_integration(self.KEY)
         m = IntegrationManifest(self.KEY, tmp_path)
         created = i.setup(tmp_path, m)
@@ -107,9 +107,9 @@ class SkillsIntegrationTests:
         # Derive command names from the skill directory names
         actual_commands = set()
         for f in skill_files:
-            skill_dir_name = f.parent.name  # e.g. "speckit-plan"
-            assert skill_dir_name.startswith("speckit-")
-            actual_commands.add(skill_dir_name.removeprefix("speckit-"))
+            skill_dir_name = f.parent.name  # e.g. "kite-plan"
+            assert skill_dir_name.startswith("kite-")
+            actual_commands.add(skill_dir_name.removeprefix("kite-"))
 
         assert actual_commands == expected_commands
 
@@ -159,7 +159,7 @@ class SkillsIntegrationTests:
             assert "{SCRIPT}" not in content, f"{f.name} has unprocessed {{SCRIPT}}"
             assert "__AGENT__" not in content, f"{f.name} has unprocessed __AGENT__"
             assert "{ARGS}" not in content, f"{f.name} has unprocessed {{ARGS}}"
-            assert "__SPECKIT_COMMAND_" not in content, f"{f.name} has unprocessed __SPECKIT_COMMAND_*__"
+            assert "__KITE_COMMAND_" not in content, f"{f.name} has unprocessed __KITE_COMMAND_*__"
 
     def test_command_refs_use_hyphen_separator(self, tmp_path):
         """Skills agents must resolve command refs with hyphen separator."""
@@ -170,10 +170,10 @@ class SkillsIntegrationTests:
         assert len(skill_files) > 0
         for f in skill_files:
             content = f.read_text(encoding="utf-8")
-            # Skills agents must use /speckit-<name>, not /speckit.<name>
-            assert "/speckit." not in content, (
-                f"{f.name} contains dot-notation /speckit. reference; "
-                f"skills agents must use /speckit-<name>"
+            # Skills agents must use /kite-<name>, not /kite.<name>
+            assert "/kite." not in content, (
+                f"{f.name} contains dot-notation /kite. reference; "
+                f"skills agents must use /kite-<name>"
             )
 
     def test_skill_body_has_content(self, tmp_path):
@@ -196,7 +196,7 @@ class SkillsIntegrationTests:
             return
         m = IntegrationManifest(self.KEY, tmp_path)
         i.setup(tmp_path, m)
-        plan_file = i.skills_dest(tmp_path) / "speckit-plan" / "SKILL.md"
+        plan_file = i.skills_dest(tmp_path) / "kite-plan" / "SKILL.md"
         assert plan_file.exists(), f"Plan skill {plan_file} not created"
         content = plan_file.read_text(encoding="utf-8")
         assert i.context_file in content, (
@@ -238,7 +238,7 @@ class SkillsIntegrationTests:
         assert modified_file in skipped
 
     def test_pre_existing_skills_not_removed(self, tmp_path):
-        """Pre-existing non-speckit skills should be left untouched."""
+        """Pre-existing non-kite skills should be left untouched."""
         i = get_integration(self.KEY)
         skills_dir = i.skills_dest(tmp_path)
         foreign_dir = skills_dir / "other-tool"
@@ -260,8 +260,8 @@ class SkillsIntegrationTests:
             ctx_path = tmp_path / i.context_file
             assert ctx_path.exists(), f"Context file {i.context_file} not created for {self.KEY}"
             content = ctx_path.read_text(encoding="utf-8")
-            assert "<!-- SPECKIT START -->" in content
-            assert "<!-- SPECKIT END -->" in content
+            assert "<!-- KITE START -->" in content
+            assert "<!-- KITE END -->" in content
             assert "read the current plan" in content
 
     def test_teardown_removes_context_section(self, tmp_path):
@@ -275,15 +275,15 @@ class SkillsIntegrationTests:
             ctx_path.write_text("# My Rules\n\n" + content + "\n# Footer\n", encoding="utf-8")
             i.teardown(tmp_path, m)
             remaining = ctx_path.read_text(encoding="utf-8")
-            assert "<!-- SPECKIT START -->" not in remaining
-            assert "<!-- SPECKIT END -->" not in remaining
+            assert "<!-- KITE START -->" not in remaining
+            assert "<!-- KITE END -->" not in remaining
             assert "# My Rules" in remaining
 
     # -- CLI auto-promote -------------------------------------------------
 
     def test_ai_flag_auto_promotes(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"promote-{self.KEY}"
         project.mkdir()
@@ -304,7 +304,7 @@ class SkillsIntegrationTests:
 
     def test_integration_flag_creates_files(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"int-{self.KEY}"
         project.mkdir()
@@ -327,7 +327,7 @@ class SkillsIntegrationTests:
         """init-options.json must include context_file for the active integration."""
         import json
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"opts-{self.KEY}"
         project.mkdir()
@@ -341,7 +341,7 @@ class SkillsIntegrationTests:
         finally:
             os.chdir(old_cwd)
         assert result.exit_code == 0
-        opts = json.loads((project / ".specify" / "init-options.json").read_text())
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
         i = get_integration(self.KEY)
         assert opts.get("context_file") == i.context_file, (
             f"Expected context_file={i.context_file!r}, got {opts.get('context_file')!r}"
@@ -371,42 +371,42 @@ class SkillsIntegrationTests:
         files = []
         # Skill files
         for cmd in self._SKILL_COMMANDS:
-            files.append(f"{skills_prefix}/speckit-{cmd}/SKILL.md")
+            files.append(f"{skills_prefix}/kite-{cmd}/SKILL.md")
         # Integration metadata
         files += [
-            ".specify/init-options.json",
-            ".specify/integration.json",
-            f".specify/integrations/{self.KEY}.manifest.json",
-            ".specify/integrations/speckit.manifest.json",
-            ".specify/memory/constitution.md",
+            ".kite/init-options.json",
+            ".kite/integration.json",
+            f".kite/integrations/{self.KEY}.manifest.json",
+            ".kite/integrations/kite.manifest.json",
+            ".kite/memory/constitution.md",
         ]
         # Script variant
         if script_variant == "sh":
             files += [
-                ".specify/scripts/bash/check-prerequisites.sh",
-                ".specify/scripts/bash/common.sh",
-                ".specify/scripts/bash/create-new-feature.sh",
-                ".specify/scripts/bash/setup-plan.sh",
+                ".kite/scripts/bash/check-prerequisites.sh",
+                ".kite/scripts/bash/common.sh",
+                ".kite/scripts/bash/create-new-feature.sh",
+                ".kite/scripts/bash/setup-plan.sh",
             ]
         else:
             files += [
-                ".specify/scripts/powershell/check-prerequisites.ps1",
-                ".specify/scripts/powershell/common.ps1",
-                ".specify/scripts/powershell/create-new-feature.ps1",
-                ".specify/scripts/powershell/setup-plan.ps1",
+                ".kite/scripts/powershell/check-prerequisites.ps1",
+                ".kite/scripts/powershell/common.ps1",
+                ".kite/scripts/powershell/create-new-feature.ps1",
+                ".kite/scripts/powershell/setup-plan.ps1",
             ]
         # Templates
         files += [
-            ".specify/templates/checklist-template.md",
-            ".specify/templates/constitution-template.md",
-            ".specify/templates/plan-template.md",
-            ".specify/templates/spec-template.md",
-            ".specify/templates/tasks-template.md",
+            ".kite/templates/checklist-template.md",
+            ".kite/templates/constitution-template.md",
+            ".kite/templates/plan-template.md",
+            ".kite/templates/spec-template.md",
+            ".kite/templates/tasks-template.md",
         ]
         # Bundled workflow
         files += [
-            ".specify/workflows/speckit/workflow.yml",
-            ".specify/workflows/workflow-registry.json",
+            ".kite/workflows/kite/workflow.yml",
+            ".kite/workflows/workflow-registry.json",
         ]
         # Agent context file (if set)
         if i.context_file:
@@ -414,9 +414,9 @@ class SkillsIntegrationTests:
         return sorted(files)
 
     def test_complete_file_inventory_sh(self, tmp_path):
-        """Every file produced by specify init --integration <key> --script sh."""
+        """Every file produced by kite init --integration <key> --script sh."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"inventory-sh-{self.KEY}"
         project.mkdir()
@@ -441,9 +441,9 @@ class SkillsIntegrationTests:
         )
 
     def test_complete_file_inventory_ps(self, tmp_path):
-        """Every file produced by specify init --integration <key> --script ps."""
+        """Every file produced by kite init --integration <key> --script ps."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"inventory-ps-{self.KEY}"
         project.mkdir()

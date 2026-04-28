@@ -188,7 +188,7 @@ clean_branch_name() {
     echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//'
 }
 
-# Resolve repository root using common.sh functions which prioritize .specify over git
+# Resolve repository root using common.sh functions which prioritize .kite over git
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
@@ -267,7 +267,7 @@ fi
 
 # Warn if --number and --timestamp are both specified
 if [ "$USE_TIMESTAMP" = true ] && [ -n "$BRANCH_NUMBER" ]; then
-    >&2 echo "[specify] Warning: --number is ignored when --timestamp is used"
+    >&2 echo "[kite] Warning: --number is ignored when --timestamp is used"
     BRANCH_NUMBER=""
 fi
 
@@ -317,9 +317,9 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
     BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
     
-    >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
-    >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
-    >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
+    >&2 echo "[kite] Warning: Branch name exceeded GitHub's 244-byte limit"
+    >&2 echo "[kite] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
+    >&2 echo "[kite] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
@@ -362,7 +362,7 @@ if [ "$DRY_RUN" != true ]; then
             fi
         fi
     else
-        >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
+        >&2 echo "[kite] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
     fi
 
     mkdir -p "$FEATURE_DIR"

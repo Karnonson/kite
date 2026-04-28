@@ -9,17 +9,17 @@ This command drives a self-test simulating the developer experience with the `$A
 ## Goal
 
 Validate the end-to-end lifecycle (discovery, installation, registration) for the extension: `$ARGUMENTS`.
-If `$ARGUMENTS` is empty, you must tell the user to provide an extension name, for example: `/speckit.selftest.extension linear`.
+If `$ARGUMENTS` is empty, you must tell the user to provide an extension name, for example: `/kite.selftest.extension linear`.
 
 ## Steps
 
 ### Step 1: Catalog Discovery Validation
 
-Check if the extension exists in the Spec Kit catalog.
+Check if the extension exists in the Kite catalog.
 Execute this command and verify that it completes successfully and that the returned extension ID exactly matches `$ARGUMENTS`. If the command fails or the ID does not match `$ARGUMENTS`, fail the test.
 
 ```bash
-specify extension info "$ARGUMENTS"
+kite extension info "$ARGUMENTS"
 ```
 
 ### Step 2: Simulate Installation
@@ -27,14 +27,14 @@ specify extension info "$ARGUMENTS"
 First, try to add the extension to the current workspace configuration directly. If the catalog provides the extension as `install_allowed: false` (discovery-only), this step is *expected* to fail.
 
 ```bash
-specify extension add "$ARGUMENTS"
+kite extension add "$ARGUMENTS"
 ```
 
 Then, simulate adding the extension by installing it from its catalog download URL, which should bypass the restriction.
 Obtain the extension's `download_url` from the catalog metadata (for example, via a catalog info command or UI), then run:
 
 ```bash
-specify extension add "$ARGUMENTS" --from "<download_url>"
+kite extension add "$ARGUMENTS" --from "<download_url>"
 ```
 
 ### Step 3: Registration Verification
@@ -43,7 +43,7 @@ Once the `add` command completes, verify the installation by checking the projec
 Use terminal tools (like `cat`) to verify that the following file contains a record for `$ARGUMENTS`.
 
 ```bash
-cat .specify/extensions/.registry/$ARGUMENTS.json
+cat .kite/extensions/.registry/$ARGUMENTS.json
 ```
 
 ### Step 4: Verification Report
@@ -57,10 +57,10 @@ Example output format:
 collected 3 items
 
 test_selftest_discovery.py::test_catalog_search [PASS/FAIL]
-  Details: [Provide execution result of specify extension search]
+  Details: [Provide execution result of kite extension search]
 
 test_selftest_installation.py::test_extension_add [PASS/FAIL]
-  Details: [Provide execution result of specify extension add]
+  Details: [Provide execution result of kite extension add]
 
 test_selftest_registration.py::test_config_verification [PASS/FAIL]
   Details: [Provide execution result of registry record verification]

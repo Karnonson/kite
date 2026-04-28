@@ -1,12 +1,12 @@
-# Spec Kit Integration Catalog
+# Kite Integration Catalog
 
-The integration catalog enables discovery, versioning, and distribution of AI agent integrations for Spec Kit.
+The integration catalog enables discovery, versioning, and distribution of AI agent integrations for Kite.
 
 ## Catalog Files
 
 ### Built-In Catalog (`catalog.json`)
 
-Contains integrations that ship with Spec Kit. These are maintained by the core team and always installable.
+Contains integrations that ship with Kite. These are maintained by the core team and always installable.
 
 ### Community Catalog (`catalog.community.json`)
 
@@ -16,9 +16,9 @@ Community-contributed integrations. Listed for discovery only — users install 
 
 The catalog stack is resolved in this order (first match wins):
 
-1. **Environment variable** — `SPECKIT_INTEGRATION_CATALOG_URL` overrides all catalogs with a single URL
-2. **Project config** — `.specify/integration-catalogs.yml` in the project root
-3. **User config** — `~/.specify/integration-catalogs.yml` in the user home directory
+1. **Environment variable** — `KITE_INTEGRATION_CATALOG_URL` overrides all catalogs with a single URL
+2. **Project config** — `.kite/integration-catalogs.yml` in the project root
+3. **User config** — `~/.kite/integration-catalogs.yml` in the user home directory
 4. **Built-in defaults** — `catalog.json` + `catalog.community.json`
 
 Example `integration-catalogs.yml`:
@@ -35,19 +35,19 @@ catalogs:
 
 ```bash
 # List built-in integrations (default)
-specify integration list
+kite integration list
 
 # Browse full catalog (built-in + community)
-specify integration list --catalog
+kite integration list --catalog
 
 # Install an integration
-specify integration install copilot
+kite integration install copilot
 
 # Upgrade the current integration (diff-aware)
-specify integration upgrade
+kite integration upgrade
 
 # Upgrade with force (overwrite modified files)
-specify integration upgrade --force
+kite integration upgrade --force
 ```
 
 ## Integration Descriptor (`integration.yml`)
@@ -62,20 +62,20 @@ integration:
   version: "1.0.0"
   description: "Integration for My Agent"
   author: "my-org"
-  repository: "https://github.com/my-org/speckit-my-agent"
+  repository: "https://github.com/my-org/kite-my-agent"
   license: "MIT"
 requires:
-  speckit_version: ">=0.6.0"
+  kite_version: ">=0.6.0"
   tools:
     - name: "my-agent"
       version: ">=1.0.0"
       required: true
 provides:
   commands:
-    - name: "speckit.specify"
-      file: "templates/speckit.specify.md"
-    - name: "speckit.plan"
-      file: "templates/speckit.plan.md"
+    - name: "kite.specify"
+      file: "templates/kite.specify.md"
+    - name: "kite.plan"
+      file: "templates/kite.plan.md"
   scripts:
     - update-context.sh
     - update-context.ps1
@@ -97,7 +97,7 @@ Both catalog files follow the same JSON schema:
       "version": "1.0.0",
       "description": "Integration for My Agent",
       "author": "my-org",
-      "repository": "https://github.com/my-org/speckit-my-agent",
+      "repository": "https://github.com/my-org/kite-my-agent",
       "tags": ["cli"]
     }
   }

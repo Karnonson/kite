@@ -19,7 +19,7 @@ class TestKiroAlias:
     def test_kiro_alias_normalized_to_kiro_cli(self, tmp_path):
         """--ai kiro should normalize to canonical kiro-cli and auto-promote."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         target = tmp_path / "kiro-alias-proj"
         target.mkdir()
@@ -36,4 +36,4 @@ class TestKiroAlias:
             os.chdir(old_cwd)
 
         assert result.exit_code == 0
-        assert (target / ".kiro" / "prompts" / "speckit.plan.md").exists()
+        assert (target / ".kiro" / "prompts" / "kite.plan.md").exists()

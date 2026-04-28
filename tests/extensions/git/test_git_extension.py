@@ -47,7 +47,7 @@ def _init_git(path: Path) -> None:
 
 
 def _setup_project(tmp_path: Path, *, git: bool = True) -> Path:
-    """Create a project directory with core scripts and .specify."""
+    """Create a project directory with core scripts and .kite."""
     # Core scripts (needed by extension scripts that source common.sh)
     bash_dir = tmp_path / "scripts" / "bash"
     bash_dir.mkdir(parents=True)
@@ -57,24 +57,24 @@ def _setup_project(tmp_path: Path, *, git: bool = True) -> Path:
     ps_dir.mkdir(parents=True)
     shutil.copy(CORE_COMMON_PS, ps_dir / "common.ps1")
 
-    # .specify structure
-    (tmp_path / ".specify" / "templates").mkdir(parents=True)
+    # .kite structure
+    (tmp_path / ".kite" / "templates").mkdir(parents=True)
 
     # Extension scripts (as if installed)
-    ext_bash = tmp_path / ".specify" / "extensions" / "git" / "scripts" / "bash"
+    ext_bash = tmp_path / ".kite" / "extensions" / "git" / "scripts" / "bash"
     ext_bash.mkdir(parents=True)
     for f in EXT_BASH.iterdir():
         dest = ext_bash / f.name
         shutil.copy(f, dest)
         dest.chmod(0o755)
 
-    ext_ps = tmp_path / ".specify" / "extensions" / "git" / "scripts" / "powershell"
+    ext_ps = tmp_path / ".kite" / "extensions" / "git" / "scripts" / "powershell"
     ext_ps.mkdir(parents=True)
     for f in EXT_PS.iterdir():
         shutil.copy(f, ext_ps / f.name)
 
     # Copy extension.yml
-    shutil.copy(EXT_DIR / "extension.yml", tmp_path / ".specify" / "extensions" / "git" / "extension.yml")
+    shutil.copy(EXT_DIR / "extension.yml", tmp_path / ".kite" / "extensions" / "git" / "extension.yml")
 
     if git:
         _init_git(tmp_path)
@@ -84,7 +84,7 @@ def _setup_project(tmp_path: Path, *, git: bool = True) -> Path:
 
 def _write_config(project: Path, content: str) -> Path:
     """Write git-config.yml into the extension config directory."""
-    config_path = project / ".specify" / "extensions" / "git" / "git-config.yml"
+    config_path = project / ".kite" / "extensions" / "git" / "git-config.yml"
     config_path.write_text(content, encoding="utf-8")
     return config_path
 
@@ -100,7 +100,7 @@ _GIT_ENV = {
 
 def _run_bash(script_name: str, cwd: Path, *args: str, env_extra: dict | None = None) -> subprocess.CompletedProcess:
     """Run an extension bash script."""
-    script = cwd / ".specify" / "extensions" / "git" / "scripts" / "bash" / script_name
+    script = cwd / ".kite" / "extensions" / "git" / "scripts" / "bash" / script_name
     env = {**os.environ, **_GIT_ENV, **(env_extra or {})}
     return subprocess.run(
         ["bash", str(script), *args],
@@ -113,7 +113,7 @@ def _run_bash(script_name: str, cwd: Path, *args: str, env_extra: dict | None = 
 
 def _run_pwsh(script_name: str, cwd: Path, *args: str) -> subprocess.CompletedProcess:
     """Run an extension PowerShell script."""
-    script = cwd / ".specify" / "extensions" / "git" / "scripts" / "powershell" / script_name
+    script = cwd / ".kite" / "extensions" / "git" / "scripts" / "powershell" / script_name
     env = {**os.environ, **_GIT_ENV}
     return subprocess.run(
         ["pwsh", "-NoProfile", "-File", str(script), *args],
@@ -130,7 +130,7 @@ def _run_pwsh(script_name: str, cwd: Path, *args: str) -> subprocess.CompletedPr
 class TestGitExtensionManifest:
     def test_manifest_validates(self):
         """extension.yml passes manifest validation."""
-        from specify_cli.extensions import ExtensionManifest
+        from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
         assert m.id == "git"
@@ -138,31 +138,31 @@ class TestGitExtensionManifest:
 
     def test_manifest_commands(self):
         """Manifest declares expected commands."""
-        from specify_cli.extensions import ExtensionManifest
+        from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
         names = [c["name"] for c in m.commands]
-        assert "speckit.git.feature" in names
-        assert "speckit.git.validate" in names
-        assert "speckit.git.remote" in names
-        assert "speckit.git.initialize" in names
-        assert "speckit.git.commit" in names
+        assert "kite.git.feature" in names
+        assert "kite.git.validate" in names
+        assert "kite.git.remote" in names
+        assert "kite.git.initialize" in names
+        assert "kite.git.commit" in names
 
     def test_manifest_hooks(self):
         """Manifest declares expected hooks."""
-        from specify_cli.extensions import ExtensionManifest
+        from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
         assert "before_constitution" in m.hooks
         assert "before_specify" in m.hooks
         assert "after_specify" in m.hooks
         assert "after_implement" in m.hooks
-        assert m.hooks["before_constitution"]["command"] == "speckit.git.initialize"
-        assert m.hooks["before_specify"]["command"] == "speckit.git.feature"
+        assert m.hooks["before_constitution"]["command"] == "kite.git.initialize"
+        assert m.hooks["before_specify"]["command"] == "kite.git.feature"
 
     def test_manifest_command_files_exist(self):
         """All command files referenced in the manifest exist."""
-        from specify_cli.extensions import ExtensionManifest
+        from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
         for cmd in m.commands:
@@ -176,9 +176,9 @@ class TestGitExtensionManifest:
 class TestGitExtensionInstall:
     def test_install_from_directory(self, tmp_path: Path):
         """Extension installs via ExtensionManager.install_from_directory."""
-        from specify_cli.extensions import ExtensionManager
+        from kite_cli.extensions import ExtensionManager
 
-        (tmp_path / ".specify").mkdir()
+        (tmp_path / ".kite").mkdir()
         manager = ExtensionManager(tmp_path)
         manifest = manager.install_from_directory(EXT_DIR, "0.5.0", register_commands=False)
         assert manifest.id == "git"
@@ -186,13 +186,13 @@ class TestGitExtensionInstall:
 
     def test_install_copies_scripts(self, tmp_path: Path):
         """Extension install copies script files."""
-        from specify_cli.extensions import ExtensionManager
+        from kite_cli.extensions import ExtensionManager
 
-        (tmp_path / ".specify").mkdir()
+        (tmp_path / ".kite").mkdir()
         manager = ExtensionManager(tmp_path)
         manager.install_from_directory(EXT_DIR, "0.5.0", register_commands=False)
 
-        ext_installed = tmp_path / ".specify" / "extensions" / "git"
+        ext_installed = tmp_path / ".kite" / "extensions" / "git"
         assert (ext_installed / "scripts" / "bash" / "create-new-feature.sh").is_file()
         assert (ext_installed / "scripts" / "bash" / "initialize-repo.sh").is_file()
         assert (ext_installed / "scripts" / "bash" / "auto-commit.sh").is_file()
@@ -204,7 +204,7 @@ class TestGitExtensionInstall:
 
     def test_bundled_extension_locator(self):
         """_locate_bundled_extension finds the git extension."""
-        from specify_cli import _locate_bundled_extension
+        from kite_cli import _locate_bundled_extension
 
         path = _locate_bundled_extension("git")
         assert path is not None
@@ -477,7 +477,7 @@ class TestAutoCommitBash:
         """auto-commit.sh exits silently when no config file exists."""
         project = _setup_project(tmp_path)
         # Remove config if it was copied
-        config = project / ".specify" / "extensions" / "git" / "git-config.yml"
+        config = project / ".kite" / "extensions" / "git" / "git-config.yml"
         config.unlink(missing_ok=True)
 
         result = _run_bash("auto-commit.sh", project, "after_specify")
@@ -723,7 +723,7 @@ class TestAutoCommitPowerShellCRLF:
             ["git", "config", "core.autocrlf", "true"],
             cwd=project, check=True,
         )
-        config = project / ".specify" / "extensions" / "git" / "git-config.yml"
+        config = project / ".kite" / "extensions" / "git" / "git-config.yml"
         config.unlink(missing_ok=True)
 
         result = _run_pwsh("auto-commit.ps1", project, "after_specify")
@@ -744,7 +744,7 @@ class TestGitCommonBash:
     def test_has_git_true(self, tmp_path: Path):
         """has_git returns 0 in a git repo."""
         project = _setup_project(tmp_path, git=True)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && has_git "{project}"'],
             capture_output=True, text=True,
@@ -754,7 +754,7 @@ class TestGitCommonBash:
     def test_has_git_false(self, tmp_path: Path):
         """has_git returns non-zero outside a git repo."""
         project = _setup_project(tmp_path, git=False)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && has_git "{project}"'],
             capture_output=True, text=True,
@@ -764,7 +764,7 @@ class TestGitCommonBash:
     def test_check_feature_branch_sequential(self, tmp_path: Path):
         """check_feature_branch accepts sequential branch names."""
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "001-my-feature" "true"'],
             capture_output=True, text=True,
@@ -774,7 +774,7 @@ class TestGitCommonBash:
     def test_check_feature_branch_timestamp(self, tmp_path: Path):
         """check_feature_branch accepts timestamp branch names."""
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "20260319-143022-feat" "true"'],
             capture_output=True, text=True,
@@ -784,7 +784,7 @@ class TestGitCommonBash:
     def test_check_feature_branch_rejects_main(self, tmp_path: Path):
         """check_feature_branch rejects non-feature branch names."""
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "main" "true"'],
             capture_output=True, text=True,
@@ -794,7 +794,7 @@ class TestGitCommonBash:
     def test_check_feature_branch_rejects_malformed_timestamp(self, tmp_path: Path):
         """check_feature_branch rejects malformed timestamps (7-digit date)."""
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "2026031-143022-feat" "true"'],
             capture_output=True, text=True,
@@ -804,7 +804,7 @@ class TestGitCommonBash:
     def test_check_feature_branch_accepts_single_prefix(self, tmp_path: Path):
         """git-common check_feature_branch matches core: one optional path prefix."""
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "feat/001-my-feature" "true"'],
             capture_output=True, text=True,
@@ -813,7 +813,7 @@ class TestGitCommonBash:
 
     def test_check_feature_branch_rejects_nested_prefix(self, tmp_path: Path):
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
         result = subprocess.run(
             ["bash", "-c", f'source "{script}" && check_feature_branch "feat/fix/001-x" "true"'],
             capture_output=True, text=True,
@@ -825,7 +825,7 @@ class TestGitCommonBash:
 class TestGitCommonPowerShell:
     def test_test_feature_branch_accepts_single_prefix(self, tmp_path: Path):
         project = _setup_project(tmp_path)
-        script = project / ".specify" / "extensions" / "git" / "scripts" / "powershell" / "git-common.ps1"
+        script = project / ".kite" / "extensions" / "git" / "scripts" / "powershell" / "git-common.ps1"
         result = subprocess.run(
             [
                 "pwsh",

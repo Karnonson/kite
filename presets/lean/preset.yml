@@ -10,39 +10,39 @@ preset:
   license: "MIT"
 
 requires:
-  speckit_version: ">=0.6.0"
+  kite_version: ">=0.6.0"
 
 provides:
   templates:
     - type: "command"
-      name: "speckit.specify"
-      file: "commands/speckit.specify.md"
+      name: "kite.specify"
+      file: "commands/kite.specify.md"
       description: "Lean specify - create spec.md from a feature description"
-      replaces: "speckit.specify"
+      replaces: "kite.specify"
 
     - type: "command"
-      name: "speckit.plan"
-      file: "commands/speckit.plan.md"
+      name: "kite.plan"
+      file: "commands/kite.plan.md"
       description: "Lean plan - create plan.md from the spec"
-      replaces: "speckit.plan"
+      replaces: "kite.plan"
 
     - type: "command"
-      name: "speckit.tasks"
-      file: "commands/speckit.tasks.md"
+      name: "kite.tasks"
+      file: "commands/kite.tasks.md"
       description: "Lean tasks - create tasks.md from plan and spec"
-      replaces: "speckit.tasks"
+      replaces: "kite.tasks"
 
     - type: "command"
-      name: "speckit.implement"
-      file: "commands/speckit.implement.md"
+      name: "kite.implement"
+      file: "commands/kite.implement.md"
       description: "Lean implement - execute tasks from tasks.md"
-      replaces: "speckit.implement"
+      replaces: "kite.implement"
 
     - type: "command"
-      name: "speckit.constitution"
-      file: "commands/speckit.constitution.md"
+      name: "kite.constitution"
+      file: "commands/kite.constitution.md"
       description: "Lean constitution - create or update project constitution"
-      replaces: "speckit.constitution"
+      replaces: "kite.constitution"
 
 tags:
   - "lean"

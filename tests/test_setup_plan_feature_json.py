@@ -22,21 +22,21 @@ _POWERSHELL = shutil.which("powershell.exe") or shutil.which("powershell")
 
 
 def _install_bash_scripts(repo: Path) -> None:
-    d = repo / ".specify" / "scripts" / "bash"
+    d = repo / ".kite" / "scripts" / "bash"
     d.mkdir(parents=True, exist_ok=True)
     shutil.copy(COMMON_SH, d / "common.sh")
     shutil.copy(SETUP_PLAN_SH, d / "setup-plan.sh")
 
 
 def _install_ps_scripts(repo: Path) -> None:
-    d = repo / ".specify" / "scripts" / "powershell"
+    d = repo / ".kite" / "scripts" / "powershell"
     d.mkdir(parents=True, exist_ok=True)
     shutil.copy(COMMON_PS, d / "common.ps1")
     shutil.copy(SETUP_PLAN_PS, d / "setup-plan.ps1")
 
 
 def _minimal_templates(repo: Path) -> None:
-    tdir = repo / ".specify" / "templates"
+    tdir = repo / ".kite" / "templates"
     tdir.mkdir(parents=True, exist_ok=True)
     shutil.copy(PLAN_TEMPLATE, tdir / "plan-template.md")
 
@@ -47,7 +47,7 @@ def _clean_env() -> dict[str, str]:
     setup-plan.{sh,ps1} honors SPECIFY_FEATURE, SPECIFY_FEATURE_DIRECTORY, etc.,
     which would otherwise leak from a developer shell or CI runner and make these
     tests flaky. Stripping them forces every case to rely purely on git branch +
-    .specify/feature.json state set up by the fixture.
+    .kite/feature.json state set up by the fixture.
     """
     env = os.environ.copy()
     for key in list(env):
@@ -72,7 +72,7 @@ def plan_repo(tmp_path: Path) -> Path:
     repo = tmp_path / "proj"
     repo.mkdir()
     _git_init(repo)
-    (repo / ".specify").mkdir()
+    (repo / ".kite").mkdir()
     _minimal_templates(repo)
     _install_bash_scripts(repo)
     _install_ps_scripts(repo)
@@ -89,11 +89,11 @@ def test_setup_plan_passes_custom_branch_when_feature_json_valid(plan_repo: Path
     feat = plan_repo / "specs" / "001-tiny-notes-app"
     feat.mkdir(parents=True)
     (feat / "spec.md").write_text("# spec\n", encoding="utf-8")
-    (plan_repo / ".specify" / "feature.json").write_text(
+    (plan_repo / ".kite" / "feature.json").write_text(
         json.dumps({"feature_directory": "specs/001-tiny-notes-app"}),
         encoding="utf-8",
     )
-    script = plan_repo / ".specify" / "scripts" / "bash" / "setup-plan.sh"
+    script = plan_repo / ".kite" / "scripts" / "bash" / "setup-plan.sh"
     result = subprocess.run(
         ["bash", str(script)],
         cwd=plan_repo,
@@ -113,7 +113,7 @@ def test_setup_plan_fails_custom_branch_without_feature_json(plan_repo: Path) ->
         cwd=plan_repo,
         check=True,
     )
-    script = plan_repo / ".specify" / "scripts" / "bash" / "setup-plan.sh"
+    script = plan_repo / ".kite" / "scripts" / "bash" / "setup-plan.sh"
     result = subprocess.run(
         ["bash", str(script)],
         cwd=plan_repo,
@@ -138,7 +138,7 @@ def test_setup_plan_numbered_branch_unchanged_without_feature_json(
     feat = plan_repo / "specs" / "001-tiny-notes-app"
     feat.mkdir(parents=True)
     (feat / "spec.md").write_text("# spec\n", encoding="utf-8")
-    script = plan_repo / ".specify" / "scripts" / "bash" / "setup-plan.sh"
+    script = plan_repo / ".kite" / "scripts" / "bash" / "setup-plan.sh"
     result = subprocess.run(
         ["bash", str(script)],
         cwd=plan_repo,
@@ -161,11 +161,11 @@ def test_setup_plan_ps_passes_custom_branch_when_feature_json_valid(plan_repo: P
     feat = plan_repo / "specs" / "001-tiny-notes-app"
     feat.mkdir(parents=True)
     (feat / "spec.md").write_text("# spec\n", encoding="utf-8")
-    (plan_repo / ".specify" / "feature.json").write_text(
+    (plan_repo / ".kite" / "feature.json").write_text(
         json.dumps({"feature_directory": "specs/001-tiny-notes-app"}),
         encoding="utf-8",
     )
-    script = plan_repo / ".specify" / "scripts" / "powershell" / "setup-plan.ps1"
+    script = plan_repo / ".kite" / "scripts" / "powershell" / "setup-plan.ps1"
     exe = "pwsh" if HAS_PWSH else _POWERSHELL
     result = subprocess.run(
         [exe, "-NoProfile", "-File", str(script)],
@@ -188,7 +188,7 @@ def test_setup_plan_ps_fails_custom_branch_without_feature_json(
         cwd=plan_repo,
         check=True,
     )
-    script = plan_repo / ".specify" / "scripts" / "powershell" / "setup-plan.ps1"
+    script = plan_repo / ".kite" / "scripts" / "powershell" / "setup-plan.ps1"
     exe = "pwsh" if HAS_PWSH else _POWERSHELL
     result = subprocess.run(
         [exe, "-NoProfile", "-File", str(script)],

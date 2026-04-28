@@ -1,6 +1,6 @@
 # Extension Template
 
-Starter template for creating a Spec Kit extension.
+Starter template for creating a Kite extension.
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ Starter template for creating a Spec Kit extension.
 
    ```bash
    cd /path/to/spec-kit-project
-   specify extension add --dev /path/to/my-extension
+   kite extension add --dev /path/to/my-extension
    ```
 
 7. **Publish** (optional):
@@ -76,4 +76,4 @@ Starter template for creating a Spec Kit extension.
 
 - Version: 1.0.0
 - Last Updated: 2026-01-28
-- Compatible with Spec Kit: >=0.1.0
+- Compatible with Kite: >=0.1.0

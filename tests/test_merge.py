@@ -1,7 +1,7 @@
 import stat
 
-from specify_cli import merge_json_files
-from specify_cli import handle_vscode_settings
+from kite_cli import merge_json_files
+from kite_cli import handle_vscode_settings
 
 # --- Dimension 2: Polite Deep Merge Strategy ---
 
@@ -77,11 +77,11 @@ def test_merge_vscode_realistic_scenario(tmp_path):
     
     template_settings = {
         "chat.promptFilesRecommendations": {
-            "speckit.specify": True,
-            "speckit.plan": True
+            "kite.specify": True,
+            "kite.plan": True
         },
         "chat.tools.terminal.autoApprove": {
-            ".specify/scripts/bash/": True
+            ".kite/scripts/bash/": True
         }
     }
     
@@ -93,8 +93,8 @@ def test_merge_vscode_realistic_scenario(tmp_path):
     assert merged["chat.promptFilesRecommendations"]["existing.tool"] is True
     
     # Check additions
-    assert merged["chat.promptFilesRecommendations"]["speckit.specify"] is True
-    assert merged["chat.tools.terminal.autoApprove"][".specify/scripts/bash/"] is True
+    assert merged["chat.promptFilesRecommendations"]["kite.specify"] is True
+    assert merged["chat.tools.terminal.autoApprove"][".kite/scripts/bash/"] is True
 
 # --- Dimension 4: Error Handling & Robustness ---
 

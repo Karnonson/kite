@@ -1,13 +1,13 @@
 """Tests for check_tool() — Claude Code CLI detection across install methods.
 
 Covers issue https://github.com/github/spec-kit/issues/550:
-  `specify check` reports "Claude Code CLI (not found)" even when claude is
+  `kite check` reports "Claude Code CLI (not found)" even when claude is
   installed via npm-local (the default `claude` installer path).
 """
 
 from unittest.mock import patch, MagicMock
 
-from specify_cli import check_tool
+from kite_cli import check_tool
 
 
 class TestCheckToolClaude:
@@ -21,8 +21,8 @@ class TestCheckToolClaude:
         # Ensure npm-local path is missing so we only exercise migrate-installer path
         fake_missing = tmp_path / "nonexistent" / "claude"
 
-        with patch("specify_cli.CLAUDE_LOCAL_PATH", fake_claude), \
-             patch("specify_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
+        with patch("kite_cli.CLAUDE_LOCAL_PATH", fake_claude), \
+             patch("kite_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
              patch("shutil.which", return_value=None):
             assert check_tool("claude") is True
 
@@ -35,8 +35,8 @@ class TestCheckToolClaude:
         # Neither the migrate-installer path nor PATH has claude
         fake_migrate = tmp_path / "nonexistent" / "claude"
 
-        with patch("specify_cli.CLAUDE_LOCAL_PATH", fake_migrate), \
-             patch("specify_cli.CLAUDE_NPM_LOCAL_PATH", fake_npm_claude), \
+        with patch("kite_cli.CLAUDE_LOCAL_PATH", fake_migrate), \
+             patch("kite_cli.CLAUDE_NPM_LOCAL_PATH", fake_npm_claude), \
              patch("shutil.which", return_value=None):
             assert check_tool("claude") is True
 
@@ -44,8 +44,8 @@ class TestCheckToolClaude:
         """claude on PATH (global npm install) should still work."""
         fake_missing = tmp_path / "nonexistent" / "claude"
 
-        with patch("specify_cli.CLAUDE_LOCAL_PATH", fake_missing), \
-             patch("specify_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
+        with patch("kite_cli.CLAUDE_LOCAL_PATH", fake_missing), \
+             patch("kite_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
              patch("shutil.which", return_value="/usr/local/bin/claude"):
             assert check_tool("claude") is True
 
@@ -53,8 +53,8 @@ class TestCheckToolClaude:
         """Should return False when claude is genuinely not installed."""
         fake_missing = tmp_path / "nonexistent" / "claude"
 
-        with patch("specify_cli.CLAUDE_LOCAL_PATH", fake_missing), \
-             patch("specify_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
+        with patch("kite_cli.CLAUDE_LOCAL_PATH", fake_missing), \
+             patch("kite_cli.CLAUDE_NPM_LOCAL_PATH", fake_missing), \
              patch("shutil.which", return_value=None):
             assert check_tool("claude") is False
 
@@ -67,8 +67,8 @@ class TestCheckToolClaude:
         fake_missing = tmp_path / "nonexistent" / "claude"
         tracker = MagicMock()
 
-        with patch("specify_cli.CLAUDE_LOCAL_PATH", fake_missing), \
-             patch("specify_cli.CLAUDE_NPM_LOCAL_PATH", fake_npm_claude), \
+        with patch("kite_cli.CLAUDE_LOCAL_PATH", fake_missing), \
+             patch("kite_cli.CLAUDE_NPM_LOCAL_PATH", fake_npm_claude), \
              patch("shutil.which", return_value=None):
             result = check_tool("claude", tracker=tracker)
 

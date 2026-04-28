@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Git extension: auto-commit.sh
-# Automatically commit changes after a Spec Kit command completes.
+# Automatically commit changes after a Kite command completes.
 # Checks per-command config keys in git-config.yml before committing.
 #
 # Usage: auto-commit.sh <event_name>
@@ -19,7 +19,7 @@ SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _find_project_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.specify" ] || [ -d "$dir/.git" ]; then
+        if [ -d "$dir/.kite" ] || [ -d "$dir/.git" ]; then
             echo "$dir"
             return 0
         fi
@@ -43,7 +43,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 # Read per-command config from git-config.yml
-_config_file="$REPO_ROOT/.specify/extensions/git/git-config.yml"
+_config_file="$REPO_ROOT/.kite/extensions/git/git-config.yml"
 _enabled=false
 _commit_msg=""
 
@@ -130,7 +130,7 @@ _phase=$(echo "$EVENT_NAME" | grep -q '^before_' && echo 'before' || echo 'after
 
 # Use custom message if configured, otherwise default
 if [ -z "$_commit_msg" ]; then
-    _commit_msg="[Spec Kit] Auto-commit ${_phase} ${_command_name}"
+    _commit_msg="[Kite] Auto-commit ${_phase} ${_command_name}"
 fi
 
 # Stage and commit

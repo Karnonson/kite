@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 # Common PowerShell functions analogous to common.sh
 
-# Find repository root by searching upward for .specify directory
+# Find repository root by searching upward for .kite directory
 # This is the primary marker for spec-kit projects
 function Find-SpecifyRoot {
     param([string]$StartDir = (Get-Location).Path)
@@ -13,7 +13,7 @@ function Find-SpecifyRoot {
     if (-not $current) { return $null }
 
     while ($true) {
-        if (Test-Path -LiteralPath (Join-Path $current ".specify") -PathType Container) {
+        if (Test-Path -LiteralPath (Join-Path $current ".kite") -PathType Container) {
             return $current
         }
         $parent = Split-Path $current -Parent
@@ -24,16 +24,16 @@ function Find-SpecifyRoot {
     }
 }
 
-# Get repository root, prioritizing .specify directory over git
+# Get repository root, prioritizing .kite directory over git
 # This prevents using a parent git repo when spec-kit is initialized in a subdirectory
 function Get-RepoRoot {
-    # First, look for .specify directory (spec-kit's own marker)
+    # First, look for .kite directory (spec-kit's own marker)
     $specifyRoot = Find-SpecifyRoot
     if ($specifyRoot) {
         return $specifyRoot
     }
 
-    # Fallback to git if no .specify found
+    # Fallback to git if no .kite found
     try {
         $result = git rev-parse --show-toplevel 2>$null
         if ($LASTEXITCODE -eq 0) {
@@ -145,7 +145,7 @@ function Test-FeatureBranch {
     
     # For non-git repos, we can't enforce branch naming but still provide output
     if (-not $HasGit) {
-        Write-Warning "[specify] Warning: Git repository not detected; skipped branch validation"
+        Write-Warning "[kite] Warning: Git repository not detected; skipped branch validation"
         return $true
     }
 
@@ -164,15 +164,15 @@ function Test-FeatureBranch {
     return $true
 }
 
-# True when .specify/feature.json pins an existing feature directory that matches the
-# active FEATURE_DIR from Get-FeaturePathsEnv (so /speckit.plan can skip git branch pattern checks).
+# True when .kite/feature.json pins an existing feature directory that matches the
+# active FEATURE_DIR from Get-FeaturePathsEnv (so /kite.plan can skip git branch pattern checks).
 function Test-FeatureJsonMatchesFeatureDir {
     param(
         [Parameter(Mandatory = $true)][string]$RepoRoot,
         [Parameter(Mandatory = $true)][string]$ActiveFeatureDir
     )
 
-    $featureJson = Join-Path (Join-Path $RepoRoot '.specify') 'feature.json'
+    $featureJson = Join-Path (Join-Path $RepoRoot '.kite') 'feature.json'
     if (-not (Test-Path -LiteralPath $featureJson -PathType Leaf)) {
         return $false
     }
@@ -288,9 +288,9 @@ function Get-FeaturePathsEnv {
 
     # Resolve feature directory.  Priority:
     #   1. SPECIFY_FEATURE_DIRECTORY env var (explicit override)
-    #   2. .specify/feature.json "feature_directory" key (persisted by /speckit.specify)
+    #   2. .kite/feature.json "feature_directory" key (persisted by /kite.specify)
     #   3. Branch-name-based prefix lookup (same as scripts/bash/common.sh)
-    $featureJson = Join-Path $repoRoot '.specify/feature.json'
+    $featureJson = Join-Path $repoRoot '.kite/feature.json'
     if ($env:SPECIFY_FEATURE_DIRECTORY) {
         $featureDir = $env:SPECIFY_FEATURE_DIRECTORY
         # Normalize relative paths to absolute under repo root
@@ -302,7 +302,7 @@ function Get-FeaturePathsEnv {
         try {
             $featureConfig = $featureJsonRaw | ConvertFrom-Json
         } catch {
-            [Console]::Error.WriteLine("ERROR: Failed to parse .specify/feature.json: $_")
+            [Console]::Error.WriteLine("ERROR: Failed to parse .kite/feature.json: $_")
             exit 1
         }
         if ($featureConfig.feature_directory) {
@@ -371,24 +371,24 @@ function Get-Python3Command {
 }
 
 # Resolve a template name to a file path using the priority stack:
-#   1. .specify/templates/overrides/
-#   2. .specify/presets/<preset-id>/templates/ (sorted by priority from .registry)
-#   3. .specify/extensions/<ext-id>/templates/
-#   4. .specify/templates/ (core)
+#   1. .kite/templates/overrides/
+#   2. .kite/presets/<preset-id>/templates/ (sorted by priority from .registry)
+#   3. .kite/extensions/<ext-id>/templates/
+#   4. .kite/templates/ (core)
 function Resolve-Template {
     param(
         [Parameter(Mandatory=$true)][string]$TemplateName,
         [Parameter(Mandatory=$true)][string]$RepoRoot
     )
 
-    $base = Join-Path $RepoRoot '.specify/templates'
+    $base = Join-Path $RepoRoot '.kite/templates'
 
     # Priority 1: Project overrides
     $override = Join-Path $base "overrides/$TemplateName.md"
     if (Test-Path $override) { return $override }
 
     # Priority 2: Installed presets (sorted by priority from .registry)
-    $presetsDir = Join-Path $RepoRoot '.specify/presets'
+    $presetsDir = Join-Path $RepoRoot '.kite/presets'
     if (Test-Path $presetsDir) {
         $registryFile = Join-Path $presetsDir '.registry'
         $sortedPresets = @()
@@ -423,7 +423,7 @@ function Resolve-Template {
     }
 
     # Priority 3: Extension-provided templates
-    $extDir = Join-Path $RepoRoot '.specify/extensions'
+    $extDir = Join-Path $RepoRoot '.kite/extensions'
     if (Test-Path $extDir) {
         foreach ($ext in Get-ChildItem -Path $extDir -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '.*' } | Sort-Object Name) {
             $candidate = Join-Path $ext.FullName "templates/$TemplateName.md"
@@ -447,7 +447,7 @@ function Resolve-TemplateContent {
         [Parameter(Mandatory=$true)][string]$RepoRoot
     )
 
-    $base = Join-Path $RepoRoot '.specify/templates'
+    $base = Join-Path $RepoRoot '.kite/templates'
 
     # Collect all layers (highest priority first)
     $layerPaths = @()
@@ -461,7 +461,7 @@ function Resolve-TemplateContent {
     }
 
     # Priority 2: Installed presets (sorted by priority from .registry)
-    $presetsDir = Join-Path $RepoRoot '.specify/presets'
+    $presetsDir = Join-Path $RepoRoot '.kite/presets'
     if (Test-Path $presetsDir) {
         $registryFile = Join-Path $presetsDir '.registry'
         $sortedPresets = @()
@@ -571,7 +571,7 @@ except Exception:
     }
 
     # Priority 3: Extension-provided templates (always "replace")
-    $extDir = Join-Path $RepoRoot '.specify/extensions'
+    $extDir = Join-Path $RepoRoot '.kite/extensions'
     if (Test-Path $extDir) {
         foreach ($ext in Get-ChildItem -Path $extDir -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike '.*' } | Sort-Object Name) {
             $candidate = Join-Path $ext.FullName "templates/$TemplateName.md"

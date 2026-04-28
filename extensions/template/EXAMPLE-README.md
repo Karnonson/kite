@@ -23,10 +23,10 @@ Brief description of what your extension does and why it's useful.
 
 ```bash
 # Install from catalog
-specify extension add my-extension
+kite extension add my-extension
 
 # Or install from local development directory
-specify extension add --dev /path/to/my-extension
+kite extension add --dev /path/to/my-extension
 ```
 
 ## Configuration
@@ -34,14 +34,14 @@ specify extension add --dev /path/to/my-extension
 1. Create configuration file:
 
    ```bash
-   cp .specify/extensions/my-extension/config-template.yml \
-      .specify/extensions/my-extension/my-extension-config.yml
+   cp .kite/extensions/my-extension/config-template.yml \
+      .kite/extensions/my-extension/my-extension-config.yml
    ```
 
 2. Edit configuration:
 
    ```bash
-   vim .specify/extensions/my-extension/my-extension-config.yml
+   vim .kite/extensions/my-extension/my-extension-config.yml
    ```
 
 3. Set required values:
@@ -65,7 +65,7 @@ Description of what this command does.
 
 ```bash
 # In Claude Code
-> /speckit.my-extension.example
+> /kite.my-extension.example
 ```
 
 **Prerequisites**:
@@ -102,8 +102,8 @@ Override configuration with environment variables:
 
 ```bash
 # Override connection settings
-export SPECKIT_MY_EXTENSION_CONNECTION_URL="https://custom-api.com"
-export SPECKIT_MY_EXTENSION_CONNECTION_API_KEY="custom-key"
+export KITE_MY_EXTENSION_CONNECTION_URL="https://custom-api.com"
+export KITE_MY_EXTENSION_CONNECTION_API_KEY="custom-key"
 ```
 
 ## Examples
@@ -114,13 +114,13 @@ export SPECKIT_MY_EXTENSION_CONNECTION_API_KEY="custom-key"
 
 ```bash
 # Step 1: Create specification
-> /speckit.spec
+> /kite.spec
 
 # Step 2: Generate tasks
-> /speckit.tasks
+> /kite.tasks
 
 # Step 3: Use extension
-> /speckit.my-extension.example
+> /kite.my-extension.example
 ```
 
 ## Troubleshooting
@@ -135,7 +135,7 @@ export SPECKIT_MY_EXTENSION_CONNECTION_API_KEY="custom-key"
 
 **Solutions**:
 
-1. Check extension is installed: `specify extension list`
+1. Check extension is installed: `kite extension list`
 2. Restart AI agent
 3. Reinstall extension
 
@@ -146,7 +146,7 @@ MIT License - see LICENSE file
 ## Support
 
 - **Issues**: <https://github.com/your-org/spec-kit-my-extension/issues>
-- **Spec Kit Docs**: <https://github.com/statsperform/spec-kit>
+- **Kite Docs**: <https://github.com/statsperform/spec-kit>
 
 ## Changelog
 
@@ -155,4 +155,4 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 ---
 
 *Extension Version: 1.0.0*
-*Spec Kit: >=0.1.0*
+*Kite: >=0.1.0*

@@ -1,48 +1,48 @@
 """Tests for ForgeIntegration."""
 
-from specify_cli.integrations import get_integration
-from specify_cli.integrations.manifest import IntegrationManifest
-from specify_cli.integrations.forge import format_forge_command_name
+from kite_cli.integrations import get_integration
+from kite_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations.forge import format_forge_command_name
 
 
 class TestForgeCommandNameFormatter:
     """Test the centralized Forge command name formatter."""
 
     def test_simple_name_without_prefix(self):
-        """Test formatting a simple name without 'speckit.' prefix."""
-        assert format_forge_command_name("plan") == "speckit-plan"
-        assert format_forge_command_name("tasks") == "speckit-tasks"
-        assert format_forge_command_name("specify") == "speckit-specify"
+        """Test formatting a simple name without 'kite.' prefix."""
+        assert format_forge_command_name("plan") == "kite-plan"
+        assert format_forge_command_name("tasks") == "kite-tasks"
+        assert format_forge_command_name("specify") == "kite-specify"
 
-    def test_name_with_speckit_prefix(self):
-        """Test formatting a name that already has 'speckit.' prefix."""
-        assert format_forge_command_name("speckit.plan") == "speckit-plan"
-        assert format_forge_command_name("speckit.tasks") == "speckit-tasks"
+    def test_name_with_kite_prefix(self):
+        """Test formatting a name that already has 'kite.' prefix."""
+        assert format_forge_command_name("kite.plan") == "kite-plan"
+        assert format_forge_command_name("kite.tasks") == "kite-tasks"
 
     def test_extension_command_name(self):
         """Test formatting extension command names with dots."""
-        assert format_forge_command_name("speckit.my-extension.example") == "speckit-my-extension-example"
-        assert format_forge_command_name("my-extension.example") == "speckit-my-extension-example"
+        assert format_forge_command_name("kite.my-extension.example") == "kite-my-extension-example"
+        assert format_forge_command_name("my-extension.example") == "kite-my-extension-example"
 
     def test_complex_nested_name(self):
         """Test formatting deeply nested command names."""
-        assert format_forge_command_name("speckit.jira.sync-status") == "speckit-jira-sync-status"
-        assert format_forge_command_name("speckit.foo.bar.baz") == "speckit-foo-bar-baz"
+        assert format_forge_command_name("kite.jira.sync-status") == "kite-jira-sync-status"
+        assert format_forge_command_name("kite.foo.bar.baz") == "kite-foo-bar-baz"
 
     def test_name_with_hyphens_preserved(self):
         """Test that existing hyphens are preserved."""
-        assert format_forge_command_name("my-extension") == "speckit-my-extension"
-        assert format_forge_command_name("speckit.my-ext.test-cmd") == "speckit-my-ext-test-cmd"
+        assert format_forge_command_name("my-extension") == "kite-my-extension"
+        assert format_forge_command_name("kite.my-ext.test-cmd") == "kite-my-ext-test-cmd"
 
     def test_alias_formatting(self):
         """Test formatting alias names."""
-        assert format_forge_command_name("speckit.my-extension.example-short") == "speckit-my-extension-example-short"
+        assert format_forge_command_name("kite.my-extension.example-short") == "kite-my-extension-example-short"
 
     def test_idempotent_already_hyphenated(self):
         """Test that already-hyphenated names are returned unchanged (idempotent)."""
-        assert format_forge_command_name("speckit-plan") == "speckit-plan"
-        assert format_forge_command_name("speckit-my-extension-example") == "speckit-my-extension-example"
-        assert format_forge_command_name("speckit-jira-sync-status") == "speckit-jira-sync-status"
+        assert format_forge_command_name("kite-plan") == "kite-plan"
+        assert format_forge_command_name("kite-my-extension-example") == "kite-my-extension-example"
+        assert format_forge_command_name("kite-jira-sync-status") == "kite-jira-sync-status"
 
 
 class TestForgeIntegration:
@@ -59,10 +59,10 @@ class TestForgeIntegration:
 
     def test_command_filename_md(self):
         forge = get_integration("forge")
-        assert forge.command_filename("plan") == "speckit.plan.md"
+        assert forge.command_filename("plan") == "kite.plan.md"
 
     def test_setup_creates_md_files(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         created = forge.setup(tmp_path, m)
@@ -74,18 +74,18 @@ class TestForgeIntegration:
             assert f.name.endswith(".md")
 
     def test_setup_upserts_context_section(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
         ctx_path = tmp_path / forge.context_file
         assert ctx_path.exists()
         content = ctx_path.read_text(encoding="utf-8")
-        assert "<!-- SPECKIT START -->" in content
-        assert "<!-- SPECKIT END -->" in content
+        assert "<!-- KITE START -->" in content
+        assert "<!-- KITE END -->" in content
 
     def test_all_created_files_tracked_in_manifest(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         created = forge.setup(tmp_path, m)
@@ -94,7 +94,7 @@ class TestForgeIntegration:
             assert rel in m.files, f"Created file {rel} not tracked in manifest"
 
     def test_install_uninstall_roundtrip(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         created = forge.install(tmp_path, m)
@@ -107,7 +107,7 @@ class TestForgeIntegration:
         assert skipped == []
 
     def test_modified_file_survives_uninstall(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         created = forge.install(tmp_path, m)
@@ -121,7 +121,7 @@ class TestForgeIntegration:
         assert modified_file in skipped
 
     def test_directory_structure(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
@@ -135,24 +135,24 @@ class TestForgeIntegration:
         assert len(expected_commands) > 0, "No command templates found"
 
         # Check generated files match templates
-        command_files = sorted(commands_dir.glob("speckit.*.md"))
+        command_files = sorted(commands_dir.glob("kite.*.md"))
         assert len(command_files) == len(expected_commands)
-        actual_commands = {f.name.removeprefix("speckit.").removesuffix(".md") for f in command_files}
+        actual_commands = {f.name.removeprefix("kite.").removesuffix(".md") for f in command_files}
         assert actual_commands == expected_commands
 
     def test_templates_are_processed(self, tmp_path):
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
         commands_dir = tmp_path / ".forge" / "commands"
-        for cmd_file in commands_dir.glob("speckit.*.md"):
+        for cmd_file in commands_dir.glob("kite.*.md"):
             content = cmd_file.read_text(encoding="utf-8")
             # Check standard replacements
             assert "{SCRIPT}" not in content, f"{cmd_file.name} has unprocessed {{SCRIPT}}"
             assert "__AGENT__" not in content, f"{cmd_file.name} has unprocessed __AGENT__"
             assert "{ARGS}" not in content, f"{cmd_file.name} has unprocessed {{ARGS}}"
-            assert "__SPECKIT_COMMAND_" not in content, f"{cmd_file.name} has unprocessed __SPECKIT_COMMAND_*__"
+            assert "__KITE_COMMAND_" not in content, f"{cmd_file.name} has unprocessed __KITE_COMMAND_*__"
             # Check Forge-specific: $ARGUMENTS should be replaced with {{parameters}}
             assert "$ARGUMENTS" not in content, f"{cmd_file.name} has unprocessed $ARGUMENTS"
             # Frontmatter sections should be stripped
@@ -160,11 +160,11 @@ class TestForgeIntegration:
 
     def test_plan_references_correct_context_file(self, tmp_path):
         """The generated plan command must reference forge's context file."""
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
-        plan_file = tmp_path / ".forge" / "commands" / "speckit.plan.md"
+        plan_file = tmp_path / ".forge" / "commands" / "kite.plan.md"
         assert plan_file.exists()
         content = plan_file.read_text(encoding="utf-8")
         assert forge.context_file in content, (
@@ -174,15 +174,15 @@ class TestForgeIntegration:
 
     def test_forge_specific_transformations(self, tmp_path):
         """Test Forge-specific processing: name injection and handoffs stripping."""
-        from specify_cli.integrations.forge import ForgeIntegration
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.integrations.forge import ForgeIntegration
+        from kite_cli.agents import CommandRegistrar
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
         commands_dir = tmp_path / ".forge" / "commands"
 
         registrar = CommandRegistrar()
-        for cmd_file in commands_dir.glob("speckit.*.md"):
+        for cmd_file in commands_dir.glob("kite.*.md"):
             content = cmd_file.read_text(encoding="utf-8")
             frontmatter, _ = registrar.parse_frontmatter(content)
 
@@ -194,20 +194,20 @@ class TestForgeIntegration:
 
     def test_uses_parameters_placeholder(self, tmp_path):
         """Verify Forge replaces $ARGUMENTS with {{parameters}} in generated files."""
-        from specify_cli.integrations.forge import ForgeIntegration
+        from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
 
         # The registrar_config should specify {{parameters}}
         assert forge.registrar_config["args"] == "{{parameters}}"
 
         # Generate files and verify $ARGUMENTS is replaced with {{parameters}}
-        from specify_cli.integrations.manifest import IntegrationManifest
+        from kite_cli.integrations.manifest import IntegrationManifest
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
         commands_dir = tmp_path / ".forge" / "commands"
 
         # Check all generated command files
-        for cmd_file in commands_dir.glob("speckit.*.md"):
+        for cmd_file in commands_dir.glob("kite.*.md"):
             content = cmd_file.read_text(encoding="utf-8")
             # $ARGUMENTS should be replaced with {{parameters}}
             assert "$ARGUMENTS" not in content, (
@@ -217,7 +217,7 @@ class TestForgeIntegration:
             # We'll check the checklist file specifically as it has a User Input section
 
         # Verify checklist specifically has {{parameters}} in the User Input section
-        checklist = commands_dir / "speckit.checklist.md"
+        checklist = commands_dir / "kite.checklist.md"
         if checklist.exists():
             content = checklist.read_text(encoding="utf-8")
             assert "{{parameters}}" in content, (
@@ -225,9 +225,9 @@ class TestForgeIntegration:
             )
 
     def test_name_field_uses_hyphenated_format(self, tmp_path):
-        """Verify that injected name fields use hyphenated format (speckit-plan, not speckit.plan)."""
-        from specify_cli.integrations.forge import ForgeIntegration
-        from specify_cli.agents import CommandRegistrar
+        """Verify that injected name fields use hyphenated format (kite-plan, not kite.plan)."""
+        from kite_cli.integrations.forge import ForgeIntegration
+        from kite_cli.agents import CommandRegistrar
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
         forge.setup(tmp_path, m)
@@ -235,7 +235,7 @@ class TestForgeIntegration:
 
         # Check that name fields use hyphenated format
         registrar = CommandRegistrar()
-        for cmd_file in commands_dir.glob("speckit.*.md"):
+        for cmd_file in commands_dir.glob("kite.*.md"):
             content = cmd_file.read_text(encoding="utf-8")
             # Extract the name field from frontmatter using the parser
             frontmatter, _ = registrar.parse_frontmatter(content)
@@ -248,8 +248,8 @@ class TestForgeIntegration:
                 f"{cmd_file.name} has name field with dots: {name_value} "
                 f"(should use hyphens for Forge/ZSH compatibility)"
             )
-            assert name_value.startswith("speckit-"), (
-                f"{cmd_file.name} name field should start with 'speckit-': {name_value}"
+            assert name_value.startswith("kite-"), (
+                f"{cmd_file.name} name field should start with 'kite-': {name_value}"
             )
 
 
@@ -258,7 +258,7 @@ class TestForgeCommandRegistrar:
 
     def test_registrar_formats_extension_command_names_for_forge(self, tmp_path):
         """Verify CommandRegistrar converts dot notation to hyphens for Forge."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         
         # Create a mock extension command file
         ext_dir = tmp_path / "extension"
@@ -280,7 +280,7 @@ class TestForgeCommandRegistrar:
         registrar = CommandRegistrar()
         commands = [
             {
-                "name": "speckit.my-extension.example",
+                "name": "kite.my-extension.example",
                 "file": "commands/example.md"
             }
         ]
@@ -294,10 +294,10 @@ class TestForgeCommandRegistrar:
         )
         
         # Verify registration succeeded
-        assert "speckit.my-extension.example" in registered
+        assert "kite.my-extension.example" in registered
         
         # Check the generated file has hyphenated name in frontmatter
-        forge_cmd = tmp_path / ".forge" / "commands" / "speckit.my-extension.example.md"
+        forge_cmd = tmp_path / ".forge" / "commands" / "kite.my-extension.example.md"
         assert forge_cmd.exists()
         
         content = forge_cmd.read_text(encoding="utf-8")
@@ -305,11 +305,11 @@ class TestForgeCommandRegistrar:
         frontmatter, _ = registrar.parse_frontmatter(content)
         assert "name" in frontmatter, "name field should be injected in frontmatter"
         # Name field should use hyphens, not dots
-        assert frontmatter["name"] == "speckit-my-extension-example"
+        assert frontmatter["name"] == "kite-my-extension-example"
 
     def test_registrar_formats_alias_names_for_forge(self, tmp_path):
         """Verify CommandRegistrar converts alias names to hyphens for Forge."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         
         # Create a mock extension command file
         ext_dir = tmp_path / "extension"
@@ -330,9 +330,9 @@ class TestForgeCommandRegistrar:
         registrar = CommandRegistrar()
         commands = [
             {
-                "name": "speckit.my-extension.example",
+                "name": "kite.my-extension.example",
                 "file": "commands/example.md",
-                "aliases": ["speckit.my-extension.ex"]
+                "aliases": ["kite.my-extension.ex"]
             }
         ]
         
@@ -345,7 +345,7 @@ class TestForgeCommandRegistrar:
         )
         
         # Check the alias file has hyphenated name in frontmatter
-        alias_file = tmp_path / ".forge" / "commands" / "speckit.my-extension.ex.md"
+        alias_file = tmp_path / ".forge" / "commands" / "kite.my-extension.ex.md"
         assert alias_file.exists()
         
         content = alias_file.read_text(encoding="utf-8")
@@ -353,11 +353,11 @@ class TestForgeCommandRegistrar:
         frontmatter, _ = registrar.parse_frontmatter(content)
         assert "name" in frontmatter, "name field should be injected in alias frontmatter"
         # Alias name field should also use hyphens
-        assert frontmatter["name"] == "speckit-my-extension-ex"
+        assert frontmatter["name"] == "kite-my-extension-ex"
 
     def test_registrar_does_not_affect_other_agents(self, tmp_path):
         """Verify format_name callback is Forge-specific and doesn't affect other agents."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         
         # Create a mock extension command file
         ext_dir = tmp_path / "extension"
@@ -378,7 +378,7 @@ class TestForgeCommandRegistrar:
         registrar = CommandRegistrar()
         commands = [
             {
-                "name": "speckit.my-extension.example",
+                "name": "kite.my-extension.example",
                 "file": "commands/example.md"
             }
         ]
@@ -393,7 +393,7 @@ class TestForgeCommandRegistrar:
         
         # Windsurf uses standard markdown format without name injection.
         # The format_name callback should not be invoked for non-Forge agents.
-        windsurf_cmd = tmp_path / ".windsurf" / "workflows" / "speckit.my-extension.example.md"
+        windsurf_cmd = tmp_path / ".windsurf" / "workflows" / "kite.my-extension.example.md"
         assert windsurf_cmd.exists()
         
         content = windsurf_cmd.read_text(encoding="utf-8")

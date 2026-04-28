@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-> You have Spec Kit installed and want to upgrade to the latest version to get new features, bug fixes, or updated slash commands. This guide covers both upgrading the CLI tool and updating your project files.
+> You have Kite installed and want to upgrade to the latest version to get new features, bug fixes, or updated slash commands. This guide covers both upgrading the CLI tool and updating your project files.
 
 ---
 
@@ -10,7 +10,7 @@
 |----------------|---------|-------------|
 | **CLI Tool Only** | `uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z` | Get latest CLI features without touching project files |
 | **CLI Tool Only (pipx)** | `pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
-| **Project Files** | `specify init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
+| **Project Files** | `kite init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
 | **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
 
 ---
@@ -32,7 +32,7 @@ uv tool install specify-cli --force --from git+https://github.com/github/spec-ki
 Specify the desired release tag:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init --here --integration copilot
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here --integration copilot
 ```
 
 ### If you installed with `pipx`
@@ -46,7 +46,7 @@ pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z
 ### Verify the upgrade
 
 ```bash
-specify check
+kite check
 ```
 
 This shows installed tools and confirms the CLI is working.
@@ -55,16 +55,16 @@ This shows installed tools and confirms the CLI is working.
 
 ## Part 2: Updating Project Files
 
-When Spec Kit releases new features (like new slash commands or updated templates), you need to refresh your project's Spec Kit files.
+When Kite releases new features (like new slash commands or updated templates), you need to refresh your project's Kite files.
 
 ### What gets updated?
 
-Running `specify init --here --force` will update:
+Running `kite init --here --force` will update:
 
 - ✅ **Slash command files** (`.claude/commands/`, `.github/prompts/`, etc.)
-- ✅ **Script files** (`.specify/scripts/`) — **only with `--force`**; without it, only missing files are added
-- ✅ **Template files** (`.specify/templates/`) — **only with `--force`**; without it, only missing files are added
-- ✅ **Shared memory files** (`.specify/memory/`) - **⚠️ See warnings below**
+- ✅ **Script files** (`.kite/scripts/`) — **only with `--force`**; without it, only missing files are added
+- ✅ **Template files** (`.kite/templates/`) — **only with `--force`**; without it, only missing files are added
+- ✅ **Shared memory files** (`.kite/memory/`) - **⚠️ See warnings below**
 
 ### What stays safe?
 
@@ -82,7 +82,7 @@ The `specs/` directory is completely excluded from template packages and will ne
 Run this inside your project directory:
 
 ```bash
-specify init --here --force --integration <your-agent>
+kite init --here --force --integration <your-agent>
 ```
 
 Replace `<your-agent>` with your AI coding agent. Refer to this list of [Supported AI Coding Agent Integrations](reference/integrations.md)
@@ -90,7 +90,7 @@ Replace `<your-agent>` with your AI coding agent. Refer to this list of [Support
 **Example:**
 
 ```bash
-specify init --here --force --integration copilot
+kite init --here --force --integration copilot
 ```
 
 ### Understanding the `--force` flag
@@ -103,7 +103,7 @@ Template files will be merged with existing content and may overwrite existing f
 Proceed? [y/N]
 ```
 
-With `--force`, it skips the confirmation and proceeds immediately. It also **overwrites shared infrastructure files** (`.specify/scripts/` and `.specify/templates/`) with the latest versions from the installed Spec Kit release.
+With `--force`, it skips the confirmation and proceeds immediately. It also **overwrites shared infrastructure files** (`.kite/scripts/` and `.kite/templates/`) with the latest versions from the installed Kite release.
 
 Without `--force`, shared infrastructure files that already exist are skipped — the CLI will print a warning listing the skipped files so you know which ones were not updated.
 
@@ -115,36 +115,36 @@ Without `--force`, shared infrastructure files that already exist are skipped �
 
 ### 1. Constitution file will be overwritten
 
-**Known issue:** `specify init --here --force` currently overwrites `.specify/memory/constitution.md` with the default template, erasing any customizations you made.
+**Known issue:** `kite init --here --force` currently overwrites `.kite/memory/constitution.md` with the default template, erasing any customizations you made.
 
 **Workaround:**
 
 ```bash
 # 1. Back up your constitution before upgrading
-cp .specify/memory/constitution.md .specify/memory/constitution-backup.md
+cp .kite/memory/constitution.md .kite/memory/constitution-backup.md
 
 # 2. Run the upgrade
-specify init --here --force --integration copilot
+kite init --here --force --integration copilot
 
 # 3. Restore your customized constitution
-mv .specify/memory/constitution-backup.md .specify/memory/constitution.md
+mv .kite/memory/constitution-backup.md .kite/memory/constitution.md
 ```
 
 Or use git to restore it:
 
 ```bash
 # After upgrade, restore from git history
-git restore .specify/memory/constitution.md
+git restore .kite/memory/constitution.md
 ```
 
 ### 2. Custom script or template modifications
 
-If you customized files in `.specify/scripts/` or `.specify/templates/`, the `--force` flag will overwrite them. Back them up first:
+If you customized files in `.kite/scripts/` or `.kite/templates/`, the `--force` flag will overwrite them. Back them up first:
 
 ```bash
 # Back up custom templates and scripts
-cp -r .specify/templates .specify/templates-backup
-cp -r .specify/scripts .specify/scripts-backup
+cp -r .kite/templates .kite/templates-backup
+cp -r .kite/scripts .kite/scripts-backup
 
 # After upgrade, merge your changes back manually
 ```
@@ -165,8 +165,8 @@ cd .kilocode/rules/
 ls -la
 
 # Delete old versions (example filenames - yours may differ)
-rm speckit.specify-old.md
-rm speckit.plan-v1.md
+rm kite.specify-old.md
+rm kite.plan-v1.md
 ```
 
 Restart your IDE to refresh the command list.
@@ -182,27 +182,27 @@ Restart your IDE to refresh the command list.
 uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
 
 # Update project files to get new commands
-specify init --here --force --integration copilot
+kite init --here --force --integration copilot
 
 # Restore your constitution if customized
-git restore .specify/memory/constitution.md
+git restore .kite/memory/constitution.md
 ```
 
 ### Scenario 2: "I customized templates and constitution"
 
 ```bash
 # 1. Back up customizations
-cp .specify/memory/constitution.md /tmp/constitution-backup.md
-cp -r .specify/templates /tmp/templates-backup
+cp .kite/memory/constitution.md /tmp/constitution-backup.md
+cp -r .kite/templates /tmp/templates-backup
 
 # 2. Upgrade CLI
 uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
 
 # 3. Update project
-specify init --here --force --integration copilot
+kite init --here --force --integration copilot
 
 # 4. Restore customizations
-mv /tmp/constitution-backup.md .specify/memory/constitution.md
+mv /tmp/constitution-backup.md .kite/memory/constitution.md
 # Manually merge template changes if needed
 ```
 
@@ -218,7 +218,7 @@ cd .kilocode/rules/
 ls -la
 
 # Delete old command files
-rm speckit.old-command-name.md
+rm kite.old-command-name.md
 
 # Restart your IDE
 ```
@@ -229,13 +229,13 @@ If you initialized your project with `--no-git`, you can still upgrade:
 
 ```bash
 # Manually back up files you customized
-cp .specify/memory/constitution.md /tmp/constitution-backup.md
+cp .kite/memory/constitution.md /tmp/constitution-backup.md
 
 # Run upgrade
-specify init --here --force --integration copilot --no-git
+kite init --here --force --integration copilot --no-git
 
 # Restore customizations
-mv /tmp/constitution-backup.md .specify/memory/constitution.md
+mv /tmp/constitution-backup.md .kite/memory/constitution.md
 ```
 
 The `--no-git` flag skips git initialization but doesn't affect file updates.
@@ -244,7 +244,7 @@ The `--no-git` flag skips git initialization but doesn't affect file updates.
 
 ## Using `--no-git` Flag
 
-The `--no-git` flag tells Spec Kit to **skip git repository initialization**. This is useful when:
+The `--no-git` flag tells Kite to **skip git repository initialization**. This is useful when:
 
 - You manage version control differently (Mercurial, SVN, etc.)
 - Your project is part of a larger monorepo with existing git setup
@@ -253,13 +253,13 @@ The `--no-git` flag tells Spec Kit to **skip git repository initialization**. Th
 **During initial setup:**
 
 ```bash
-specify init my-project --integration copilot --no-git
+kite init my-project --integration copilot --no-git
 ```
 
 **During upgrade:**
 
 ```bash
-specify init --here --force --integration copilot --no-git
+kite init --here --force --integration copilot --no-git
 ```
 
 ### What `--no-git` does NOT do
@@ -284,9 +284,9 @@ export SPECIFY_FEATURE="001-my-feature"
 $env:SPECIFY_FEATURE = "001-my-feature"
 ```
 
-This tells Spec Kit which feature directory to use when creating specs, plans, and tasks.
+This tells Kite which feature directory to use when creating specs, plans, and tasks.
 
-**Why this matters:** Without git, Spec Kit can't detect your current branch name to determine the active feature. The environment variable provides that context manually.
+**Why this matters:** Without git, Kite can't detect your current branch name to determine the active feature. The environment variable provides that context manually.
 
 ---
 
@@ -318,10 +318,10 @@ This tells Spec Kit which feature directory to use when creating specs, plans, a
 
 ```bash
 # If you committed before upgrading
-git restore .specify/memory/constitution.md
+git restore .kite/memory/constitution.md
 
 # If you backed up manually
-cp /tmp/constitution-backup.md .specify/memory/constitution.md
+cp /tmp/constitution-backup.md .kite/memory/constitution.md
 ```
 
 **Prevention:** Always commit or back up `constitution.md` before upgrading.
@@ -338,27 +338,27 @@ Do you want to continue? [y/N]
 
 **What this means:**
 
-This warning appears when you run `specify init --here` (or `specify init .`) in a directory that already has files. It's telling you:
+This warning appears when you run `kite init --here` (or `kite init .`) in a directory that already has files. It's telling you:
 
 1. **The directory has existing content** - In the example, 25 files/folders
 2. **Files will be merged** - New template files will be added alongside your existing files
-3. **Some files may be overwritten** - If you already have Spec Kit files (`.claude/`, `.specify/`, etc.), they'll be replaced with the new versions
+3. **Some files may be overwritten** - If you already have Kite files (`.claude/`, `.kite/`, etc.), they'll be replaced with the new versions
 
 **What gets overwritten:**
 
-Only Spec Kit infrastructure files:
+Only Kite infrastructure files:
 
 - Agent command files (`.claude/commands/`, `.github/prompts/`, etc.)
-- Scripts in `.specify/scripts/`
-- Templates in `.specify/templates/`
-- Memory files in `.specify/memory/` (including constitution)
+- Scripts in `.kite/scripts/`
+- Templates in `.kite/templates/`
+- Memory files in `.kite/memory/` (including constitution)
 
 **What stays untouched:**
 
 - Your `specs/` directory (specifications, plans, tasks)
 - Your source code files
 - Your `.git/` directory and git history
-- Any other files not part of Spec Kit templates
+- Any other files not part of Kite templates
 
 **How to respond:**
 
@@ -367,16 +367,16 @@ Only Spec Kit infrastructure files:
 - **Use `--force` flag** - Skip this confirmation entirely:
 
   ```bash
-  specify init --here --force --integration copilot
+  kite init --here --force --integration copilot
   ```
 
 **When you see this warning:**
 
-- ✅ **Expected** when upgrading an existing Spec Kit project
-- ✅ **Expected** when adding Spec Kit to an existing codebase
+- ✅ **Expected** when upgrading an existing Kite project
+- ✅ **Expected** when adding Kite to an existing codebase
 - ⚠️ **Unexpected** if you thought you were creating a new project in an empty directory
 
-**Prevention tip:** Before upgrading, commit or back up your `.specify/memory/constitution.md` if you customized it.
+**Prevention tip:** Before upgrading, commit or back up your `.kite/memory/constitution.md` if you customized it.
 
 ### "CLI upgrade doesn't seem to work"
 
@@ -403,17 +403,17 @@ uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 ### "Do I need to run specify every time I open my project?"
 
-**Short answer:** No, you only run `specify init` once per project (or when upgrading).
+**Short answer:** No, you only run `kite init` once per project (or when upgrading).
 
 **Explanation:**
 
 The `specify` CLI tool is used for:
 
-- **Initial setup:** `specify init` to bootstrap Spec Kit in your project
-- **Upgrades:** `specify init --here --force` to update templates and commands
-- **Diagnostics:** `specify check` to verify tool installation
+- **Initial setup:** `kite init` to bootstrap Kite in your project
+- **Upgrades:** `kite init --here --force` to update templates and commands
+- **Diagnostics:** `kite check` to verify tool installation
 
-Once you've run `specify init`, the slash commands (like `/speckit.specify`, `/speckit.plan`, etc.) are **permanently installed** in your project's agent folder (`.claude/`, `.github/prompts/`, `.pi/prompts/`, etc.). Your AI coding agent reads these command files directly—no need to run `specify` again.
+Once you've run `kite init`, the slash commands (like `/kite.specify`, `/kite.plan`, etc.) are **permanently installed** in your project's agent folder (`.claude/`, `.github/prompts/`, `.pi/prompts/`, etc.). Your AI coding agent reads these command files directly—no need to run `specify` again.
 
 **If your agent isn't recognizing slash commands:**
 
@@ -432,7 +432,7 @@ Once you've run `specify init`, the slash commands (like `/speckit.specify`, `/s
 
 2. **Restart your IDE/editor completely** (not just reload window)
 
-3. **Check you're in the correct directory** where you ran `specify init`
+3. **Check you're in the correct directory** where you ran `kite init`
 
 4. **For some agents**, you may need to reload the workspace or clear cache
 
@@ -446,7 +446,7 @@ Once you've run `specify init`, the slash commands (like `/speckit.specify`, `/s
 
 ## Version Compatibility
 
-Spec Kit follows semantic versioning for major releases. The CLI and project files are designed to be compatible within the same major version.
+Kite follows semantic versioning for major releases. The CLI and project files are designed to be compatible within the same major version.
 
 **Best practice:** Keep both CLI and project files in sync by upgrading both together during major version changes.
 
@@ -456,7 +456,7 @@ Spec Kit follows semantic versioning for major releases. The CLI and project fil
 
 After upgrading:
 
-- **Test new slash commands:** Run `/speckit.constitution` or another command to verify everything works
+- **Test new slash commands:** Run `/kite.constitution` or another command to verify everything works
 - **Review release notes:** Check [GitHub Releases](https://github.com/github/spec-kit/releases) for new features and breaking changes
 - **Update workflows:** If new commands were added, update your team's development workflows
 - **Check documentation:** Visit [github.io/spec-kit](https://github.github.io/spec-kit/) for updated guides

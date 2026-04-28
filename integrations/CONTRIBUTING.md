@@ -4,14 +4,14 @@ This guide covers adding integrations to both the **built-in** and **community**
 
 ## Adding a Built-In Integration
 
-Built-in integrations are maintained by the Spec Kit core team and ship with the CLI.
+Built-in integrations are maintained by the Kite core team and ship with the CLI.
 
 ### Checklist
 
-1. **Create the integration subpackage** under `src/specify_cli/integrations/<package_dir>/`
+1. **Create the integration subpackage** under `src/kite_cli/integrations/<package_dir>/`
    — `<package_dir>` matches the integration key when it contains no hyphens (e.g., `gemini`), or replaces hyphens with underscores when it does (e.g., key `cursor-agent` → directory `cursor_agent/`, key `kiro-cli` → directory `kiro_cli/`). Python package names cannot use hyphens.
 2. **Implement the integration class** extending `MarkdownIntegration`, `TomlIntegration`, or `SkillsIntegration`
-3. **Register the integration** in `src/specify_cli/integrations/__init__.py`
+3. **Register the integration** in `src/kite_cli/integrations/__init__.py`
 4. **Add tests** under `tests/integrations/test_integration_<package_dir>.py`
 5. **Add a catalog entry** in `integrations/catalog.json`
 6. **Update documentation** in `AGENTS.md` and `README.md`
@@ -43,7 +43,7 @@ Community integrations are contributed by external developers and listed in `int
 
 ### Prerequisites
 
-1. **Working integration** — tested with `specify integration install`
+1. **Working integration** — tested with `kite integration install`
 2. **Public repository** — hosted on GitHub or similar
 3. **`integration.yml` descriptor** — valid descriptor file (see below)
 4. **Documentation** — README with usage instructions
@@ -61,18 +61,18 @@ integration:
   version: "1.0.0"
   description: "Integration for My Agent"
   author: "your-name"
-  repository: "https://github.com/your-name/speckit-my-agent"
+  repository: "https://github.com/your-name/kite-my-agent"
   license: "MIT"
 requires:
-  speckit_version: ">=0.6.0"
+  kite_version: ">=0.6.0"
   tools:
     - name: "my-agent"
       version: ">=1.0.0"
       required: true
 provides:
   commands:
-    - name: "speckit.specify"
-      file: "templates/speckit.specify.md"
+    - name: "kite.specify"
+      file: "templates/kite.specify.md"
   scripts:
     - update-context.sh
 ```
@@ -84,7 +84,7 @@ provides:
 | `schema_version` | Must be `"1.0"` |
 | `integration.id` | Lowercase alphanumeric + hyphens (`^[a-z0-9-]+$`) |
 | `integration.version` | Valid PEP 440 version (parsed with `packaging.version.Version()`) |
-| `requires.speckit_version` | Required field; specify a version constraint such as `>=0.6.0` (current validation checks presence only) |
+| `requires.kite_version` | Required field; specify a version constraint such as `>=0.6.0` (current validation checks presence only) |
 | `provides` | Must include at least one command or script |
 | `provides.commands[].name` | String identifier |
 | `provides.commands[].file` | Relative path to template file |
@@ -104,7 +104,7 @@ provides:
       "version": "1.0.0",
       "description": "Integration for My Agent",
       "author": "your-name",
-      "repository": "https://github.com/your-name/speckit-my-agent",
+      "repository": "https://github.com/your-name/kite-my-agent",
       "tags": ["cli"]
     }
   }
@@ -126,7 +126,7 @@ To update your integration version in the catalog:
 
 ## Upgrade Workflow
 
-The `specify integration upgrade` command supports diff-aware upgrades:
+The `kite integration upgrade` command supports diff-aware upgrades:
 
 1. **Hash comparison** — the manifest records SHA-256 hashes of all installed files
 2. **Modified file detection** — files changed since installation are flagged
@@ -135,8 +135,8 @@ The `specify integration upgrade` command supports diff-aware upgrades:
 
 ```bash
 # Upgrade current integration (blocks if files are modified)
-specify integration upgrade
+kite integration upgrade
 
 # Force upgrade (overwrites modified files)
-specify integration upgrade --force
+kite integration upgrade --force
 ```

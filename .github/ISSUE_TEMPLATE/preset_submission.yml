@@ -1,5 +1,5 @@
 name: Preset Submission
-description: Submit your preset to the Spec Kit preset catalog
+description: Submit your preset to the Kite preset catalog
 title: "[Preset]: Add "
 labels: ["preset-submission", "enhancement", "needs-triage"]
 body:
@@ -12,7 +12,7 @@ body:
         - Review the [Preset Publishing Guide](https://github.com/github/spec-kit/blob/main/presets/PUBLISHING.md)
         - Ensure your preset has a valid `preset.yml` manifest
         - Create a GitHub release with a version tag (e.g., v1.0.0)
-        - Test installation from the release archive: `specify preset add --from <download-url>`
+        - Test installation from the release archive: `kite preset add --from <download-url>`
 
   - type: input
     id: preset-id
@@ -87,10 +87,10 @@ body:
       required: true
 
   - type: input
-    id: speckit-version
+    id: kite-version
     attributes:
-      label: Required Spec Kit Version
-      description: Minimum Spec Kit version required
+      label: Required Kite Version
+      description: Minimum Kite version required
       placeholder: "e.g., >=0.3.0"
     validations:
       required: true
@@ -113,7 +113,7 @@ body:
       label: Commands Provided (optional)
       description: List any command overrides your preset provides
       placeholder: |
-        - speckit.specify.md — customized for compliance workflows
+        - kite.specify.md — customized for compliance workflows
 
   - type: textarea
     id: tags
@@ -142,7 +142,7 @@ body:
       label: Testing Checklist
       description: Confirm that your preset has been tested
       options:
-        - label: Preset installs successfully via `specify preset add`
+        - label: Preset installs successfully via `kite preset add`
           required: true
         - label: Template resolution works correctly after installation
           required: true

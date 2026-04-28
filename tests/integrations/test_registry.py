@@ -2,12 +2,12 @@
 
 import pytest
 
-from specify_cli.integrations import (
+from kite_cli.integrations import (
     INTEGRATION_REGISTRY,
     _register,
     get_integration,
 )
-from specify_cli.integrations.base import MarkdownIntegration
+from kite_cli.integrations.base import MarkdownIntegration
 from .conftest import StubIntegration
 
 
@@ -76,12 +76,12 @@ class TestRegistrarKeyAlignment:
         [k for k in ALL_INTEGRATION_KEYS if k != "generic"],
     )
     def test_integration_key_in_registrar(self, key):
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         assert key in CommandRegistrar.AGENT_CONFIGS, (
             f"Integration '{key}' is registered but has no AGENT_CONFIGS entry"
         )
 
     def test_no_stale_cursor_shorthand(self):
         """The old 'cursor' shorthand must not appear in AGENT_CONFIGS."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         assert "cursor" not in CommandRegistrar.AGENT_CONFIGS

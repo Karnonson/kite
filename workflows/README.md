@@ -1,6 +1,6 @@
 # Workflows
 
-Workflows are multi-step, resumable automation pipelines defined in YAML. They orchestrate Spec Kit commands across integrations, evaluate control flow, and pause at human review gates — enabling end-to-end Spec-Driven Development cycles without manual step-by-step invocation.
+Workflows are multi-step, resumable automation pipelines defined in YAML. They orchestrate Kite commands across integrations, evaluate control flow, and pause at human review gates — enabling end-to-end Spec-Driven Development cycles without manual step-by-step invocation.
 
 ## How It Works
 
@@ -9,7 +9,7 @@ A workflow definition declares a sequence of steps. The engine executes them in 
 ```yaml
 steps:
   - id: specify
-    command: speckit.specify
+    command: kite.specify
     input:
       args: "{{ inputs.spec }}"
 
@@ -20,7 +20,7 @@ steps:
     on_reject: abort
 
   - id: plan
-    command: speckit.plan
+    command: kite.plan
 ```
 
 For detailed architecture and internals, see [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -29,28 +29,28 @@ For detailed architecture and internals, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```bash
 # Search available workflows
-specify workflow search
+kite workflow search
 
 # Install the built-in SDD workflow
-specify workflow add speckit
+kite workflow add kite
 
 # Or run directly from a local YAML file
-specify workflow run ./workflow.yml --input spec="Build a user authentication system with OAuth support"
+kite workflow run ./workflow.yml --input spec="Build a user authentication system with OAuth support"
 
 # Run an installed workflow with inputs
-specify workflow run speckit --input spec="Build a user authentication system with OAuth support"
+kite workflow run kite --input spec="Build a user authentication system with OAuth support"
 
 # Check run status
-specify workflow status
+kite workflow status
 
 # Resume after a gate pause
-specify workflow resume <run_id>
+kite workflow resume <run_id>
 
 # Get detailed workflow info
-specify workflow info speckit
+kite workflow info kite
 
 # Remove a workflow
-specify workflow remove speckit
+kite workflow remove kite
 ```
 
 ## Running Workflows
@@ -58,20 +58,20 @@ specify workflow remove speckit
 ### From an Installed Workflow
 
 ```bash
-specify workflow add speckit
-specify workflow run speckit --input spec="Build a user authentication system with OAuth support"
+kite workflow add kite
+kite workflow run kite --input spec="Build a user authentication system with OAuth support"
 ```
 
 ### From a Local YAML File
 
 ```bash
-specify workflow run ./my-workflow.yml --input spec="Build a user authentication system with OAuth support"
+kite workflow run ./my-workflow.yml --input spec="Build a user authentication system with OAuth support"
 ```
 
 ### Multiple Inputs
 
 ```bash
-specify workflow run speckit \
+kite workflow run kite \
   --input spec="Build a user authentication system with OAuth support" \
   --input scope="backend-only"
 ```
@@ -82,11 +82,11 @@ Workflows support 10 built-in step types:
 
 ### Command Steps (default)
 
-Invoke an installed Spec Kit command by name via the integration CLI:
+Invoke an installed Kite command by name via the integration CLI:
 
 ```yaml
 - id: specify
-  command: speckit.specify
+  command: kite.specify
   input:
     args: "{{ inputs.spec }}"
   integration: claude        # Optional: override workflow default
@@ -116,7 +116,7 @@ Run a shell command and capture output:
 
 ### Gate Steps
 
-Pause for human review. The workflow resumes when `specify workflow resume` is called:
+Pause for human review. The workflow resumes when `kite workflow resume` is called:
 
 ```yaml
 - id: review-spec
@@ -136,10 +136,10 @@ Conditional branching based on an expression:
   condition: "{{ inputs.scope == 'full' }}"
   then:
     - id: full-plan
-      command: speckit.plan
+      command: kite.plan
   else:
     - id: quick-plan
-      command: speckit.plan
+      command: kite.plan
       options:
         quick: true
 ```
@@ -155,7 +155,7 @@ Multi-branch dispatch on an expression value:
   cases:
     approve:
       - id: plan
-        command: speckit.plan
+        command: kite.plan
     reject:
       - id: log
         type: shell
@@ -177,7 +177,7 @@ Repeat steps while a condition is truthy:
   max_iterations: 5
   steps:
     - id: fix
-      command: speckit.implement
+      command: kite.implement
 ```
 
 ### Do-While Loop Steps
@@ -191,7 +191,7 @@ Execute steps at least once, then repeat while condition holds:
   max_iterations: 3
   steps:
     - id: revise
-      command: speckit.specify
+      command: kite.specify
 ```
 
 ### Fan-Out Steps
@@ -205,7 +205,7 @@ Dispatch a step template for each item in a collection (sequential):
   max_concurrency: 3
   step:
     id: impl
-    command: speckit.implement
+    command: kite.implement
 ```
 
 ### Fan-In Steps
@@ -269,61 +269,61 @@ inputs:
 
 ## State and Resume
 
-Every workflow run persists state to `.specify/workflows/runs/<run_id>/`:
+Every workflow run persists state to `.kite/workflows/runs/<run_id>/`:
 
 ```bash
 # List all runs with status
-specify workflow status
+kite workflow status
 
 # Check a specific run
-specify workflow status <run_id>
+kite workflow status <run_id>
 
 # Resume a paused run (after approving a gate)
-specify workflow resume <run_id>
+kite workflow resume <run_id>
 
 # Resume a failed run (retries from the failed step)
-specify workflow resume <run_id>
+kite workflow resume <run_id>
 ```
 
 Run states: `created` → `running` → `completed` | `paused` | `failed` | `aborted`
 
 ## Catalog Management
 
-Workflows are discovered through catalogs. By default, Spec Kit uses the official and community catalogs:
+Workflows are discovered through catalogs. By default, Kite uses the official and community catalogs:
 
 > [!NOTE]
-> Community workflows are independently created and maintained by their respective authors. GitHub and the Spec Kit maintainers may review pull requests that add entries to the community catalog for formatting and structure, but they do **not review, audit, endorse, or support the workflow definitions themselves**. Review workflow source before installation and use at your own discretion.
+> Community workflows are independently created and maintained by their respective authors. GitHub and the Kite maintainers may review pull requests that add entries to the community catalog for formatting and structure, but they do **not review, audit, endorse, or support the workflow definitions themselves**. Review workflow source before installation and use at your own discretion.
 
 ```bash
 # List active catalogs
-specify workflow catalog list
+kite workflow catalog list
 
 # Add a custom catalog
-specify workflow catalog add https://example.com/catalog.json --name my-org
+kite workflow catalog add https://example.com/catalog.json --name my-org
 
 # Remove a catalog
-specify workflow catalog remove <index>
+kite workflow catalog remove <index>
 ```
 
 ## Creating a Workflow
 
 1. Create a `workflow.yml` following the schema above
-2. Test locally with `specify workflow run ./workflow.yml --input key=value`
-3. Verify with `specify workflow info ./workflow.yml`
+2. Test locally with `kite workflow run ./workflow.yml --input key=value`
+3. Verify with `kite workflow info ./workflow.yml`
 4. See [PUBLISHING.md](PUBLISHING.md) to submit to the catalog
 
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
-| `SPECKIT_WORKFLOW_CATALOG_URL` | Override the catalog URL (replaces all defaults) |
+| `KITE_WORKFLOW_CATALOG_URL` | Override the catalog URL (replaces all defaults) |
 
 ## Configuration Files
 
 | File | Scope | Description |
 |------|-------|-------------|
-| `.specify/workflow-catalogs.yml` | Project | Custom catalog stack for this project |
-| `~/.specify/workflow-catalogs.yml` | User | Custom catalog stack for all projects |
+| `.kite/workflow-catalogs.yml` | Project | Custom catalog stack for this project |
+| `~/.kite/workflow-catalogs.yml` | User | Custom catalog stack for all projects |
 
 ## Repository Layout
 
@@ -334,6 +334,6 @@ workflows/
 ├── README.md                               # This file
 ├── catalog.json                            # Official workflow catalog
 ├── catalog.community.json                  # Community workflow catalog
-└── speckit/                                # Built-in SDD cycle workflow
+└── kite/                                # Built-in SDD cycle workflow
     └── workflow.yml
 ```

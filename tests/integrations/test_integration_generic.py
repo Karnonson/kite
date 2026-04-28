@@ -4,9 +4,9 @@ import os
 
 import pytest
 
-from specify_cli.integrations import get_integration
-from specify_cli.integrations.base import MarkdownIntegration
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import get_integration
+from kite_cli.integrations.base import MarkdownIntegration
+from kite_cli.integrations.manifest import IntegrationManifest
 
 
 class TestGenericIntegration:
@@ -15,7 +15,7 @@ class TestGenericIntegration:
     # -- Registration -----------------------------------------------------
 
     def test_registered(self):
-        from specify_cli.integrations import INTEGRATION_REGISTRY
+        from kite_cli.integrations import INTEGRATION_REGISTRY
         assert "generic" in INTEGRATION_REGISTRY
 
     def test_is_markdown_integration(self):
@@ -85,7 +85,7 @@ class TestGenericIntegration:
         cmd_files = [f for f in created if "scripts" not in f.parts]
         assert len(cmd_files) > 0
         for f in cmd_files:
-            assert f.name.startswith("speckit.")
+            assert f.name.startswith("kite.")
             assert f.name.endswith(".md")
 
     def test_templates_are_processed(self, tmp_path):
@@ -101,7 +101,7 @@ class TestGenericIntegration:
             assert "{SCRIPT}" not in content, f"{f.name} has unprocessed {{SCRIPT}}"
             assert "__AGENT__" not in content, f"{f.name} has unprocessed __AGENT__"
             assert "{ARGS}" not in content, f"{f.name} has unprocessed {{ARGS}}"
-            assert "__SPECKIT_COMMAND_" not in content, f"{f.name} has unprocessed __SPECKIT_COMMAND_*__"
+            assert "__KITE_COMMAND_" not in content, f"{f.name} has unprocessed __KITE_COMMAND_*__"
 
     def test_all_files_tracked_in_manifest(self, tmp_path):
         i = get_integration("generic")
@@ -169,15 +169,15 @@ class TestGenericIntegration:
             ctx_path = tmp_path / i.context_file
             assert ctx_path.exists()
             content = ctx_path.read_text(encoding="utf-8")
-            assert "<!-- SPECKIT START -->" in content
-            assert "<!-- SPECKIT END -->" in content
+            assert "<!-- KITE START -->" in content
+            assert "<!-- KITE END -->" in content
 
     def test_plan_references_correct_context_file(self, tmp_path):
         """The generated plan command must reference generic's context file."""
         i = get_integration("generic")
         m = IntegrationManifest("generic", tmp_path)
         i.setup(tmp_path, m, parsed_options={"commands_dir": ".custom/cmds"})
-        plan_file = tmp_path / ".custom" / "cmds" / "speckit.plan.md"
+        plan_file = tmp_path / ".custom" / "cmds" / "kite.plan.md"
         assert plan_file.exists()
         content = plan_file.read_text(encoding="utf-8")
         assert i.context_file in content, (
@@ -190,7 +190,7 @@ class TestGenericIntegration:
     def test_cli_generic_without_commands_dir_fails(self, tmp_path):
         """--integration generic without --ai-commands-dir should fail."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         result = runner.invoke(app, [
             "init", str(tmp_path / "test-generic"), "--integration", "generic",
@@ -204,7 +204,7 @@ class TestGenericIntegration:
         """init-options.json must include context_file for the generic integration."""
         import json
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "opts-generic"
         project.mkdir()
@@ -219,13 +219,13 @@ class TestGenericIntegration:
         finally:
             os.chdir(old_cwd)
         assert result.exit_code == 0
-        opts = json.loads((project / ".specify" / "init-options.json").read_text())
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
         assert opts.get("context_file") == "AGENTS.md"
 
     def test_complete_file_inventory_sh(self, tmp_path):
-        """Every file produced by specify init --integration generic --ai-commands-dir ... --script sh."""
+        """Every file produced by kite init --integration generic --ai-commands-dir ... --script sh."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "inventory-generic-sh"
         project.mkdir()
@@ -246,31 +246,31 @@ class TestGenericIntegration:
         )
         expected = sorted([
             "AGENTS.md",
-            ".myagent/commands/speckit.analyze.md",
-            ".myagent/commands/speckit.checklist.md",
-            ".myagent/commands/speckit.clarify.md",
-            ".myagent/commands/speckit.constitution.md",
-            ".myagent/commands/speckit.implement.md",
-            ".myagent/commands/speckit.plan.md",
-            ".myagent/commands/speckit.specify.md",
-            ".myagent/commands/speckit.tasks.md",
-            ".myagent/commands/speckit.taskstoissues.md",
-            ".specify/init-options.json",
-            ".specify/integration.json",
-            ".specify/integrations/generic.manifest.json",
-            ".specify/integrations/speckit.manifest.json",
-            ".specify/memory/constitution.md",
-            ".specify/scripts/bash/check-prerequisites.sh",
-            ".specify/scripts/bash/common.sh",
-            ".specify/scripts/bash/create-new-feature.sh",
-            ".specify/scripts/bash/setup-plan.sh",
-            ".specify/templates/checklist-template.md",
-            ".specify/templates/constitution-template.md",
-            ".specify/templates/plan-template.md",
-            ".specify/templates/spec-template.md",
-            ".specify/templates/tasks-template.md",
-            ".specify/workflows/speckit/workflow.yml",
-            ".specify/workflows/workflow-registry.json",
+            ".myagent/commands/kite.analyze.md",
+            ".myagent/commands/kite.checklist.md",
+            ".myagent/commands/kite.clarify.md",
+            ".myagent/commands/kite.constitution.md",
+            ".myagent/commands/kite.implement.md",
+            ".myagent/commands/kite.plan.md",
+            ".myagent/commands/kite.specify.md",
+            ".myagent/commands/kite.tasks.md",
+            ".myagent/commands/kite.taskstoissues.md",
+            ".kite/init-options.json",
+            ".kite/integration.json",
+            ".kite/integrations/generic.manifest.json",
+            ".kite/integrations/kite.manifest.json",
+            ".kite/memory/constitution.md",
+            ".kite/scripts/bash/check-prerequisites.sh",
+            ".kite/scripts/bash/common.sh",
+            ".kite/scripts/bash/create-new-feature.sh",
+            ".kite/scripts/bash/setup-plan.sh",
+            ".kite/templates/checklist-template.md",
+            ".kite/templates/constitution-template.md",
+            ".kite/templates/plan-template.md",
+            ".kite/templates/spec-template.md",
+            ".kite/templates/tasks-template.md",
+            ".kite/workflows/kite/workflow.yml",
+            ".kite/workflows/workflow-registry.json",
         ])
         assert actual == expected, (
             f"Missing: {sorted(set(expected) - set(actual))}\n"
@@ -278,9 +278,9 @@ class TestGenericIntegration:
         )
 
     def test_complete_file_inventory_ps(self, tmp_path):
-        """Every file produced by specify init --integration generic --ai-commands-dir ... --script ps."""
+        """Every file produced by kite init --integration generic --ai-commands-dir ... --script ps."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "inventory-generic-ps"
         project.mkdir()
@@ -301,31 +301,31 @@ class TestGenericIntegration:
         )
         expected = sorted([
             "AGENTS.md",
-            ".myagent/commands/speckit.analyze.md",
-            ".myagent/commands/speckit.checklist.md",
-            ".myagent/commands/speckit.clarify.md",
-            ".myagent/commands/speckit.constitution.md",
-            ".myagent/commands/speckit.implement.md",
-            ".myagent/commands/speckit.plan.md",
-            ".myagent/commands/speckit.specify.md",
-            ".myagent/commands/speckit.tasks.md",
-            ".myagent/commands/speckit.taskstoissues.md",
-            ".specify/init-options.json",
-            ".specify/integration.json",
-            ".specify/integrations/generic.manifest.json",
-            ".specify/integrations/speckit.manifest.json",
-            ".specify/memory/constitution.md",
-            ".specify/scripts/powershell/check-prerequisites.ps1",
-            ".specify/scripts/powershell/common.ps1",
-            ".specify/scripts/powershell/create-new-feature.ps1",
-            ".specify/scripts/powershell/setup-plan.ps1",
-            ".specify/templates/checklist-template.md",
-            ".specify/templates/constitution-template.md",
-            ".specify/templates/plan-template.md",
-            ".specify/templates/spec-template.md",
-            ".specify/templates/tasks-template.md",
-            ".specify/workflows/speckit/workflow.yml",
-            ".specify/workflows/workflow-registry.json",
+            ".myagent/commands/kite.analyze.md",
+            ".myagent/commands/kite.checklist.md",
+            ".myagent/commands/kite.clarify.md",
+            ".myagent/commands/kite.constitution.md",
+            ".myagent/commands/kite.implement.md",
+            ".myagent/commands/kite.plan.md",
+            ".myagent/commands/kite.specify.md",
+            ".myagent/commands/kite.tasks.md",
+            ".myagent/commands/kite.taskstoissues.md",
+            ".kite/init-options.json",
+            ".kite/integration.json",
+            ".kite/integrations/generic.manifest.json",
+            ".kite/integrations/kite.manifest.json",
+            ".kite/memory/constitution.md",
+            ".kite/scripts/powershell/check-prerequisites.ps1",
+            ".kite/scripts/powershell/common.ps1",
+            ".kite/scripts/powershell/create-new-feature.ps1",
+            ".kite/scripts/powershell/setup-plan.ps1",
+            ".kite/templates/checklist-template.md",
+            ".kite/templates/constitution-template.md",
+            ".kite/templates/plan-template.md",
+            ".kite/templates/spec-template.md",
+            ".kite/templates/tasks-template.md",
+            ".kite/workflows/kite/workflow.yml",
+            ".kite/workflows/workflow-registry.json",
         ])
         assert actual == expected, (
             f"Missing: {sorted(set(expected) - set(actual))}\n"

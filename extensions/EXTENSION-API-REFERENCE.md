@@ -1,6 +1,6 @@
 # Extension API Reference
 
-Technical reference for Spec Kit extension system APIs and manifest schema.
+Technical reference for Kite extension system APIs and manifest schema.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ extension:
   homepage: string     # Optional, valid URL
 
 requires:
-  speckit_version: string  # Required, version specifier (>=X.Y.Z)
+  kite_version: string  # Required, version specifier (>=X.Y.Z)
   tools:                   # Optional, array of tool requirements
     - name: string         # Tool name
       version: string      # Optional, version specifier
@@ -41,7 +41,7 @@ requires:
 
 provides:
   commands:              # Required, at least one command
-    - name: string       # Required, pattern: ^speckit\.[a-z0-9-]+\.[a-z0-9-]+$
+    - name: string       # Required, pattern: ^kite\.[a-z0-9-]+\.[a-z0-9-]+$
       file: string       # Required, relative path to command file
       description: string # Required
       aliases: [string]  # Optional, same pattern as name; namespace must match extension.id and must not shadow core or installed extension commands
@@ -85,7 +85,7 @@ defaults:                # Optional, default configuration values
 - **Examples**: `1.0.0`, `0.9.5`, `2.1.3`
 - **Invalid**: `v1.0`, `1.0`, `1.0.0-beta`
 
-#### `requires.speckit_version`
+#### `requires.kite_version`
 
 - **Type**: string
 - **Format**: Version specifier
@@ -99,11 +99,11 @@ defaults:                # Optional, default configuration values
 #### `provides.commands[].name`
 
 - **Type**: string
-- **Pattern**: `^speckit\.[a-z0-9-]+\.[a-z0-9-]+$`
+- **Pattern**: `^kite\.[a-z0-9-]+\.[a-z0-9-]+$`
 - **Description**: Namespaced command name
-- **Format**:  `speckit.{extension-id}.{command-name}`
-- **Examples**: `speckit.jira.specstoissues`, `speckit.linear.sync`
-- **Invalid**: `jira.specstoissues`, `speckit.command`, `speckit.jira.CreateIssues`
+- **Format**:  `kite.{extension-id}.{command-name}`
+- **Examples**: `kite.jira.specstoissues`, `kite.linear.sync`
+- **Invalid**: `jira.specstoissues`, `kite.command`, `kite.jira.CreateIssues`
 
 #### `hooks`
 
@@ -118,10 +118,10 @@ defaults:                # Optional, default configuration values
 
 ### ExtensionManifest
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import ExtensionManifest
+from kite_cli.extensions import ExtensionManifest
 
 manifest = ExtensionManifest(Path("extension.yml"))
 ```
@@ -133,7 +133,7 @@ manifest.id                        # str: Extension ID
 manifest.name                      # str: Extension name
 manifest.version                   # str: Version
 manifest.description               # str: Description
-manifest.requires_speckit_version  # str: Required spec-kit version
+manifest.requires_kite_version  # str: Required spec-kit version
 manifest.commands                  # List[Dict]: Command definitions
 manifest.hooks                     # Dict: Hook definitions
 ```
@@ -153,10 +153,10 @@ CompatibilityError    # Incompatible with current spec-kit version
 
 ### ExtensionRegistry
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import ExtensionRegistry
+from kite_cli.extensions import ExtensionRegistry
 
 registry = ExtensionRegistry(extensions_dir)
 ```
@@ -191,7 +191,7 @@ is_installed = registry.is_installed(extension_id: str)  # bool
       "source": "catalog",
       "manifest_hash": "sha256...",
       "enabled": true,
-      "registered_commands": ["speckit.jira.specstoissues", ...],
+      "registered_commands": ["kite.jira.specstoissues", ...],
       "installed_at": "2026-01-28T..."
     }
   }
@@ -200,10 +200,10 @@ is_installed = registry.is_installed(extension_id: str)  # bool
 
 ### ExtensionManager
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import ExtensionManager
+from kite_cli.extensions import ExtensionManager
 
 manager = ExtensionManager(project_root)
 ```
@@ -214,14 +214,14 @@ manager = ExtensionManager(project_root)
 # Install from directory
 manifest = manager.install_from_directory(
     source_dir: Path,
-    speckit_version: str,
+    kite_version: str,
     register_commands: bool = True
 )  # Returns: ExtensionManifest
 
 # Install from ZIP
 manifest = manager.install_from_zip(
     zip_path: Path,
-    speckit_version: str
+    kite_version: str
 )  # Returns: ExtensionManifest
 
 # Remove extension
@@ -239,18 +239,18 @@ manifest = manager.get_extension(extension_id: str)  # Optional[ExtensionManifes
 # Check compatibility
 manager.check_compatibility(
     manifest: ExtensionManifest,
-    speckit_version: str
+    kite_version: str
 )  # Raises: CompatibilityError if incompatible
 ```
 
 ### CatalogEntry
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 Represents a single catalog in the active catalog stack.
 
 ```python
-from specify_cli.extensions import CatalogEntry
+from kite_cli.extensions import CatalogEntry
 
 entry = CatalogEntry(
     url="https://example.com/catalog.json",
@@ -273,10 +273,10 @@ entry = CatalogEntry(
 
 ### ExtensionCatalog
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import ExtensionCatalog
+from kite_cli.extensions import ExtensionCatalog
 
 catalog = ExtensionCatalog(project_root)
 ```
@@ -326,7 +326,7 @@ Each extension dict returned by `search()` and `get_extension_info()` includes:
 | `_catalog_name` | `str` | Name of the source catalog |
 | `_install_allowed` | `bool` | Whether installation is allowed from this catalog |
 
-**Catalog config file** (`.specify/extension-catalogs.yml`):
+**Catalog config file** (`.kite/extension-catalogs.yml`):
 
 ```yaml
 catalogs:
@@ -344,10 +344,10 @@ catalogs:
 
 ### HookExecutor
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import HookExecutor
+from kite_cli.extensions import HookExecutor
 
 hook_executor = HookExecutor(project_root)
 ```
@@ -382,10 +382,10 @@ message = hook_executor.format_hook_message(
 
 ### CommandRegistrar
 
-**Module**: `specify_cli.extensions`
+**Module**: `kite_cli.extensions`
 
 ```python
-from specify_cli.extensions import CommandRegistrar
+from kite_cli.extensions import CommandRegistrar
 
 registrar = CommandRegistrar()
 ```
@@ -473,7 +473,7 @@ tools: [string]       # Optional, MCP tools required
 
   ```markdown
   <!-- Extension: {extension-id} -->
-  <!-- Config: .specify/extensions/{extension-id}/ -->
+  <!-- Config: .kite/extensions/{extension-id}/ -->
   ```
 
 ---
@@ -482,7 +482,7 @@ tools: [string]       # Optional, MCP tools required
 
 ### Extension Config File
 
-**File**: `.specify/extensions/{extension-id}/{extension-id}-config.yml`
+**File**: `.kite/extensions/{extension-id}/{extension-id}-config.yml`
 
 Extensions define their own config schema. Common patterns:
 
@@ -517,17 +517,17 @@ field_mappings:
 1. **Extension Defaults** (from `extension.yml` `defaults` section)
 2. **Project Config** (`{extension-id}-config.yml`)
 3. **Local Override** (`{extension-id}-config.local.yml`, gitignored)
-4. **Environment Variables** (`SPECKIT_{EXTENSION}_*`)
+4. **Environment Variables** (`KITE_{EXTENSION}_*`)
 
 ### Environment Variable Pattern
 
-Format: `SPECKIT_{EXTENSION}_{KEY}`
+Format: `KITE_{EXTENSION}_{KEY}`
 
 Examples:
 
-- `SPECKIT_JIRA_PROJECT_KEY`
-- `SPECKIT_LINEAR_API_KEY`
-- `SPECKIT_GITHUB_TOKEN`
+- `KITE_JIRA_PROJECT_KEY`
+- `KITE_LINEAR_API_KEY`
+- `KITE_GITHUB_TOKEN`
 
 ---
 
@@ -540,7 +540,7 @@ Examples:
 ```yaml
 hooks:
   after_tasks:
-    command: "speckit.jira.specstoissues"
+    command: "kite.jira.specstoissues"
     optional: true
     prompt: "Create Jira issues from tasks?"
     description: "Automatically create Jira hierarchy"
@@ -572,13 +572,13 @@ Standard events (defined by core):
 
 ### Hook Configuration
 
-**In `.specify/extensions.yml`**:
+**In `.kite/extensions.yml`**:
 
 ```yaml
 hooks:
   after_tasks:
     - extension: jira
-      command: speckit.jira.specstoissues
+      command: kite.jira.specstoissues
       enabled: true
       optional: true
       prompt: "Create Jira issues from tasks?"
@@ -613,7 +613,7 @@ EXECUTE_COMMAND: {command}
 
 ### extension list
 
-**Usage**: `specify extension list [OPTIONS]`
+**Usage**: `kite extension list [OPTIONS]`
 
 **Options**:
 
@@ -624,13 +624,13 @@ EXECUTE_COMMAND: {command}
 
 ### extension catalog list
 
-**Usage**: `specify extension catalog list`
+**Usage**: `kite extension catalog list`
 
 Lists all active catalogs in the current catalog stack, showing name, description, URL, priority, and `install_allowed` status.
 
 ### extension catalog add
 
-**Usage**: `specify extension catalog add URL [OPTIONS]`
+**Usage**: `kite extension catalog add URL [OPTIONS]`
 
 **Options**:
 
@@ -643,21 +643,21 @@ Lists all active catalogs in the current catalog stack, showing name, descriptio
 
 - `URL` - Catalog URL (must use HTTPS)
 
-Adds a catalog entry to `.specify/extension-catalogs.yml`.
+Adds a catalog entry to `.kite/extension-catalogs.yml`.
 
 ### extension catalog remove
 
-**Usage**: `specify extension catalog remove NAME`
+**Usage**: `kite extension catalog remove NAME`
 
 **Arguments**:
 
 - `NAME` - Catalog name to remove
 
-Removes a catalog entry from `.specify/extension-catalogs.yml`.
+Removes a catalog entry from `.kite/extension-catalogs.yml`.
 
 ### extension add
 
-**Usage**: `specify extension add EXTENSION [OPTIONS]`
+**Usage**: `kite extension add EXTENSION [OPTIONS]`
 
 **Options**:
 
@@ -672,7 +672,7 @@ Removes a catalog entry from `.specify/extension-catalogs.yml`.
 
 ### extension remove
 
-**Usage**: `specify extension remove EXTENSION [OPTIONS]`
+**Usage**: `kite extension remove EXTENSION [OPTIONS]`
 
 **Options**:
 
@@ -685,7 +685,7 @@ Removes a catalog entry from `.specify/extension-catalogs.yml`.
 
 ### extension search
 
-**Usage**: `specify extension search [QUERY] [OPTIONS]`
+**Usage**: `kite extension search [QUERY] [OPTIONS]`
 
 Searches all active catalogs simultaneously. Results include source catalog name and install_allowed status.
 
@@ -701,7 +701,7 @@ Searches all active catalogs simultaneously. Results include source catalog name
 
 ### extension info
 
-**Usage**: `specify extension info EXTENSION`
+**Usage**: `kite extension info EXTENSION`
 
 Shows source catalog and install_allowed status.
 
@@ -711,7 +711,7 @@ Shows source catalog and install_allowed status.
 
 ### extension update
 
-**Usage**: `specify extension update [EXTENSION]`
+**Usage**: `kite extension update [EXTENSION]`
 
 **Arguments**:
 
@@ -719,7 +719,7 @@ Shows source catalog and install_allowed status.
 
 ### extension enable
 
-**Usage**: `specify extension enable EXTENSION`
+**Usage**: `kite extension enable EXTENSION`
 
 **Arguments**:
 
@@ -727,7 +727,7 @@ Shows source catalog and install_allowed status.
 
 ### extension disable
 
-**Usage**: `specify extension disable EXTENSION`
+**Usage**: `kite extension disable EXTENSION`
 
 **Arguments**:
 
@@ -742,7 +742,7 @@ Shows source catalog and install_allowed status.
 Raised when extension manifest validation fails.
 
 ```python
-from specify_cli.extensions import ValidationError
+from kite_cli.extensions import ValidationError
 
 try:
     manifest = ExtensionManifest(path)
@@ -755,7 +755,7 @@ except ValidationError as e:
 Raised when extension is incompatible with current spec-kit version.
 
 ```python
-from specify_cli.extensions import CompatibilityError
+from kite_cli.extensions import CompatibilityError
 
 try:
     manager.check_compatibility(manifest, "0.1.0")
@@ -768,7 +768,7 @@ except CompatibilityError as e:
 Base exception for all extension-related errors.
 
 ```python
-from specify_cli.extensions import ExtensionError
+from kite_cli.extensions import ExtensionError
 
 try:
     manager.install_from_directory(path, "0.1.0")
@@ -785,7 +785,7 @@ except ExtensionError as e:
 Check if a version satisfies a specifier.
 
 ```python
-from specify_cli.extensions import version_satisfies
+from kite_cli.extensions import version_satisfies
 
 # True if 1.2.3 satisfies >=1.0.0,<2.0.0
 satisfied = version_satisfies("1.2.3", ">=1.0.0,<2.0.0")  # bool
@@ -796,7 +796,7 @@ satisfied = version_satisfies("1.2.3", ">=1.0.0,<2.0.0")  # bool
 ## File System Layout
 
 ```text
-.specify/
+.kite/
 ├── extensions/
 │   ├── .registry               # Extension registry (JSON)
 │   ├── .cache/                 # Catalog cache
@@ -820,11 +820,11 @@ satisfied = version_satisfies("1.2.3", ">=1.0.0,<2.0.0")  # bool
 
 .claude/
 └── commands/
-    └── speckit.{ext}.{cmd}.md  # Registered commands
+    └── kite.{ext}.{cmd}.md  # Registered commands
 ```
 
 ---
 
 *Last Updated: 2026-01-28*
 *API Version: 1.0*
-*Spec Kit Version: 0.1.0*
+*Kite Version: 0.1.0*

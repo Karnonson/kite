@@ -6,7 +6,7 @@
 
 ### Changed
 
-- fix(plan): use .specify/feature.json to allow /speckit.plan on custom git branches (#2305) (#2349)
+- fix(plan): use .kite/feature.json to allow /kite.plan on custom git branches (#2305) (#2349)
 - feat(vibe): migrate to SkillsIntegration from the old prompts-based MarkdownIntegration (#2336)
 - docs: move community presets table to docs site, add missing entries (#2341)
 - docs(presets): add lean preset README and enrich catalog metadata (#2340)
@@ -70,7 +70,7 @@
 - fix: replace shell-based context updates with marker-based upsert (#2259)
 - Add Community Friends page to docs site (#2261)
 - Add Spec Scope extension to community catalog (#2172)
-- docs: add Community-maintained plugin for Claude Code and GitHub Copilot CLI that installs Spec Kit skills via the plugin marketplace to README (#2250)
+- docs: add Community-maintained plugin for Claude Code and GitHub Copilot CLI that installs Kite skills via the plugin marketplace to README (#2250)
 - fix: suppress CRLF warnings in auto-commit.ps1 (#2258)
 - feat: register Blueprint in community catalog (#2252)
 - preset: Update preset-fiction-book-writing to community catalog -> v1.5.0 (#2256)
@@ -104,7 +104,7 @@
 - Add agent-assign extension to community catalog (#2030)
 - fix: unofficial PyPI warning (#1982) and legacy extension command name auto-correction (#2017) (#2027)
 - feat: register architect-preview in community catalog (#2214)
-- chore: deprecate --ai flag in favor of --integration on specify init (#2218)
+- chore: deprecate --ai flag in favor of --integration on kite init (#2218)
 - chore: release 0.7.0, begin 0.7.1.dev0 development (#2217)
 
 ## [0.7.0] - 2026-04-14
@@ -113,7 +113,7 @@
 
 - Add workflow engine with catalog system (#2158)
 - docs(catalog): add claude-ask-questions to community preset catalog (#2191)
-- Add SFSpeckit — Salesforce SDD Extension (#2208)
+- Add SFKite — Salesforce SDD Extension (#2208)
 - feat(scripts): optional single-segment branch prefix for gitflow (#2202)
 - chore: release 0.6.2, begin 0.6.3.dev0 development (#2205)
 - Add Worktrees extension to community catalog (#2207)
@@ -178,7 +178,7 @@
 - Add explicit-task-dependencies community preset to catalog and README (#2091)
 - Add toc-navigation community preset to catalog and README (#2080)
 - fix: prevent ambiguous TOML closing quotes when body ends with `"` (#2113) (#2115)
-- fix speckit issue for trae (#2112)
+- fix kite issue for trae (#2112)
 - feat: Git extension stage 1 — bundled `extensions/git` with hooks on all core commands (#1941)
 - Upgraded confluence extension to v.1.1.1 (#2109)
 - Update V-Model Extension Pack to v0.5.0 (#2108)
@@ -191,7 +191,7 @@
 - Add optimize extension to community catalog (#2088)
 - feat: add "VS Code Ask Questions" preset (#2086)
 - Add security-review v1.1.1 to community extensions catalog (#2073)
-- Add `specify integration` subcommand for post-init integration management (#2083)
+- Add `kite integration` subcommand for post-init integration management (#2083)
 - Remove template version info from CLI, fix Claude user-invocable, cleanup dead code (#2081)
 - fix: add user-invocable: true to skill frontmatter (#2077)
 - fix: add actions:write permission to stale workflow (#2079)
@@ -275,14 +275,14 @@
 - docs(readme): consolidate Community Friends sections and fix ToC anchors (#1958)
 - fix(commands): rename NFR references to success criteria in analyze and clarify (#1935)
 - Add Community Friends section to README (#1956)
-- docs: add Community Friends section with Spec Kit Assistant VS Code extension (#1944)
+- docs: add Community Friends section with Kite Assistant VS Code extension (#1944)
 
 ## [0.4.1] - 2026-03-24
 
 ### Changed
 
 - Add checkpoint extension (#1947)
-- fix(scripts): prioritize .specify over git for repo root detection (#1933)
+- fix(scripts): prioritize .kite over git for repo root detection (#1933)
 - docs: add AIDE extension demo to community projects (#1943)
 - fix(templates): add missing Assumptions section to spec template (#1939)
 
@@ -296,7 +296,7 @@
 - ci: increase stale workflow operations-per-run to 250 (#1922)
 - docs: update publishing guide with Category and Effect columns (#1913)
 - fix: Align native skills frontmatter with install_ai_skills (#1920)
-- feat: add timestamp-based branch naming option for `specify init` (#1911)
+- feat: add timestamp-based branch naming option for `kite init` (#1911)
 - docs: add Extension Comparison Guide for community extensions (#1897)
 - docs: update SUPPORT.md, fix issue templates, add preset submission template (#1910)
 - Add support for Junie (#1831)
@@ -311,7 +311,7 @@
 - feat(presets): add enable/disable toggle and update semantics (#1891)
 - feat: add iFlow CLI support (#1875)
 - feat(commands): wire before/after hook events into specify and plan templates (#1886)
-- docs(catalog): add speckit-utils to community catalog (#1896)
+- docs(catalog): add kite-utils to community catalog (#1896)
 - docs: Add Extensions & Presets section to README (#1898)
 - chore: update DocGuard extension to v0.9.11 (#1899)
 - Update cognitive-squad catalog entry — Triadic Model, full lifecycle (#1884)
@@ -327,7 +327,7 @@
 ### Changed
 
 - docs: add greenfield Spring Boot pirate-speak preset demo to README (#1878)
-- fix(ai-skills): exclude non-speckit copilot agent markdown from skills (#1867)
+- fix(ai-skills): exclude non-kite copilot agent markdown from skills (#1867)
 - feat: add Trae IDE support as a new agent (#1817)
 - feat(cli): polite deep merge for settings.json and support JSONC (#1874)
 - feat(extensions,presets): add priority-based resolution ordering (#1855)
@@ -380,7 +380,7 @@
 - Update README with project initialization instructions (#1772)
 - feat: add review extension to community catalog (#1775)
 - Add fleet extension to community catalog (#1771)
-- Integration of Mistral vibe support into speckit (#1725)
+- Integration of Mistral vibe support into kite (#1725)
 - fix: Remove duplicate options in specify.md (#1765)
 - fix: use global branch numbering instead of per-short-name detection (#1757)
 - Add Community Walkthroughs section to README (#1766)
@@ -549,7 +549,7 @@
 
 ### Changed
 
-- Fixes #1586 - .specify.specify path error (#1588)
+- Fixes #1586 - .kite.specify path error (#1588)
 
 ## [0.0.91] - 2026-02-09
 
@@ -627,7 +627,7 @@
 - docs: reorganize upgrade documentation structure
 - docs: remove related documentation section from upgrading guide
 - fix: remove broken link to existing project guide
-- docs: Add comprehensive upgrading guide for Spec Kit
+- docs: Add comprehensive upgrading guide for Kite
 - Refactor ESLint configuration checks in implement.md to address deprecation
 
 ## [0.0.83] - 2025-11-14
@@ -657,15 +657,15 @@
 - Update CHANGELOG.md
 - Update agent configuration
 - Update scripts/powershell/create-new-feature.ps1
-- Update src/specify_cli/__init__.py
+- Update src/kite_cli/__init__.py
 - Create create-release-packages.ps1
 - Script changes
 - Update taskstoissues.md
 - Create taskstoissues.md
-- Update src/specify_cli/__init__.py
+- Update src/kite_cli/__init__.py
 - Update CONTRIBUTING.md
 - Potential fix for code scanning alert no. 3: Workflow does not contain permissions
-- Update src/specify_cli/__init__.py
+- Update src/kite_cli/__init__.py
 - Update CHANGELOG.md
 - Fixes #970
 - Fixes #975
@@ -730,7 +730,7 @@
 - revert vscode auto remove extra space
 - fix: correct command references in implement.md
 - fix regarding copilot suggestion
-- fix: correct command references in speckit.analyze.md
+- fix: correct command references in kite.analyze.md
 - Support more lang/Devops of Common Patterns by Technology
 - chore: replace `bun` by `node/npm` in the `devcontainer` (as many CLI-based agents actually require a `node` runtime)
 - chore: add Claude Code extension to devcontainer configuration
@@ -760,7 +760,7 @@
 - fix: broken media files
 - Update README.md
 - The function parameters lack type hints. Consider adding type annotations for better code clarity and IDE support.
-- - **Smart JSON Merging for VS Code Settings**: `.vscode/settings.json` is now intelligently merged instead of being overwritten during `specify init --here` or `specify init .`   - Existing settings are preserved   - New Spec Kit settings are added   - Nested objects are merged recursively   - Prevents accidental loss of custom VS Code workspace configurations
+- - **Smart JSON Merging for VS Code Settings**: `.vscode/settings.json` is now intelligently merged instead of being overwritten during `kite init --here` or `kite init .`   - Existing settings are preserved   - New Kite settings are added   - Nested objects are merged recursively   - Prevents accidental loss of custom VS Code workspace configurations
 - Fix: incorrect command formatting in agent context file, refix #895
 
 ## [0.0.69] - 2025-10-15
@@ -821,7 +821,7 @@
 ### Changed
 
 - fix: update CODEBUDDY file path in agent context scripts
-- docs(readme): add /speckit.tasks step and renumber walkthrough
+- docs(readme): add /kite.tasks step and renumber walkthrough
 
 ## [0.0.62] - 2025-10-11
 
@@ -854,7 +854,7 @@
 - Git errors are now highlighted.
 - Update __init__.py
 - Refactor agent configuration
-- Update src/specify_cli/__init__.py
+- Update src/kite_cli/__init__.py
 - Update scripts/powershell/update-agent-context.ps1
 - Update AGENTS.md
 - Update templates/commands/implement.md
@@ -862,7 +862,7 @@
 - Update CHANGELOG.md
 - Update changelog
 - Update plan.md
-- Add ignore file verification step to /speckit.implement command
+- Add ignore file verification step to /kite.implement command
 - Escape backslashes in TOML outputs
 - update CodeBuddy to international site
 - feat: support codebuddy ai
@@ -919,10 +919,10 @@
 - Update URLs to Contributing and Support Guides in Docs
 - fix: add UTF-8 encoding to file read/write operations in update-agent-context.ps1
 - Update __init__.py
-- Update src/specify_cli/__init__.py
-- docs: fix the paths of generated files (moved under a `.specify/` folder)
-- Update src/specify_cli/__init__.py
-- feat: support 'specify init .' for current directory initialization
+- Update src/kite_cli/__init__.py
+- docs: fix the paths of generated files (moved under a `.kite/` folder)
+- Update src/kite_cli/__init__.py
+- feat: support 'kite init .' for current directory initialization
 - feat: Add emacs-style up/down keys
 
 ## [0.0.54] - 2025-09-25
@@ -1132,7 +1132,7 @@
 
 - chore(release): bump version to 0.0.5 and update changelog
 - chore: address review feedback - remove comment and fix numbering
-- feat: add Qwen Code support to Spec Kit
+- feat: add Qwen Code support to Kite
 
 ## [0.0.34] - 2025-09-15
 

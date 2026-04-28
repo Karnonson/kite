@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 import yaml
 
 from tests.conftest import strip_ansi
-from specify_cli.presets import (
+from kite_cli.presets import (
     PresetManifest,
     PresetRegistry,
     PresetManager,
@@ -33,7 +33,7 @@ from specify_cli.presets import (
     PresetCompatibilityError,
     VALID_PRESET_TEMPLATE_TYPES,
 )
-from specify_cli.extensions import ExtensionRegistry
+from kite_cli.extensions import ExtensionRegistry
 
 
 # ===== Fixtures =====
@@ -62,7 +62,7 @@ def valid_pack_data():
             "license": "MIT",
         },
         "requires": {
-            "speckit_version": ">=0.1.0",
+            "kite_version": ">=0.1.0",
         },
         "provides": {
             "templates": [
@@ -107,8 +107,8 @@ def project_dir(temp_dir):
     proj_dir = temp_dir / "project"
     proj_dir.mkdir()
 
-    # Create .specify directory
-    specify_dir = proj_dir / ".specify"
+    # Create .kite directory
+    specify_dir = proj_dir / ".kite"
     specify_dir.mkdir()
 
     # Create templates directory with core templates
@@ -144,7 +144,7 @@ class TestPresetManifest:
         assert manifest.version == "1.0.0"
         assert manifest.description == "A test preset"
         assert manifest.author == "Test Author"
-        assert manifest.requires_speckit_version == ">=0.1.0"
+        assert manifest.requires_kite_version == ">=0.1.0"
         assert len(manifest.templates) == 1
         assert manifest.tags == ["testing", "example"]
 
@@ -205,13 +205,13 @@ class TestPresetManifest:
         with pytest.raises(PresetValidationError, match="Invalid version"):
             PresetManifest(manifest_path)
 
-    def test_missing_speckit_version(self, temp_dir, valid_pack_data):
-        """Test missing requires.speckit_version."""
-        del valid_pack_data["requires"]["speckit_version"]
+    def test_missing_kite_version(self, temp_dir, valid_pack_data):
+        """Test missing requires.kite_version."""
+        del valid_pack_data["requires"]["kite_version"]
         manifest_path = temp_dir / "preset.yml"
         with open(manifest_path, 'w') as f:
             yaml.dump(valid_pack_data, f)
-        with pytest.raises(PresetValidationError, match="Missing requires.speckit_version"):
+        with pytest.raises(PresetValidationError, match="Missing requires.kite_version"):
             PresetManifest(manifest_path)
 
     def test_no_templates_provided(self, temp_dir, valid_pack_data):
@@ -552,7 +552,7 @@ class TestPresetManager:
         assert manager.registry.is_installed("test-pack")
 
         # Verify files are copied
-        installed_dir = project_dir / ".specify" / "presets" / "test-pack"
+        installed_dir = project_dir / ".kite" / "presets" / "test-pack"
         assert installed_dir.exists()
         assert (installed_dir / "preset.yml").exists()
         assert (installed_dir / "templates" / "spec-template.md").exists()
@@ -567,7 +567,7 @@ class TestPresetManager:
 
     def test_install_incompatible(self, project_dir, temp_dir, valid_pack_data):
         """Test installing an incompatible pack raises error."""
-        valid_pack_data["requires"]["speckit_version"] = ">=99.0.0"
+        valid_pack_data["requires"]["kite_version"] = ">=99.0.0"
         incompat_dir = temp_dir / "incompat-pack"
         incompat_dir.mkdir()
         manifest_path = incompat_dir / "preset.yml"
@@ -627,7 +627,7 @@ class TestPresetManager:
         assert result is True
         assert not manager.registry.is_installed("test-pack")
 
-        installed_dir = project_dir / ".specify" / "presets" / "test-pack"
+        installed_dir = project_dir / ".kite" / "presets" / "test-pack"
         assert not installed_dir.exists()
 
     def test_remove_nonexistent(self, project_dir):
@@ -677,7 +677,7 @@ class TestPresetManager:
         """Test compatibility check with invalid specifier."""
         manager = PresetManager(temp_dir)
         manifest = PresetManifest(pack_dir / "preset.yml")
-        manifest.data["requires"]["speckit_version"] = "not-a-specifier"
+        manifest.data["requires"]["kite_version"] = "not-a-specifier"
         with pytest.raises(PresetCompatibilityError, match="Invalid version specifier"):
             manager.check_compatibility(manifest, "0.1.5")
 
@@ -817,7 +817,7 @@ class TestPresetResolver:
     def test_resolve_override_takes_priority(self, project_dir):
         """Test that project overrides take priority over core."""
         # Create override
-        overrides_dir = project_dir / ".specify" / "templates" / "overrides"
+        overrides_dir = project_dir / ".kite" / "templates" / "overrides"
         overrides_dir.mkdir(parents=True)
         override = overrides_dir / "spec-template.md"
         override.write_text("# Override Spec Template\n")
@@ -845,7 +845,7 @@ class TestPresetResolver:
         manager.install_from_directory(pack_dir, "0.1.5")
 
         # Create override
-        overrides_dir = project_dir / ".specify" / "templates" / "overrides"
+        overrides_dir = project_dir / ".kite" / "templates" / "overrides"
         overrides_dir.mkdir(parents=True)
         override = overrides_dir / "spec-template.md"
         override.write_text("# Override Spec Template\n")
@@ -858,14 +858,14 @@ class TestPresetResolver:
     def test_resolve_extension_provided_templates(self, project_dir):
         """Test resolving templates provided by extensions."""
         # Create extension with templates
-        ext_dir = project_dir / ".specify" / "extensions" / "my-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "my-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "custom-template.md"
         ext_template.write_text("# Extension Custom Template\n")
 
         # Register extension in registry
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         ext_registry = ExtensionRegistry(extensions_dir)
         ext_registry.add("my-ext", {"version": "1.0.0", "priority": 10})
 
@@ -877,14 +877,14 @@ class TestPresetResolver:
     def test_resolve_disabled_extension_templates_skipped(self, project_dir):
         """Test that disabled extension templates are not resolved."""
         # Create extension with templates
-        ext_dir = project_dir / ".specify" / "extensions" / "disabled-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "disabled-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "disabled-template.md"
         ext_template.write_text("# Disabled Extension Template\n")
 
         # Register extension as disabled
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         ext_registry = ExtensionRegistry(extensions_dir)
         ext_registry.add("disabled-ext", {"version": "1.0.0", "priority": 1, "enabled": False})
 
@@ -896,14 +896,14 @@ class TestPresetResolver:
     def test_resolve_disabled_extension_not_picked_up_as_unregistered(self, project_dir):
         """Test that disabled extensions are not picked up via unregistered dir scan."""
         # Create extension directory with templates
-        ext_dir = project_dir / ".specify" / "extensions" / "test-disabled-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "test-disabled-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "unique-disabled-template.md"
         ext_template.write_text("# Should Not Resolve\n")
 
         # Register the extension but disable it
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         ext_registry = ExtensionRegistry(extensions_dir)
         ext_registry.add("test-disabled-ext", {"version": "1.0.0", "enabled": False})
 
@@ -915,7 +915,7 @@ class TestPresetResolver:
     def test_resolve_pack_over_extension(self, project_dir, pack_dir, temp_dir, valid_pack_data):
         """Test that pack templates take priority over extension templates."""
         # Create extension with templates
-        ext_dir = project_dir / ".specify" / "extensions" / "my-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "my-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "spec-template.md"
@@ -941,7 +941,7 @@ class TestPresetResolver:
 
     def test_resolve_with_source_override(self, project_dir):
         """Test resolve_with_source for override template."""
-        overrides_dir = project_dir / ".specify" / "templates" / "overrides"
+        overrides_dir = project_dir / ".kite" / "templates" / "overrides"
         overrides_dir.mkdir(parents=True)
         override = overrides_dir / "spec-template.md"
         override.write_text("# Override\n")
@@ -964,14 +964,14 @@ class TestPresetResolver:
 
     def test_resolve_with_source_extension(self, project_dir):
         """Test resolve_with_source for extension-provided template."""
-        ext_dir = project_dir / ".specify" / "extensions" / "my-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "my-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "unique-template.md"
         ext_template.write_text("# Unique\n")
 
         # Register extension in registry
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         ext_registry = ExtensionRegistry(extensions_dir)
         ext_registry.add("my-ext", {"version": "1.0.0", "priority": 10})
 
@@ -988,7 +988,7 @@ class TestPresetResolver:
 
     def test_resolve_skips_hidden_extension_dirs(self, project_dir):
         """Test that hidden directories in extensions are skipped."""
-        ext_dir = project_dir / ".specify" / "extensions" / ".backup"
+        ext_dir = project_dir / ".kite" / "extensions" / ".backup"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         ext_template = ext_templates_dir / "hidden-template.md"
@@ -1003,8 +1003,8 @@ class TestResolveCore:
     """Test PresetResolver.resolve_core() skips the installed-presets tier."""
 
     def test_resolve_core_does_not_return_preset_files(self, project_dir):
-        """resolve_core must not return files from .specify/presets/."""
-        preset_cmd_dir = project_dir / ".specify" / "presets" / "my-preset" / "commands"
+        """resolve_core must not return files from .kite/presets/."""
+        preset_cmd_dir = project_dir / ".kite" / "presets" / "my-preset" / "commands"
         preset_cmd_dir.mkdir(parents=True)
         (preset_cmd_dir / "specify.md").write_text("---\ndescription: preset wrap\n---\n\nwrap body\n")
 
@@ -1016,12 +1016,12 @@ class TestResolveCore:
 
     def test_resolve_core_returns_core_template(self, project_dir):
         """resolve_core falls through to core templates (tier 4)."""
-        core_cmd_dir = project_dir / ".specify" / "templates" / "commands"
+        core_cmd_dir = project_dir / ".kite" / "templates" / "commands"
         core_cmd_dir.mkdir(parents=True, exist_ok=True)
         (core_cmd_dir / "specify.md").write_text("---\ndescription: core\n---\n\ncore body\n")
 
         # Also place a preset file — resolve_core must still return the core
-        preset_cmd_dir = project_dir / ".specify" / "presets" / "my-preset" / "commands"
+        preset_cmd_dir = project_dir / ".kite" / "presets" / "my-preset" / "commands"
         preset_cmd_dir.mkdir(parents=True)
         (preset_cmd_dir / "specify.md").write_text("---\ndescription: preset wrap\n---\n\nwrap body\n")
 
@@ -1033,7 +1033,7 @@ class TestResolveCore:
 
     def test_resolve_core_returns_override(self, project_dir):
         """resolve_core returns tier-1 override if present."""
-        override_dir = project_dir / ".specify" / "templates" / "overrides"
+        override_dir = project_dir / ".kite" / "templates" / "overrides"
         override_dir.mkdir(parents=True)
         (override_dir / "specify.md").write_text("---\ndescription: override\n---\n\noverride body\n")
 
@@ -1044,7 +1044,7 @@ class TestResolveCore:
 
     def test_resolve_core_returns_extension_template(self, project_dir):
         """resolve_core returns extension templates (tier 3)."""
-        ext_cmd_dir = project_dir / ".specify" / "extensions" / "myext" / "commands"
+        ext_cmd_dir = project_dir / ".kite" / "extensions" / "myext" / "commands"
         ext_cmd_dir.mkdir(parents=True)
         (ext_cmd_dir / "myext-cmd.md").write_text("---\ndescription: ext\n---\n\next body\n")
 
@@ -1063,7 +1063,7 @@ class TestResolveCore:
         """resolve_extension_command_via_manifest skips extensions whose manifest raises OSError."""
         import unittest.mock as mock
 
-        ext_dir = project_dir / ".specify" / "extensions" / "bad-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "bad-ext"
         cmd_dir = ext_dir / "commands"
         cmd_dir.mkdir(parents=True)
         (cmd_dir / "mycmd.md").write_text("---\ndescription: d\n---\n\nbody\n")
@@ -1072,9 +1072,9 @@ class TestResolveCore:
             "extension:\n  id: bad-ext\n  name: Bad\n  version: 1.0.0\n"
             "  description: d\n  author: a\n  repository: https://example.com\n"
             "  license: MIT\n"
-            "requires:\n  speckit_version: '>=0.2.0'\n"
+            "requires:\n  kite_version: '>=0.2.0'\n"
             "provides:\n  commands:\n"
-            "    - name: speckit.bad-ext.mycmd\n"
+            "    - name: kite.bad-ext.mycmd\n"
             "      file: commands/mycmd.md\n"
             "      description: My command\n"
         )
@@ -1082,7 +1082,7 @@ class TestResolveCore:
         resolver = PresetResolver(project_dir)
         # Simulate a permission error when opening the manifest file.
         with mock.patch("builtins.open", side_effect=PermissionError("denied")):
-            result = resolver.resolve_extension_command_via_manifest("speckit.bad-ext.mycmd")
+            result = resolver.resolve_extension_command_via_manifest("kite.bad-ext.mycmd")
 
         assert result is None, "OSError during manifest load must be silently skipped"
 
@@ -1092,7 +1092,7 @@ class TestExtensionPriorityResolution:
 
     def test_unregistered_beats_registered_with_lower_precedence(self, project_dir):
         """Unregistered extension (implicit priority 10) beats registered with priority 20."""
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         extensions_dir.mkdir(parents=True, exist_ok=True)
 
         # Create registered extension with priority 20 (lower precedence than 10)
@@ -1116,7 +1116,7 @@ class TestExtensionPriorityResolution:
 
     def test_registered_with_higher_precedence_beats_unregistered(self, project_dir):
         """Registered extension with priority 5 beats unregistered (implicit priority 10)."""
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         extensions_dir.mkdir(parents=True, exist_ok=True)
 
         # Create registered extension with priority 5 (higher precedence than 10)
@@ -1140,7 +1140,7 @@ class TestExtensionPriorityResolution:
 
     def test_unregistered_attribution_with_priority_ordering(self, project_dir):
         """Test resolve_with_source correctly attributes unregistered extension."""
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         extensions_dir.mkdir(parents=True, exist_ok=True)
 
         # Create registered extension with priority 20
@@ -1165,7 +1165,7 @@ class TestExtensionPriorityResolution:
 
     def test_same_priority_sorted_alphabetically(self, project_dir):
         """Extensions with same priority are sorted alphabetically by ID."""
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         extensions_dir.mkdir(parents=True, exist_ok=True)
 
         # Create two unregistered extensions (both implicit priority 10)
@@ -1263,7 +1263,7 @@ class TestPresetCatalog:
         """Test search with cached catalog data."""
         from unittest.mock import patch
 
-        monkeypatch.delenv("SPECKIT_PRESET_CATALOG_URL", raising=False)
+        monkeypatch.delenv("KITE_PRESET_CATALOG_URL", raising=False)
         catalog = PresetCatalog(project_dir)
         catalog.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1359,7 +1359,7 @@ class TestPresetCatalog:
 
     def test_env_var_catalog_url(self, project_dir, monkeypatch):
         """Test catalog URL from environment variable."""
-        monkeypatch.setenv("SPECKIT_PRESET_CATALOG_URL", "https://custom.example.com/catalog.json")
+        monkeypatch.setenv("KITE_PRESET_CATALOG_URL", "https://custom.example.com/catalog.json")
         catalog = PresetCatalog(project_dir)
         assert catalog.get_catalog_url() == "https://custom.example.com/catalog.json"
 
@@ -1560,13 +1560,13 @@ class TestIntegration:
         assert result["source"] == "core"
 
         # Add extension template
-        ext_dir = project_dir / ".specify" / "extensions" / "my-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "my-ext"
         ext_templates_dir = ext_dir / "templates"
         ext_templates_dir.mkdir(parents=True)
         (ext_templates_dir / "spec-template.md").write_text("# Extension\n")
 
         # Register extension in registry
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
         ext_registry = ExtensionRegistry(extensions_dir)
         ext_registry.add("my-ext", {"version": "1.0.0", "priority": 10})
 
@@ -1581,7 +1581,7 @@ class TestIntegration:
         assert "test-pack" in result["source"]
 
         # Add override — should win over pack
-        overrides_dir = project_dir / ".specify" / "templates" / "overrides"
+        overrides_dir = project_dir / ".kite" / "templates" / "overrides"
         overrides_dir.mkdir(parents=True)
         (overrides_dir / "spec-template.md").write_text("# Override\n")
 
@@ -1660,9 +1660,9 @@ class TestPresetCatalogMultiCatalog:
         assert active[1].install_allowed is False
 
     def test_env_var_overrides_catalogs(self, project_dir, monkeypatch):
-        """Test that SPECKIT_PRESET_CATALOG_URL env var overrides defaults."""
+        """Test that KITE_PRESET_CATALOG_URL env var overrides defaults."""
         monkeypatch.setenv(
-            "SPECKIT_PRESET_CATALOG_URL",
+            "KITE_PRESET_CATALOG_URL",
             "https://custom.example.com/catalog.json",
         )
         catalog = PresetCatalog(project_dir)
@@ -1674,7 +1674,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_project_config_overrides_defaults(self, project_dir):
         """Test that project-level config overrides built-in defaults."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1696,13 +1696,13 @@ class TestPresetCatalogMultiCatalog:
         """Test loading config from nonexistent file returns None."""
         catalog = PresetCatalog(project_dir)
         result = catalog._load_catalog_config(
-            project_dir / ".specify" / "nonexistent.yml"
+            project_dir / ".kite" / "nonexistent.yml"
         )
         assert result is None
 
     def test_load_catalog_config_empty(self, project_dir):
         """Test loading empty config returns None."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text("")
 
         catalog = PresetCatalog(project_dir)
@@ -1711,7 +1711,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_invalid_yaml(self, project_dir):
         """Test loading invalid YAML raises error."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(": invalid: {{{")
 
         catalog = PresetCatalog(project_dir)
@@ -1720,7 +1720,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_not_a_list(self, project_dir):
         """Test that non-list catalogs key raises error."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({"catalogs": "not-a-list"}))
 
         catalog = PresetCatalog(project_dir)
@@ -1729,7 +1729,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_invalid_entry(self, project_dir):
         """Test that non-dict entry raises error."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({"catalogs": ["not-a-dict"]}))
 
         catalog = PresetCatalog(project_dir)
@@ -1738,7 +1738,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_http_url_rejected(self, project_dir):
         """Test that HTTP URLs are rejected."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1755,7 +1755,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_priority_sorting(self, project_dir):
         """Test that catalogs are sorted by priority."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1782,7 +1782,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_invalid_priority(self, project_dir):
         """Test that invalid priority raises error."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1799,7 +1799,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_load_catalog_config_install_allowed_string(self, project_dir):
         """Test that install_allowed accepts string values."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1818,7 +1818,7 @@ class TestPresetCatalogMultiCatalog:
 
     def test_get_catalog_url_uses_highest_priority(self, project_dir):
         """Test that get_catalog_url returns URL of highest priority catalog."""
-        config_path = project_dir / ".specify" / "preset-catalogs.yml"
+        config_path = project_dir / ".kite" / "preset-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [
                 {
@@ -1946,7 +1946,7 @@ class TestSelfTestPreset:
     def test_self_test_overrides_all_core_templates(self, project_dir):
         """Test that installing self-test overrides every core template."""
         # Set up core templates in the project
-        templates_dir = project_dir / ".specify" / "templates"
+        templates_dir = project_dir / ".kite" / "templates"
         for name in CORE_TEMPLATE_NAMES:
             (templates_dir / f"{name}.md").write_text(f"# Core {name}\n")
 
@@ -1966,7 +1966,7 @@ class TestSelfTestPreset:
 
     def test_self_test_resolve_with_source(self, project_dir):
         """Test that resolve_with_source attributes templates to self-test."""
-        templates_dir = project_dir / ".specify" / "templates"
+        templates_dir = project_dir / ".kite" / "templates"
         for name in CORE_TEMPLATE_NAMES:
             (templates_dir / f"{name}.md").write_text(f"# Core {name}\n")
 
@@ -1983,7 +1983,7 @@ class TestSelfTestPreset:
 
     def test_self_test_removal_restores_core(self, project_dir):
         """Test that removing self-test falls back to core templates."""
-        templates_dir = project_dir / ".specify" / "templates"
+        templates_dir = project_dir / ".kite" / "templates"
         for name in CORE_TEMPLATE_NAMES:
             (templates_dir / f"{name}.md").write_text(f"# Core {name}\n")
 
@@ -2008,11 +2008,11 @@ class TestSelfTestPreset:
         manifest = PresetManifest(SELF_TEST_PRESET_DIR / "preset.yml")
         commands = [t for t in manifest.templates if t["type"] == "command"]
         assert len(commands) >= 1
-        assert commands[0]["name"] == "speckit.specify"
+        assert commands[0]["name"] == "kite.specify"
 
     def test_self_test_command_file_exists(self):
         """Verify the self-test command file exists on disk."""
-        cmd_path = SELF_TEST_PRESET_DIR / "commands" / "speckit.specify.md"
+        cmd_path = SELF_TEST_PRESET_DIR / "commands" / "kite.specify.md"
         assert cmd_path.exists()
         content = cmd_path.read_text()
         assert "preset:self-test" in content
@@ -2027,7 +2027,7 @@ class TestSelfTestPreset:
         manager.install_from_directory(SELF_TEST_PRESET_DIR, "0.1.5")
 
         # Check the skill was registered
-        cmd_file = claude_dir / "speckit-specify" / "SKILL.md"
+        cmd_file = claude_dir / "kite-specify" / "SKILL.md"
         assert cmd_file.exists(), "Skill not registered in .claude/skills/"
         content = cmd_file.read_text()
         assert "self-test" in content
@@ -2043,7 +2043,7 @@ class TestSelfTestPreset:
         manager.install_from_directory(SELF_TEST_PRESET_DIR, "0.1.5")
 
         # Check the command was registered in TOML format
-        cmd_file = gemini_dir / "speckit.specify.toml"
+        cmd_file = gemini_dir / "kite.specify.toml"
         assert cmd_file.exists(), "Command not registered in .gemini/commands/"
         content = cmd_file.read_text()
         assert "prompt" in content  # TOML format has a prompt field
@@ -2057,7 +2057,7 @@ class TestSelfTestPreset:
         manager = PresetManager(project_dir)
         manager.install_from_directory(SELF_TEST_PRESET_DIR, "0.1.5")
 
-        cmd_file = claude_dir / "speckit-specify" / "SKILL.md"
+        cmd_file = claude_dir / "kite-specify" / "SKILL.md"
         assert cmd_file.exists()
 
         manager.remove("self-test")
@@ -2079,7 +2079,7 @@ class TestSelfTestPreset:
         preset_dir = temp_dir / "ext-override-preset"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.fakeext.cmd.md").write_text(
+        (preset_dir / "commands" / "kite.fakeext.cmd.md").write_text(
             "---\ndescription: Override fakeext cmd\n---\nOverridden content"
         )
         manifest_data = {
@@ -2090,13 +2090,13 @@ class TestSelfTestPreset:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.fakeext.cmd",
-                        "file": "commands/speckit.fakeext.cmd.md",
+                        "name": "kite.fakeext.cmd",
+                        "file": "commands/kite.fakeext.cmd.md",
                         "description": "Override fakeext cmd",
                     }
                 ]
@@ -2109,7 +2109,7 @@ class TestSelfTestPreset:
         manager.install_from_directory(preset_dir, "0.1.5")
 
         # Extension not installed — command should NOT be registered
-        cmd_file = claude_dir / "speckit.fakeext.cmd.md"
+        cmd_file = claude_dir / "kite.fakeext.cmd.md"
         assert not cmd_file.exists(), "Command registered for missing extension"
         metadata = manager.registry.get("ext-override")
         assert metadata["registered_commands"] == {}
@@ -2118,12 +2118,12 @@ class TestSelfTestPreset:
         """Test that extension command overrides ARE registered when the extension is installed."""
         claude_dir = project_dir / ".claude" / "skills"
         claude_dir.mkdir(parents=True)
-        (project_dir / ".specify" / "extensions" / "fakeext").mkdir(parents=True)
+        (project_dir / ".kite" / "extensions" / "fakeext").mkdir(parents=True)
 
         preset_dir = temp_dir / "ext-override-preset2"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.fakeext.cmd.md").write_text(
+        (preset_dir / "commands" / "kite.fakeext.cmd.md").write_text(
             "---\ndescription: Override fakeext cmd\n---\nOverridden content"
         )
         manifest_data = {
@@ -2134,13 +2134,13 @@ class TestSelfTestPreset:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.fakeext.cmd",
-                        "file": "commands/speckit.fakeext.cmd.md",
+                        "name": "kite.fakeext.cmd",
+                        "file": "commands/kite.fakeext.cmd.md",
                         "description": "Override fakeext cmd",
                     }
                 ]
@@ -2152,7 +2152,7 @@ class TestSelfTestPreset:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        cmd_file = claude_dir / "speckit-fakeext-cmd" / "SKILL.md"
+        cmd_file = claude_dir / "kite-fakeext-cmd" / "SKILL.md"
         assert cmd_file.exists(), "Skill not registered despite extension being present"
 
 
@@ -2163,7 +2163,7 @@ class TestInitOptions:
     """Tests for save_init_options / load_init_options helpers."""
 
     def test_save_and_load_round_trip(self, project_dir):
-        from specify_cli import save_init_options, load_init_options
+        from kite_cli import save_init_options, load_init_options
 
         opts = {"ai": "claude", "ai_skills": True, "here": False}
         save_init_options(project_dir, opts)
@@ -2173,14 +2173,14 @@ class TestInitOptions:
         assert loaded["ai_skills"] is True
 
     def test_load_returns_empty_when_missing(self, project_dir):
-        from specify_cli import load_init_options
+        from kite_cli import load_init_options
 
         assert load_init_options(project_dir) == {}
 
     def test_load_returns_empty_on_invalid_json(self, project_dir):
-        from specify_cli import load_init_options
+        from kite_cli import load_init_options
 
-        opts_file = project_dir / ".specify" / "init-options.json"
+        opts_file = project_dir / ".kite" / "init-options.json"
         opts_file.parent.mkdir(parents=True, exist_ok=True)
         opts_file.write_text("{bad json")
 
@@ -2191,7 +2191,7 @@ class TestPresetSkills:
     """Tests for preset skill registration and unregistration."""
 
     def _write_init_options(self, project_dir, ai="claude", ai_skills=True, script="sh"):
-        from specify_cli import save_init_options
+        from kite_cli import save_init_options
 
         save_init_options(project_dir, {"ai": ai, "ai_skills": ai_skills, "script": script})
 
@@ -2208,17 +2208,17 @@ class TestPresetSkills:
         # Simulate --ai-skills having been used: write init-options + create skill
         self._write_init_options(project_dir, ai="claude")
         skills_dir = project_dir / ".claude" / "skills"
-        self._create_skill(skills_dir, "speckit-specify")
+        self._create_skill(skills_dir, "kite-specify")
 
         # Also create the claude commands dir so commands get registered
         (project_dir / ".claude" / "skills").mkdir(parents=True, exist_ok=True)
 
-        # Install self-test preset (has a command override for speckit.specify)
+        # Install self-test preset (has a command override for kite.specify)
         manager = PresetManager(project_dir)
         SELF_TEST_DIR = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
 
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "preset:self-test" in content, "Skill should reference preset source"
@@ -2226,25 +2226,25 @@ class TestPresetSkills:
 
         # Verify it was recorded in registry
         metadata = manager.registry.get("self-test")
-        assert "speckit-specify" in metadata.get("registered_skills", [])
+        assert "kite-specify" in metadata.get("registered_skills", [])
 
     def test_skill_not_updated_when_ai_skills_disabled(self, project_dir, temp_dir):
         """When --ai-skills was NOT used, preset install should not touch skills."""
         self._write_init_options(project_dir, ai="qwen", ai_skills=False)
         skills_dir = project_dir / ".qwen" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="untouched")
+        self._create_skill(skills_dir, "kite-specify", body="untouched")
 
         manager = PresetManager(project_dir)
         SELF_TEST_DIR = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
 
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         content = skill_file.read_text()
         assert "untouched" in content, "Skill should not be modified when ai_skills=False"
 
     def test_get_skills_dir_returns_none_for_non_string_ai(self, project_dir):
         """Corrupted init-options ai values should not crash preset skill resolution."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text('{"ai":["codex"],"ai_skills":true,"script":"sh"}')
 
@@ -2254,7 +2254,7 @@ class TestPresetSkills:
 
     def test_get_skills_dir_returns_none_for_non_dict_init_options(self, project_dir):
         """Corrupted non-dict init-options payloads should fail closed."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text("[]")
 
@@ -2265,13 +2265,13 @@ class TestPresetSkills:
     def test_skill_not_updated_without_init_options(self, project_dir, temp_dir):
         """When no init-options.json exists, preset install should not touch skills."""
         skills_dir = project_dir / ".qwen" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="untouched")
+        self._create_skill(skills_dir, "kite-specify", body="untouched")
 
         manager = PresetManager(project_dir)
         SELF_TEST_DIR = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
 
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         file_content = skill_file.read_text()
         assert "untouched" in file_content
 
@@ -2279,12 +2279,12 @@ class TestPresetSkills:
         """When a preset is removed, skills should be restored from core templates."""
         self._write_init_options(project_dir, ai="claude")
         skills_dir = project_dir / ".claude" / "skills"
-        self._create_skill(skills_dir, "speckit-specify")
+        self._create_skill(skills_dir, "kite-specify")
 
         (project_dir / ".claude" / "skills").mkdir(parents=True, exist_ok=True)
 
         # Set up core command template in the project so restoration works
-        core_cmds = project_dir / ".specify" / "templates" / "commands"
+        core_cmds = project_dir / ".kite" / "templates" / "commands"
         core_cmds.mkdir(parents=True, exist_ok=True)
         (core_cmds / "specify.md").write_text("---\ndescription: Core specify command\n---\n\nCore specify body\n")
 
@@ -2293,7 +2293,7 @@ class TestPresetSkills:
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
 
         # Verify preset content is in the skill
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         assert "preset:self-test" in skill_file.read_text()
 
         # Remove the preset
@@ -2310,16 +2310,16 @@ class TestPresetSkills:
         """Core restore should resolve {SCRIPT}/{ARGS} placeholders like other skill paths."""
         self._write_init_options(project_dir, ai="claude", ai_skills=True, script="sh")
         skills_dir = project_dir / ".claude" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="old")
+        self._create_skill(skills_dir, "kite-specify", body="old")
         (project_dir / ".claude" / "skills").mkdir(parents=True, exist_ok=True)
 
-        core_cmds = project_dir / ".specify" / "templates" / "commands"
+        core_cmds = project_dir / ".kite" / "templates" / "commands"
         core_cmds.mkdir(parents=True, exist_ok=True)
         (core_cmds / "specify.md").write_text(
             "---\n"
             "description: Core specify command\n"
             "scripts:\n"
-            "  sh: .specify/scripts/bash/create-new-feature.sh --json \"{ARGS}\"\n"
+            "  sh: .kite/scripts/bash/create-new-feature.sh --json \"{ARGS}\"\n"
             "---\n\n"
             "Run:\n"
             "{SCRIPT}\n"
@@ -2330,25 +2330,25 @@ class TestPresetSkills:
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
         manager.remove("self-test")
 
-        content = (skills_dir / "speckit-specify" / "SKILL.md").read_text()
+        content = (skills_dir / "kite-specify" / "SKILL.md").read_text()
         assert "{SCRIPT}" not in content
         assert "{ARGS}" not in content
-        assert ".specify/scripts/bash/create-new-feature.sh --json \"$ARGUMENTS\"" in content
+        assert ".kite/scripts/bash/create-new-feature.sh --json \"$ARGUMENTS\"" in content
 
     def test_skill_not_overridden_when_skill_path_is_file(self, project_dir):
         """Preset install should skip non-directory skill targets."""
         self._write_init_options(project_dir, ai="qwen")
         skills_dir = project_dir / ".qwen" / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
-        (skills_dir / "speckit-specify").write_text("not-a-directory")
+        (skills_dir / "kite-specify").write_text("not-a-directory")
 
         manager = PresetManager(project_dir)
         SELF_TEST_DIR = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(SELF_TEST_DIR, "0.1.5")
 
-        assert (skills_dir / "speckit-specify").is_file()
+        assert (skills_dir / "kite-specify").is_file()
         metadata = manager.registry.get("self-test")
-        assert "speckit-specify" not in metadata.get("registered_skills", [])
+        assert "kite-specify" not in metadata.get("registered_skills", [])
 
     def test_no_skills_registered_when_no_skill_dir_exists(self, project_dir, temp_dir):
         """Skills should not be created when no existing skill dir is found."""
@@ -2363,16 +2363,16 @@ class TestPresetSkills:
         assert metadata.get("registered_skills", []) == []
 
     def test_extension_skill_override_matches_hyphenated_multisegment_name(self, project_dir, temp_dir):
-        """Preset overrides for speckit.<ext>.<cmd> should target speckit-<ext>-<cmd> skills."""
+        """Preset overrides for kite.<ext>.<cmd> should target kite-<ext>-<cmd> skills."""
         self._write_init_options(project_dir, ai="codex")
         skills_dir = project_dir / ".agents" / "skills"
-        self._create_skill(skills_dir, "speckit-fakeext-cmd", body="untouched")
-        (project_dir / ".specify" / "extensions" / "fakeext").mkdir(parents=True, exist_ok=True)
+        self._create_skill(skills_dir, "kite-fakeext-cmd", body="untouched")
+        (project_dir / ".kite" / "extensions" / "fakeext").mkdir(parents=True, exist_ok=True)
 
         preset_dir = temp_dir / "ext-skill-override"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.fakeext.cmd.md").write_text(
+        (preset_dir / "commands" / "kite.fakeext.cmd.md").write_text(
             "---\ndescription: Override fakeext cmd\n---\n\npreset:ext-skill-override\n"
         )
         manifest_data = {
@@ -2383,13 +2383,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.fakeext.cmd",
-                        "file": "commands/speckit.fakeext.cmd.md",
+                        "name": "kite.fakeext.cmd",
+                        "file": "commands/kite.fakeext.cmd.md",
                     }
                 ]
             },
@@ -2400,23 +2400,23 @@ class TestPresetSkills:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-fakeext-cmd" / "SKILL.md"
+        skill_file = skills_dir / "kite-fakeext-cmd" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "preset:ext-skill-override" in content
-        assert "name: speckit-fakeext-cmd" in content
-        assert "# Speckit Fakeext Cmd Skill" in content
+        assert "name: kite-fakeext-cmd" in content
+        assert "# Kite Fakeext Cmd Skill" in content
 
         metadata = manager.registry.get("ext-skill-override")
-        assert "speckit-fakeext-cmd" in metadata.get("registered_skills", [])
+        assert "kite-fakeext-cmd" in metadata.get("registered_skills", [])
 
     def test_extension_skill_restored_on_preset_remove(self, project_dir, temp_dir):
         """Preset removal should restore an extension-backed skill instead of deleting it."""
         self._write_init_options(project_dir, ai="codex")
         skills_dir = project_dir / ".agents" / "skills"
-        self._create_skill(skills_dir, "speckit-fakeext-cmd", body="original extension skill")
+        self._create_skill(skills_dir, "kite-fakeext-cmd", body="original extension skill")
 
-        extension_dir = project_dir / ".specify" / "extensions" / "fakeext"
+        extension_dir = project_dir / ".kite" / "extensions" / "fakeext"
         (extension_dir / "commands").mkdir(parents=True, exist_ok=True)
         (extension_dir / "commands" / "cmd.md").write_text(
             "---\n"
@@ -2435,11 +2435,11 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.fakeext.cmd",
+                        "name": "kite.fakeext.cmd",
                         "file": "commands/cmd.md",
                         "description": "Fake extension command",
                     }
@@ -2452,7 +2452,7 @@ class TestPresetSkills:
         preset_dir = temp_dir / "ext-skill-restore"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.fakeext.cmd.md").write_text(
+        (preset_dir / "commands" / "kite.fakeext.cmd.md").write_text(
             "---\ndescription: Override fakeext cmd\n---\n\npreset:ext-skill-restore\n"
         )
         preset_manifest = {
@@ -2463,13 +2463,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.fakeext.cmd",
-                        "file": "commands/speckit.fakeext.cmd.md",
+                        "name": "kite.fakeext.cmd",
+                        "file": "commands/kite.fakeext.cmd.md",
                     }
                 ]
             },
@@ -2480,7 +2480,7 @@ class TestPresetSkills:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-fakeext-cmd" / "SKILL.md"
+        skill_file = skills_dir / "kite-fakeext-cmd" / "SKILL.md"
         assert "preset:ext-skill-restore" in skill_file.read_text()
 
         manager.remove("ext-skill-restore")
@@ -2490,14 +2490,14 @@ class TestPresetSkills:
         assert "preset:ext-skill-restore" not in content
         assert "source: extension:fakeext" in content
         assert "extension:fakeext" in content
-        assert '.specify/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
+        assert '.kite/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
         assert "# Fakeext Cmd Skill" in content
 
     def test_preset_remove_skips_skill_dir_without_skill_file(self, project_dir, temp_dir):
         """Preset removal should not delete arbitrary directories missing SKILL.md."""
         self._write_init_options(project_dir, ai="codex")
         skills_dir = project_dir / ".agents" / "skills"
-        stray_skill_dir = skills_dir / "speckit-fakeext-cmd"
+        stray_skill_dir = skills_dir / "kite-fakeext-cmd"
         stray_skill_dir.mkdir(parents=True, exist_ok=True)
         note_file = stray_skill_dir / "notes.txt"
         note_file.write_text("user content", encoding="utf-8")
@@ -2505,7 +2505,7 @@ class TestPresetSkills:
         preset_dir = temp_dir / "ext-skill-missing-file"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.fakeext.cmd.md").write_text(
+        (preset_dir / "commands" / "kite.fakeext.cmd.md").write_text(
             "---\ndescription: Override fakeext cmd\n---\n\npreset:ext-skill-missing-file\n"
         )
         preset_manifest = {
@@ -2516,13 +2516,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.fakeext.cmd",
-                        "file": "commands/speckit.fakeext.cmd.md",
+                        "name": "kite.fakeext.cmd",
+                        "file": "commands/kite.fakeext.cmd.md",
                     }
                 ]
             },
@@ -2538,8 +2538,8 @@ class TestPresetSkills:
             {
                 "version": "1.0.0",
                 "source": str(preset_dir),
-                "provides_templates": ["speckit.fakeext.cmd"],
-                "registered_skills": ["speckit-fakeext-cmd"],
+                "provides_templates": ["kite.fakeext.cmd"],
+                "registered_skills": ["kite-fakeext-cmd"],
                 "priority": 10,
             },
         )
@@ -2553,7 +2553,7 @@ class TestPresetSkills:
         """Preset overrides should still target legacy dotted Kimi skill directories."""
         self._write_init_options(project_dir, ai="kimi")
         skills_dir = project_dir / ".kimi" / "skills"
-        self._create_skill(skills_dir, "speckit.specify", body="untouched")
+        self._create_skill(skills_dir, "kite.specify", body="untouched")
 
         (project_dir / ".kimi" / "commands").mkdir(parents=True, exist_ok=True)
 
@@ -2561,20 +2561,20 @@ class TestPresetSkills:
         self_test_dir = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(self_test_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit.specify" / "SKILL.md"
+        skill_file = skills_dir / "kite.specify" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "preset:self-test" in content
-        assert "name: speckit.specify" in content
+        assert "name: kite.specify" in content
 
         metadata = manager.registry.get("self-test")
-        assert "speckit.specify" in metadata.get("registered_skills", [])
+        assert "kite.specify" in metadata.get("registered_skills", [])
 
     def test_kimi_skill_updated_even_when_ai_skills_disabled(self, project_dir, temp_dir):
         """Kimi presets should still propagate command overrides to existing skills."""
         self._write_init_options(project_dir, ai="kimi", ai_skills=False)
         skills_dir = project_dir / ".kimi" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="untouched")
+        self._create_skill(skills_dir, "kite-specify", body="untouched")
 
         (project_dir / ".kimi" / "commands").mkdir(parents=True, exist_ok=True)
 
@@ -2582,14 +2582,14 @@ class TestPresetSkills:
         self_test_dir = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(self_test_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "preset:self-test" in content
-        assert "name: speckit-specify" in content
+        assert "name: kite-specify" in content
 
         metadata = manager.registry.get("self-test")
-        assert "speckit-specify" in metadata.get("registered_skills", [])
+        assert "kite-specify" in metadata.get("registered_skills", [])
 
     def test_kimi_new_skill_created_even_when_ai_skills_disabled(self, project_dir, temp_dir):
         """Kimi native skills should still receive brand-new preset commands."""
@@ -2600,7 +2600,7 @@ class TestPresetSkills:
         preset_dir = temp_dir / "kimi-new-skill"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.research.md").write_text(
+        (preset_dir / "commands" / "kite.research.md").write_text(
             "---\n"
             "description: Kimi research workflow\n"
             "---\n\n"
@@ -2614,13 +2614,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.research",
-                        "file": "commands/speckit.research.md",
+                        "name": "kite.research",
+                        "file": "commands/kite.research.md",
                     }
                 ]
             },
@@ -2631,26 +2631,26 @@ class TestPresetSkills:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-research" / "SKILL.md"
+        skill_file = skills_dir / "kite-research" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text()
         assert "preset:kimi-new-skill" in content
-        assert "name: speckit-research" in content
+        assert "name: kite-research" in content
 
         metadata = manager.registry.get("kimi-new-skill")
-        assert "speckit-research" in metadata.get("registered_skills", [])
+        assert "kite-research" in metadata.get("registered_skills", [])
 
     def test_kimi_preset_skill_override_resolves_script_placeholders(self, project_dir, temp_dir):
         """Kimi preset skill overrides should resolve placeholders and rewrite project paths."""
         self._write_init_options(project_dir, ai="kimi", ai_skills=False, script="sh")
         skills_dir = project_dir / ".kimi" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="untouched")
+        self._create_skill(skills_dir, "kite-specify", body="untouched")
         (project_dir / ".kimi" / "commands").mkdir(parents=True, exist_ok=True)
 
         preset_dir = temp_dir / "kimi-placeholder-override"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.specify.md").write_text(
+        (preset_dir / "commands" / "kite.specify.md").write_text(
             "---\n"
             "description: Kimi placeholder override\n"
             "scripts:\n"
@@ -2667,13 +2667,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.specify",
-                        "file": "commands/speckit.specify.md",
+                        "name": "kite.specify",
+                        "file": "commands/kite.specify.md",
                     }
                 ]
             },
@@ -2684,24 +2684,24 @@ class TestPresetSkills:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        content = (skills_dir / "speckit-specify" / "SKILL.md").read_text()
+        content = (skills_dir / "kite-specify" / "SKILL.md").read_text()
         assert "{SCRIPT}" not in content
         assert "__AGENT__" not in content
-        assert ".specify/scripts/bash/create-new-feature.sh --json \"$ARGUMENTS\"" in content
-        assert ".specify/templates/checklist.md" in content
-        assert ".specify/memory/constitution.md" in content
+        assert ".kite/scripts/bash/create-new-feature.sh --json \"$ARGUMENTS\"" in content
+        assert ".kite/templates/checklist.md" in content
+        assert ".kite/memory/constitution.md" in content
         assert "for kimi" in content
 
     def test_agy_skill_restored_on_preset_remove(self, project_dir, temp_dir):
         """Agy preset removal should restore native skills instead of deleting them."""
         self._write_init_options(project_dir, ai="agy", ai_skills=True)
         skills_dir = project_dir / ".agents" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="before override")
+        self._create_skill(skills_dir, "kite-specify", body="before override")
 
-        core_command = project_dir / ".specify" / "templates" / "commands" / "specify.md"
+        core_command = project_dir / ".kite" / "templates" / "commands" / "specify.md"
         core_command.write_text(
             "---\n"
-            "description: Restored core specify workflow\n"
+            "description: Restored core kite workflow\n"
             "---\n\n"
             "restored core body\n"
         )
@@ -2709,7 +2709,7 @@ class TestPresetSkills:
         preset_dir = temp_dir / "agy-override"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.specify.md").write_text(
+        (preset_dir / "commands" / "kite.specify.md").write_text(
             "---\n"
             "description: Agy override\n"
             "---\n\n"
@@ -2723,13 +2723,13 @@ class TestPresetSkills:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.specify",
-                        "file": "commands/speckit.specify.md",
+                        "name": "kite.specify",
+                        "file": "commands/kite.specify.md",
                     }
                 ]
             },
@@ -2740,29 +2740,29 @@ class TestPresetSkills:
         manager = PresetManager(project_dir)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-specify" / "SKILL.md"
+        skill_file = skills_dir / "kite-specify" / "SKILL.md"
         assert "preset agy body" in skill_file.read_text()
 
         assert manager.remove("agy-override") is True
         assert skill_file.exists()
         restored = skill_file.read_text()
         assert "restored core body" in restored
-        assert "name: speckit-specify" in restored
+        assert "name: kite-specify" in restored
 
     def test_preset_skill_registration_handles_non_dict_init_options(self, project_dir, temp_dir):
         """Non-dict init-options payloads should not crash preset install/remove flows."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text("[]")
 
         skills_dir = project_dir / ".qwen" / "skills"
-        self._create_skill(skills_dir, "speckit-specify", body="untouched")
+        self._create_skill(skills_dir, "kite-specify", body="untouched")
 
         manager = PresetManager(project_dir)
         self_test_dir = Path(__file__).parent.parent / "presets" / "self-test"
         manager.install_from_directory(self_test_dir, "0.1.5")
 
-        skill_content = (skills_dir / "speckit-specify" / "SKILL.md").read_text()
+        skill_content = (skills_dir / "kite-specify" / "SKILL.md").read_text()
         assert "untouched" in skill_content
 
 
@@ -2773,7 +2773,7 @@ class TestPresetSetPriority:
         """Test set-priority command changes preset priority."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2799,7 +2799,7 @@ class TestPresetSetPriority:
         """Test set-priority with same value shows already set message."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2818,7 +2818,7 @@ class TestPresetSetPriority:
         """Test set-priority rejects invalid priority values."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2836,7 +2836,7 @@ class TestPresetSetPriority:
         """Test set-priority fails for non-installed preset."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2852,7 +2852,7 @@ class TestPresetPriorityBackwardsCompatibility:
 
     def test_legacy_preset_without_priority_field(self, temp_dir):
         """Presets installed before priority feature should default to 10."""
-        presets_dir = temp_dir / ".specify" / "presets"
+        presets_dir = temp_dir / ".kite" / "presets"
         presets_dir.mkdir(parents=True)
 
         # Simulate legacy registry entry without priority field
@@ -2895,7 +2895,7 @@ class TestPresetPriorityBackwardsCompatibility:
 
     def test_mixed_legacy_and_new_presets_ordering(self, temp_dir):
         """Legacy presets (no priority) sort with default=10 among prioritized presets."""
-        presets_dir = temp_dir / ".specify" / "presets"
+        presets_dir = temp_dir / ".kite" / "presets"
         presets_dir.mkdir(parents=True)
 
         registry = PresetRegistry(presets_dir)
@@ -2934,7 +2934,7 @@ class TestPresetEnableDisable:
         """Test disable command sets enabled=False."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2959,7 +2959,7 @@ class TestPresetEnableDisable:
         """Test enable command sets enabled=True."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -2985,7 +2985,7 @@ class TestPresetEnableDisable:
         """Test disable on already disabled preset shows warning."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3004,7 +3004,7 @@ class TestPresetEnableDisable:
         """Test enable on already enabled preset shows warning."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3022,7 +3022,7 @@ class TestPresetEnableDisable:
         """Test disable fails for non-installed preset."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3036,7 +3036,7 @@ class TestPresetEnableDisable:
         """Test enable fails for non-installed preset."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3053,7 +3053,7 @@ class TestPresetEnableDisable:
         manager.install_from_directory(pack_dir, "0.1.5")
 
         # Create a template in the preset directory
-        preset_template = project_dir / ".specify" / "presets" / "test-pack" / "templates" / "test-template.md"
+        preset_template = project_dir / ".kite" / "presets" / "test-pack" / "templates" / "test-template.md"
         preset_template.parent.mkdir(parents=True, exist_ok=True)
         preset_template.write_text("# Template from test-pack")
 
@@ -3076,7 +3076,7 @@ class TestPresetEnableDisable:
         """Test enable fails gracefully for corrupted registry entry."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3096,7 +3096,7 @@ class TestPresetEnableDisable:
         """Test disable fails gracefully for corrupted registry entry."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3119,11 +3119,11 @@ class TestPresetEnableDisable:
 LEAN_PRESET_DIR = Path(__file__).parent.parent / "presets" / "lean"
 
 LEAN_COMMAND_NAMES = [
-    "speckit.specify",
-    "speckit.plan",
-    "speckit.tasks",
-    "speckit.implement",
-    "speckit.constitution",
+    "kite.specify",
+    "kite.plan",
+    "kite.tasks",
+    "kite.implement",
+    "kite.constitution",
 ]
 
 
@@ -3159,10 +3159,10 @@ class TestLeanPreset:
 
     def test_lean_commands_have_no_scripts(self):
         """Verify lean commands have no scripts in frontmatter."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
 
         for name in LEAN_COMMAND_NAMES:
-            cmd_path = LEAN_PRESET_DIR / "commands" / f"speckit.{name.split('.')[-1]}.md"
+            cmd_path = LEAN_PRESET_DIR / "commands" / f"kite.{name.split('.')[-1]}.md"
             content = cmd_path.read_text()
             frontmatter, _ = CommandRegistrar.parse_frontmatter(content)
             assert "scripts" not in frontmatter, f"{name} should not have scripts in frontmatter"
@@ -3170,7 +3170,7 @@ class TestLeanPreset:
     def test_lean_commands_have_no_hooks(self):
         """Verify lean commands do not contain extension hook boilerplate."""
         for name in LEAN_COMMAND_NAMES:
-            cmd_path = LEAN_PRESET_DIR / "commands" / f"speckit.{name.split('.')[-1]}.md"
+            cmd_path = LEAN_PRESET_DIR / "commands" / f"kite.{name.split('.')[-1]}.md"
             content = cmd_path.read_text()
             assert "hooks." not in content, f"{name} should not reference extension hooks"
             assert "extensions.yml" not in content, f"{name} should not reference extensions.yml"
@@ -3201,7 +3201,7 @@ class TestBundledPresetLocator:
 
     def test_locate_bundled_lean_preset(self):
         """_locate_bundled_preset finds the lean preset."""
-        from specify_cli import _locate_bundled_preset
+        from kite_cli import _locate_bundled_preset
 
         path = _locate_bundled_preset("lean")
         assert path is not None
@@ -3209,28 +3209,28 @@ class TestBundledPresetLocator:
 
     def test_locate_bundled_preset_not_found(self):
         """_locate_bundled_preset returns None for nonexistent preset."""
-        from specify_cli import _locate_bundled_preset
+        from kite_cli import _locate_bundled_preset
 
         path = _locate_bundled_preset("nonexistent-preset")
         assert path is None
 
     def test_locate_bundled_preset_rejects_invalid_id(self):
         """_locate_bundled_preset rejects IDs with invalid characters."""
-        from specify_cli import _locate_bundled_preset
+        from kite_cli import _locate_bundled_preset
 
         assert _locate_bundled_preset("../escape") is None
         assert _locate_bundled_preset("UPPERCASE") is None
         assert _locate_bundled_preset("has spaces") is None
 
     def test_bundled_preset_add_via_cli(self, project_dir):
-        """Test that 'specify preset add lean' installs the bundled preset."""
+        """Test that 'kite preset add lean' installs the bundled preset."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         with patch.object(Path, "cwd", return_value=project_dir), \
-             patch("specify_cli.get_speckit_version", return_value="0.6.0"):
+             patch("kite_cli.get_kite_version", return_value="0.6.0"):
             result = runner.invoke(app, ["preset", "add", "lean"])
 
         assert result.exit_code == 0, result.output
@@ -3265,7 +3265,7 @@ class TestBundledPresetLocator:
         """CLI shows clear error when bundled preset cannot be found locally."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         # Patch _locate_bundled_preset to return None (simulating missing files)
@@ -3278,8 +3278,8 @@ class TestBundledPresetLocator:
             "_install_allowed": True,
         }
         with patch.object(Path, "cwd", return_value=project_dir), \
-             patch("specify_cli._locate_bundled_preset", return_value=None), \
-             patch("specify_cli.presets.PresetCatalog") as MockCatalog:
+             patch("kite_cli._locate_bundled_preset", return_value=None), \
+             patch("kite_cli.presets.PresetCatalog") as MockCatalog:
             MockCatalog.return_value.get_pack_info.return_value = fake_pack_info
             result = runner.invoke(app, ["preset", "add", "lean"])
 
@@ -3296,11 +3296,11 @@ class TestWrapStrategy:
 
     def test_substitute_core_template_replaces_placeholder(self, project_dir):
         """Core template body replaces {CORE_TEMPLATE} in preset command body."""
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
         # Set up a core command template
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
             "---\ndescription: core\n---\n\n# Core Specify\n\nDo the thing.\n"
@@ -3318,10 +3318,10 @@ class TestWrapStrategy:
 
     def test_substitute_core_template_no_op_when_placeholder_absent(self, project_dir):
         """Returns body unchanged when {CORE_TEMPLATE} is not present."""
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text("---\ndescription: core\n---\n\nCore body.\n")
 
@@ -3333,8 +3333,8 @@ class TestWrapStrategy:
 
     def test_substitute_core_template_no_op_when_core_missing(self, project_dir):
         """Returns body unchanged when core template file does not exist."""
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
         registrar = CommandRegistrar()
         body = "Pre.\n\n{CORE_TEMPLATE}\n\nPost.\n"
@@ -3345,10 +3345,10 @@ class TestWrapStrategy:
 
     def test_register_commands_substitutes_core_template_for_wrap_strategy(self, project_dir):
         """register_commands substitutes {CORE_TEMPLATE} when strategy: wrap."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
 
         # Set up core command template
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
             "---\ndescription: core\n---\n\n# Core Specify\n\nCore body here.\n"
@@ -3357,12 +3357,12 @@ class TestWrapStrategy:
         # Create a preset command dir with a wrap-strategy command
         cmd_dir = project_dir / "preset" / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
-        (cmd_dir / "speckit.specify.md").write_text(
+        (cmd_dir / "kite.specify.md").write_text(
             "---\ndescription: wrap test\nstrategy: wrap\n---\n\n"
             "## Pre\n\n{CORE_TEMPLATE}\n\n## Post\n"
         )
 
-        commands = [{"name": "speckit.specify", "file": "commands/speckit.specify.md"}]
+        commands = [{"name": "kite.specify", "file": "commands/kite.specify.md"}]
         registrar = CommandRegistrar()
 
         # Use a generic agent that writes markdown to commands/
@@ -3388,7 +3388,7 @@ class TestWrapStrategy:
             CommandRegistrar.AGENT_CONFIGS.clear()
             CommandRegistrar.AGENT_CONFIGS.update(original)
 
-        written = (agent_dir / "speckit.specify.md").read_text()
+        written = (agent_dir / "kite.specify.md").read_text()
         assert "{CORE_TEMPLATE}" not in written
         assert "# Core Specify" in written
         assert "## Pre" in written
@@ -3396,10 +3396,10 @@ class TestWrapStrategy:
 
     def test_end_to_end_wrap_via_self_test_preset(self, project_dir):
         """Installing self-test preset with a wrap command substitutes {CORE_TEMPLATE}."""
-        from specify_cli.presets import PresetManager
+        from kite_cli.presets import PresetManager
 
         # Install a core template that wrap-test will wrap around
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "wrap-test.md").write_text(
             "---\ndescription: core wrap-test\n---\n\n# Core Wrap-Test Body\n"
@@ -3408,13 +3408,13 @@ class TestWrapStrategy:
         # Set up skills dir (simulating --ai claude)
         skills_dir = project_dir / ".claude" / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
-        skill_subdir = skills_dir / "speckit-wrap-test"
+        skill_subdir = skills_dir / "kite-wrap-test"
         skill_subdir.mkdir()
-        (skill_subdir / "SKILL.md").write_text("---\nname: speckit-wrap-test\n---\n\nold content\n")
+        (skill_subdir / "SKILL.md").write_text("---\nname: kite-wrap-test\n---\n\nold content\n")
 
         # Write init-options so _register_skills finds the claude skills dir
         import json
-        (project_dir / ".specify" / "init-options.json").write_text(
+        (project_dir / ".kite" / "init-options.json").write_text(
             json.dumps({"ai": "claude", "ai_skills": True})
         )
 
@@ -3429,10 +3429,10 @@ class TestWrapStrategy:
 
     def test_substitute_core_template_returns_core_scripts(self, project_dir):
         """core_frontmatter in the returned tuple includes scripts/agent_scripts."""
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
             "---\ndescription: core\nscripts:\n  sh: run.sh\nagent_scripts:\n  sh: agent-run.sh\n---\n\n# Body\n"
@@ -3448,25 +3448,25 @@ class TestWrapStrategy:
 
     def test_register_skills_inherits_scripts_from_core_when_preset_omits_them(self, project_dir):
         """_register_skills merges scripts/agent_scripts from core when preset lacks them."""
-        from specify_cli.presets import PresetManager
+        from kite_cli.presets import PresetManager
         import json
 
         # Core template with scripts
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "wrap-test.md").write_text(
-            "---\ndescription: core\nscripts:\n  sh: .specify/scripts/run.sh\n---\n\n"
+            "---\ndescription: core\nscripts:\n  sh: .kite/scripts/run.sh\n---\n\n"
             "Run: {SCRIPT}\n"
         )
 
         # Skills dir for claude
         skills_dir = project_dir / ".claude" / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
-        skill_subdir = skills_dir / "speckit-wrap-test"
+        skill_subdir = skills_dir / "kite-wrap-test"
         skill_subdir.mkdir()
-        (skill_subdir / "SKILL.md").write_text("---\nname: speckit-wrap-test\n---\n\nold\n")
+        (skill_subdir / "SKILL.md").write_text("---\nname: kite-wrap-test\n---\n\nold\n")
 
-        (project_dir / ".specify" / "init-options.json").write_text(
+        (project_dir / ".kite" / "init-options.json").write_text(
             json.dumps({"ai": "claude", "ai_skills": True})
         )
 
@@ -3479,10 +3479,10 @@ class TestWrapStrategy:
 
     def test_register_skills_preset_scripts_take_precedence_over_core(self, project_dir):
         """preset-defined scripts/agent_scripts are not overwritten by core frontmatter."""
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
             "---\ndescription: core\nscripts:\n  sh: core-run.sh\n---\n\nCore body.\n"
@@ -3503,20 +3503,20 @@ class TestWrapStrategy:
 
     def test_register_commands_inherits_scripts_from_core(self, project_dir):
         """register_commands merges scripts/agent_scripts from core and normalizes paths."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         import copy
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
-            "---\ndescription: core\nscripts:\n  sh: .specify/scripts/run.sh {ARGS}\n---\n\n"
+            "---\ndescription: core\nscripts:\n  sh: .kite/scripts/run.sh {ARGS}\n---\n\n"
             "Run: {SCRIPT}\n"
         )
 
         cmd_dir = project_dir / "preset" / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
         # Preset has strategy: wrap but no scripts of its own
-        (cmd_dir / "speckit.specify.md").write_text(
+        (cmd_dir / "kite.specify.md").write_text(
             "---\ndescription: wrap no scripts\nstrategy: wrap\n---\n\n"
             "## Pre\n\n{CORE_TEMPLATE}\n\n## Post\n"
         )
@@ -3536,7 +3536,7 @@ class TestWrapStrategy:
         try:
             registrar.register_commands(
                 "test-agent",
-                [{"name": "speckit.specify", "file": "commands/speckit.specify.md"}],
+                [{"name": "kite.specify", "file": "commands/kite.specify.md"}],
                 "test-preset",
                 project_dir / "preset",
                 project_dir,
@@ -3545,7 +3545,7 @@ class TestWrapStrategy:
             CommandRegistrar.AGENT_CONFIGS.clear()
             CommandRegistrar.AGENT_CONFIGS.update(original)
 
-        written = (agent_dir / "speckit.specify.md").read_text()
+        written = (agent_dir / "kite.specify.md").read_text()
         assert "{CORE_TEMPLATE}" not in written
         assert "Run:" in written
         assert "scripts:" in written
@@ -3553,19 +3553,19 @@ class TestWrapStrategy:
 
     def test_register_commands_toml_resolves_inherited_scripts(self, project_dir):
         """TOML agents resolve {SCRIPT} from inherited core scripts when preset omits them."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         import copy
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
-            "---\ndescription: core\nscripts:\n  sh: .specify/scripts/run.sh {ARGS}\n---\n\n"
+            "---\ndescription: core\nscripts:\n  sh: .kite/scripts/run.sh {ARGS}\n---\n\n"
             "Run: {SCRIPT}\n"
         )
 
         cmd_dir = project_dir / "preset" / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
-        (cmd_dir / "speckit.specify.md").write_text(
+        (cmd_dir / "kite.specify.md").write_text(
             "---\ndescription: toml wrap\nstrategy: wrap\n---\n\n"
             "## Pre\n\n{CORE_TEMPLATE}\n\n## Post\n"
         )
@@ -3585,7 +3585,7 @@ class TestWrapStrategy:
         try:
             registrar.register_commands(
                 "test-toml-agent",
-                [{"name": "speckit.specify", "file": "commands/speckit.specify.md"}],
+                [{"name": "kite.specify", "file": "commands/kite.specify.md"}],
                 "test-preset",
                 project_dir / "preset",
                 project_dir,
@@ -3594,7 +3594,7 @@ class TestWrapStrategy:
             CommandRegistrar.AGENT_CONFIGS.clear()
             CommandRegistrar.AGENT_CONFIGS.update(original)
 
-        written = (toml_dir / "speckit.specify.toml").read_text()
+        written = (toml_dir / "kite.specify.toml").read_text()
         assert "{CORE_TEMPLATE}" not in written
         assert "{SCRIPT}" not in written
         assert "run.sh" in written
@@ -3604,19 +3604,19 @@ class TestWrapStrategy:
 
     def test_register_commands_markdown_resolves_inherited_scripts(self, project_dir):
         """Markdown agents resolve {SCRIPT} from inherited core scripts when preset omits them."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         import copy
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
-            "---\ndescription: core\nscripts:\n  sh: .specify/scripts/run.sh {ARGS}\n---\n\n"
+            "---\ndescription: core\nscripts:\n  sh: .kite/scripts/run.sh {ARGS}\n---\n\n"
             "Run: {SCRIPT}\n"
         )
 
         cmd_dir = project_dir / "preset" / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
-        (cmd_dir / "speckit.specify.md").write_text(
+        (cmd_dir / "kite.specify.md").write_text(
             "---\ndescription: markdown wrap\nstrategy: wrap\n---\n\n"
             "## Pre\n\n{CORE_TEMPLATE}\n\n## Post\n"
         )
@@ -3636,7 +3636,7 @@ class TestWrapStrategy:
         try:
             registrar.register_commands(
                 "test-md-agent",
-                [{"name": "speckit.specify", "file": "commands/speckit.specify.md"}],
+                [{"name": "kite.specify", "file": "commands/kite.specify.md"}],
                 "test-preset",
                 project_dir / "preset",
                 project_dir,
@@ -3645,7 +3645,7 @@ class TestWrapStrategy:
             CommandRegistrar.AGENT_CONFIGS.clear()
             CommandRegistrar.AGENT_CONFIGS.update(original)
 
-        written = (agent_dir / "speckit.specify.md").read_text()
+        written = (agent_dir / "kite.specify.md").read_text()
         assert "{CORE_TEMPLATE}" not in written
         assert "{SCRIPT}" not in written
         assert "run.sh" in written
@@ -3657,19 +3657,19 @@ class TestWrapStrategy:
         resolve_skill_placeholders injects $ARGUMENTS (via {ARGS} expansion). A second
         _convert_argument_placeholder call must convert those to the agent's native format.
         """
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
         import copy
 
-        core_dir = project_dir / ".specify" / "templates" / "commands"
+        core_dir = project_dir / ".kite" / "templates" / "commands"
         core_dir.mkdir(parents=True, exist_ok=True)
         (core_dir / "specify.md").write_text(
-            "---\ndescription: core\nscripts:\n  sh: .specify/scripts/run.sh {ARGS}\n---\n\n"
+            "---\ndescription: core\nscripts:\n  sh: .kite/scripts/run.sh {ARGS}\n---\n\n"
             "Run: {SCRIPT}\n"
         )
 
         cmd_dir = project_dir / "preset" / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
-        (cmd_dir / "speckit.specify.md").write_text(
+        (cmd_dir / "kite.specify.md").write_text(
             "---\ndescription: forge wrap\nstrategy: wrap\n---\n\n"
             "## Pre\n\n{CORE_TEMPLATE}\n\n## Post\n"
         )
@@ -3689,7 +3689,7 @@ class TestWrapStrategy:
         try:
             registrar.register_commands(
                 "test-forge-agent",
-                [{"name": "speckit.specify", "file": "commands/speckit.specify.md"}],
+                [{"name": "kite.specify", "file": "commands/kite.specify.md"}],
                 "test-preset",
                 project_dir / "preset",
                 project_dir,
@@ -3698,7 +3698,7 @@ class TestWrapStrategy:
             CommandRegistrar.AGENT_CONFIGS.clear()
             CommandRegistrar.AGENT_CONFIGS.update(original)
 
-        written = (agent_dir / "speckit.specify.md").read_text()
+        written = (agent_dir / "kite.specify.md").read_text()
         assert "{SCRIPT}" not in written
         assert "run.sh" in written
         # $ARGUMENTS injected by resolve_skill_placeholders must be re-converted
@@ -3706,30 +3706,30 @@ class TestWrapStrategy:
         assert "{{parameters}}" in written
 
     def test_extension_command_resolves_via_extension_directory(self, project_dir):
-        """Extension commands (e.g. speckit.git.feature) resolve from the extension directory.
+        """Extension commands (e.g. kite.git.feature) resolve from the extension directory.
 
         Both _register_skills and register_commands pass the full cmd_name to
         _substitute_core_template, which tries the full name first via PresetResolver
-        and finds speckit.git.feature.md in the extension commands directory.
+        and finds kite.git.feature.md in the extension commands directory.
         """
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
         # Place the template where a real extension would install it
-        ext_cmd_dir = project_dir / ".specify" / "extensions" / "git" / "commands"
+        ext_cmd_dir = project_dir / ".kite" / "extensions" / "git" / "commands"
         ext_cmd_dir.mkdir(parents=True, exist_ok=True)
-        (ext_cmd_dir / "speckit.git.feature.md").write_text(
+        (ext_cmd_dir / "kite.git.feature.md").write_text(
             "---\ndescription: git feature core\n---\n\n# Git Feature Core\n"
         )
         # Ensure a hyphenated or dot-separated fallback does NOT exist
-        assert not (project_dir / ".specify" / "templates" / "commands" / "git.feature.md").exists()
-        assert not (project_dir / ".specify" / "templates" / "commands" / "git-feature.md").exists()
+        assert not (project_dir / ".kite" / "templates" / "commands" / "git.feature.md").exists()
+        assert not (project_dir / ".kite" / "templates" / "commands" / "git-feature.md").exists()
 
         registrar = CommandRegistrar()
         body = "## Wrapper\n\n{CORE_TEMPLATE}\n"
 
         # Both call sites now pass the full cmd_name
-        result, _ = _substitute_core_template(body, "speckit.git.feature", project_dir, registrar)
+        result, _ = _substitute_core_template(body, "kite.git.feature", project_dir, registrar)
 
         assert "# Git Feature Core" in result
         assert "{CORE_TEMPLATE}" not in result
@@ -3737,18 +3737,18 @@ class TestWrapStrategy:
     def test_extension_command_resolves_via_manifest_when_filename_differs(self, project_dir):
         """Extension commands whose filename differs from the command name resolve via extension.yml.
 
-        The selftest extension maps speckit.selftest.extension → commands/selftest.md.
-        Name-based lookup would look for commands/speckit.selftest.extension.md and fail;
+        The selftest extension maps kite.selftest.extension → commands/selftest.md.
+        Name-based lookup would look for commands/kite.selftest.extension.md and fail;
         manifest-based lookup must find the actual file declared in the manifest.
         """
-        from specify_cli.presets import _substitute_core_template
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.presets import _substitute_core_template
+        from kite_cli.agents import CommandRegistrar
 
-        ext_dir = project_dir / ".specify" / "extensions" / "selftest"
+        ext_dir = project_dir / ".kite" / "extensions" / "selftest"
         cmd_dir = ext_dir / "commands"
         cmd_dir.mkdir(parents=True, exist_ok=True)
 
-        # File is named selftest.md, NOT speckit.selftest.extension.md
+        # File is named selftest.md, NOT kite.selftest.extension.md
         (cmd_dir / "selftest.md").write_text(
             "---\ndescription: selftest core\n---\n\n# Selftest Core\n"
         )
@@ -3758,17 +3758,17 @@ class TestWrapStrategy:
             "extension:\n  id: selftest\n  name: Self-Test\n  version: 1.0.0\n"
             "  description: test\n  author: test\n  repository: https://example.com\n"
             "  license: MIT\n"
-            "requires:\n  speckit_version: '>=0.2.0'\n"
+            "requires:\n  kite_version: '>=0.2.0'\n"
             "provides:\n"
             "  commands:\n"
-            "    - name: speckit.selftest.extension\n"
+            "    - name: kite.selftest.extension\n"
             "      file: commands/selftest.md\n"
             "      description: Selftest command\n"
         )
 
         registrar = CommandRegistrar()
         body = "## Wrapper\n\n{CORE_TEMPLATE}\n"
-        result, _ = _substitute_core_template(body, "speckit.selftest.extension", project_dir, registrar)
+        result, _ = _substitute_core_template(body, "kite.selftest.extension", project_dir, registrar)
 
         assert "# Selftest Core" in result
         assert "{CORE_TEMPLATE}" not in result
@@ -3809,7 +3809,7 @@ def _make_wrap_preset_dir(
             "repository": "https://example.com",
             "license": "MIT",
         },
-        "requires": {"speckit_version": ">=0.1.0"},
+        "requires": {"kite_version": ">=0.1.0"},
         "provides": {
             "templates": [template]
         },
@@ -3951,8 +3951,8 @@ class TestCompositionStrategyValidation:
         """Test that prepend strategy is accepted for commands."""
         valid_pack_data["provides"]["templates"] = [{
             "type": "command",
-            "name": "speckit.specify",
-            "file": "commands/speckit.specify.md",
+            "name": "kite.specify",
+            "file": "commands/kite.specify.md",
             "strategy": "prepend",
         }]
         manifest_path = temp_dir / "preset.yml"
@@ -4090,7 +4090,7 @@ class TestResolveContent:
     def test_resolve_content_wrap_strategy_script(self, project_dir, temp_dir, valid_pack_data):
         """Test resolve_content with wrap strategy for scripts uses $CORE_SCRIPT."""
         # Create core script
-        scripts_dir = project_dir / ".specify" / "templates" / "scripts"
+        scripts_dir = project_dir / ".kite" / "templates" / "scripts"
         scripts_dir.mkdir(parents=True, exist_ok=True)
         (scripts_dir / "test-script.sh").write_text("echo 'core script'\n")
 
@@ -4199,7 +4199,7 @@ class TestResolveContent:
         manager.install_from_directory(pack_dir, "0.1.5")
 
         # Create project override (replaces everything)
-        overrides_dir = project_dir / ".specify" / "templates" / "overrides"
+        overrides_dir = project_dir / ".kite" / "templates" / "overrides"
         overrides_dir.mkdir(parents=True)
         (overrides_dir / "spec-template.md").write_text("# Override Only\n")
 
@@ -4212,8 +4212,8 @@ class TestResolveContent:
 
     def test_resolve_content_command_type(self, project_dir, temp_dir, valid_pack_data):
         """Test resolve_content with command template type."""
-        # Create core command using stem naming (matches real layout: plan.md, not speckit.plan.md)
-        commands_dir = project_dir / ".specify" / "templates" / "commands"
+        # Create core command using stem naming (matches real layout: plan.md, not kite.plan.md)
+        commands_dir = project_dir / ".kite" / "templates" / "commands"
         commands_dir.mkdir(parents=True, exist_ok=True)
         (commands_dir / "plan.md").write_text("# Core Plan Command\n")
 
@@ -4222,8 +4222,8 @@ class TestResolveContent:
         pack_data["provides"] = {
             "templates": [{
                 "type": "command",
-                "name": "speckit.plan",
-                "file": "commands/speckit.plan.md",
+                "name": "kite.plan",
+                "file": "commands/kite.plan.md",
                 "strategy": "append",
             }]
         }
@@ -4232,13 +4232,13 @@ class TestResolveContent:
         with open(pack_dir / "preset.yml", 'w') as f:
             yaml.dump(pack_data, f)
         (pack_dir / "commands").mkdir()
-        (pack_dir / "commands" / "speckit.plan.md").write_text("## Additional Instructions\n")
+        (pack_dir / "commands" / "kite.plan.md").write_text("## Additional Instructions\n")
 
         manager = PresetManager(project_dir)
         manager.install_from_directory(pack_dir, "0.1.5")
 
         resolver = PresetResolver(project_dir)
-        content = resolver.resolve_content("speckit.plan", "command")
+        content = resolver.resolve_content("kite.plan", "command")
         assert content is not None
         assert "Core Plan Command" in content
         assert "Additional Instructions" in content
@@ -4247,7 +4247,7 @@ class TestResolveContent:
         """Test that command composition strips frontmatter from lower layers
         and reattaches only the highest-priority frontmatter."""
         # Create core command with frontmatter
-        commands_dir = project_dir / ".specify" / "templates" / "commands"
+        commands_dir = project_dir / ".kite" / "templates" / "commands"
         commands_dir.mkdir(parents=True, exist_ok=True)
         (commands_dir / "check.md").write_text(
             "---\ndescription: Core check command\n---\nCore body content\n"
@@ -4258,8 +4258,8 @@ class TestResolveContent:
         pack_data["provides"] = {
             "templates": [{
                 "type": "command",
-                "name": "speckit.check",
-                "file": "commands/speckit.check.md",
+                "name": "kite.check",
+                "file": "commands/kite.check.md",
                 "strategy": "append",
             }]
         }
@@ -4268,7 +4268,7 @@ class TestResolveContent:
         with open(pack_dir / "preset.yml", 'w') as f:
             yaml.dump(pack_data, f)
         (pack_dir / "commands").mkdir()
-        (pack_dir / "commands" / "speckit.check.md").write_text(
+        (pack_dir / "commands" / "kite.check.md").write_text(
             "---\ndescription: Preset check override\n---\nPreset body content\n"
         )
 
@@ -4276,7 +4276,7 @@ class TestResolveContent:
         manager.install_from_directory(pack_dir, "0.1.5")
 
         resolver = PresetResolver(project_dir)
-        content = resolver.resolve_content("speckit.check", "command")
+        content = resolver.resolve_content("kite.check", "command")
         assert content is not None
         # Should have the preset (highest-priority) frontmatter
         assert "Preset check override" in content
@@ -4461,8 +4461,8 @@ class TestRemoveReconciliation:
         lo_data["provides"] = {
             "templates": [{
                 "type": "command",
-                "name": "speckit.specify",
-                "file": "commands/speckit.specify.md",
+                "name": "kite.specify",
+                "file": "commands/kite.specify.md",
             }]
         }
         lo_dir = temp_dir / "lo-preset"
@@ -4470,7 +4470,7 @@ class TestRemoveReconciliation:
         with open(lo_dir / "preset.yml", "w") as f:
             yaml.dump(lo_data, f)
         (lo_dir / "commands").mkdir()
-        (lo_dir / "commands" / "speckit.specify.md").write_text(
+        (lo_dir / "commands" / "kite.specify.md").write_text(
             "---\ndescription: lo\n---\nLo content\n"
         )
         manager.install_from_directory(lo_dir, "0.1.5", priority=10)
@@ -4485,8 +4485,8 @@ class TestRemoveReconciliation:
         hi_data["provides"] = {
             "templates": [{
                 "type": "command",
-                "name": "speckit.specify",
-                "file": "commands/speckit.specify.md",
+                "name": "kite.specify",
+                "file": "commands/kite.specify.md",
             }]
         }
         hi_dir = temp_dir / "hi-preset"
@@ -4494,7 +4494,7 @@ class TestRemoveReconciliation:
         with open(hi_dir / "preset.yml", "w") as f:
             yaml.dump(hi_data, f)
         (hi_dir / "commands").mkdir()
-        (hi_dir / "commands" / "speckit.specify.md").write_text(
+        (hi_dir / "commands" / "kite.specify.md").write_text(
             "---\ndescription: hi\n---\nHi content\n"
         )
         manager.install_from_directory(hi_dir, "0.1.5", priority=1)
@@ -4509,7 +4509,7 @@ class TestRemoveReconciliation:
 
         # The low-priority preset's command should now be in the resolution stack
         resolver = PresetResolver(project_dir)
-        layers = resolver.collect_all_layers("speckit.specify", "command")
+        layers = resolver.collect_all_layers("kite.specify", "command")
         assert len(layers) >= 1
         assert "lo-preset" in layers[0]["source"]
 

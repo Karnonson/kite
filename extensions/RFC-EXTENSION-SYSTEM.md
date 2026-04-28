@@ -1,4 +1,4 @@
-# RFC: Spec Kit Extension System
+# RFC: Kite Extension System
 
 **Status**: Implemented
 **Author**: Stats Perform Engineering
@@ -32,7 +32,7 @@
 
 ## Summary
 
-Introduce an extension system to Spec Kit that allows modular integration with external tools (Jira, Linear, Azure DevOps, etc.) without bloating the core framework. Extensions are self-contained packages installed into `.specify/extensions/` with declarative manifests, versioned independently, and discoverable through a central catalog.
+Introduce an extension system to Kite that allows modular integration with external tools (Jira, Linear, Azure DevOps, etc.) without bloating the core framework. Extensions are self-contained packages installed into `.kite/extensions/` with declarative manifests, versioned independently, and discoverable through a central catalog.
 
 ---
 
@@ -71,9 +71,9 @@ Introduce an extension system to Spec Kit that allows modular integration with e
 
 ### 1. Convention Over Configuration
 
-- Standard directory structure (`.specify/extensions/{name}/`)
+- Standard directory structure (`.kite/extensions/{name}/`)
 - Declarative manifest (`extension.yml`)
-- Predictable command naming (`speckit.{extension}.{command}`)
+- Predictable command naming (`kite.{extension}.{command}`)
 
 ### 2. Fail-Safe Defaults
 
@@ -89,7 +89,7 @@ Introduce an extension system to Spec Kit that allows modular integration with e
 
 ### 4. Developer Experience
 
-- Simple installation: `specify extension add jira`
+- Simple installation: `kite extension add jira`
 - Clear error messages for compatibility issues
 - Local development mode for testing extensions
 
@@ -107,7 +107,7 @@ Introduce an extension system to Spec Kit that allows modular integration with e
 
 ```text
 project/
-├── .specify/
+├── .kite/
 │   ├── scripts/                 # Core scripts (unchanged)
 │   ├── templates/               # Core templates (unchanged)
 │   ├── memory/                  # Session memory
@@ -128,7 +128,7 @@ project/
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│                    Spec Kit Core                        │
+│                    Kite Core                        │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  CLI (specify)                                   │   │
 │  │  - init, check                                   │   │
@@ -141,9 +141,9 @@ project/
 │  └──────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Core Commands                                   │   │
-│  │  - /speckit.specify                              │   │
-│  │  - /speckit.tasks                                │   │
-│  │  - /speckit.implement                            │   │
+│  │  - /kite.specify                              │   │
+│  │  - /kite.tasks                                │   │
+│  │  - /kite.implement                            │   │
 │  └─────────┬────────────────────────────────────────┘   │
 └────────────┼────────────────────────────────────────────┘
              │ Hook Points (after_tasks, after_implement)
@@ -152,12 +152,12 @@ project/
 │                    Extensions                           │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Jira Extension                                  │   │
-│  │  - /speckit.jira.specstoissues                   │   │
-│  │  - /speckit.jira.discover-fields                 │   │
+│  │  - /kite.jira.specstoissues                   │   │
+│  │  - /kite.jira.discover-fields                 │   │
 │  └──────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Linear Extension                                │   │
-│  │  - /speckit.linear.sync                          │   │
+│  │  - /kite.linear.sync                          │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
              │ Calls external tools
@@ -197,7 +197,7 @@ extension:
 # Compatibility requirements (REQUIRED)
 requires:
   # Spec-kit version (semantic version range)
-  speckit_version: ">=0.1.0,<2.0.0"
+  kite_version: ">=0.1.0,<2.0.0"
 
   # External tools required by extension
   tools:
@@ -210,7 +210,7 @@ requires:
 
   # Core spec-kit commands this extension depends on
   commands:
-    - "speckit.tasks"             # Extension needs tasks command
+    - "kite.tasks"             # Extension needs tasks command
 
   # Core scripts required
   scripts:
@@ -220,16 +220,16 @@ requires:
 provides:
   # Commands added to AI agent
   commands:
-    - name: "speckit.jira.specstoissues"
+    - name: "kite.jira.specstoissues"
       file: "commands/specstoissues.md"
       description: "Create Jira hierarchy from spec and tasks"
-      aliases: ["speckit.jira.sync"]  # Alternate names
+      aliases: ["kite.jira.sync"]  # Alternate names
 
-    - name: "speckit.jira.discover-fields"
+    - name: "kite.jira.discover-fields"
       file: "commands/discover-fields.md"
       description: "Discover Jira custom fields for configuration"
 
-    - name: "speckit.jira.sync-status"
+    - name: "kite.jira.sync-status"
       file: "commands/sync-status.md"
       description: "Sync task completion status to Jira"
 
@@ -273,16 +273,16 @@ config_schema:
 
 # Integration hooks (OPTIONAL)
 hooks:
-  # Hook fired after /speckit.tasks completes
+  # Hook fired after /kite.tasks completes
   after_tasks:
-    command: "speckit.jira.specstoissues"
+    command: "kite.jira.specstoissues"
     optional: true
     prompt: "Create Jira issues from tasks?"
     description: "Automatically create Jira hierarchy after task generation"
 
-  # Hook fired after /speckit.implement completes
+  # Hook fired after /kite.implement completes
   after_implement:
-    command: "speckit.jira.sync-status"
+    command: "kite.jira.sync-status"
     optional: true
     prompt: "Sync completion status to Jira?"
 
@@ -322,7 +322,7 @@ support:
 ### 1. Discovery
 
 ```bash
-specify extension search jira
+kite extension search jira
 # Searches catalog for extensions matching "jira"
 ```
 
@@ -335,7 +335,7 @@ specify extension search jira
 ### 2. Installation
 
 ```bash
-specify extension add jira
+kite extension add jira
 ```
 
 **Process:**
@@ -343,12 +343,12 @@ specify extension add jira
 1. **Resolve**: Look up extension in catalog
 2. **Download**: Fetch extension package (ZIP from GitHub release)
 3. **Validate**: Check manifest schema, compatibility
-4. **Extract**: Unpack to `.specify/extensions/jira/`
+4. **Extract**: Unpack to `.kite/extensions/jira/`
 5. **Configure**: Copy config templates
 6. **Register**: Add commands to AI agent config
-7. **Record**: Update `.specify/extensions/.registry`
+7. **Record**: Update `.kite/extensions/.registry`
 
-**Registry Format** (`.specify/extensions/.registry`):
+**Registry Format** (`.kite/extensions/.registry`):
 
 ```json
 {
@@ -372,7 +372,7 @@ specify extension add jira
 
 ```bash
 # User edits extension config
-vim .specify/extensions/jira/jira-config.yml
+vim .kite/extensions/jira/jira-config.yml
 ```
 
 **Config discovery order:**
@@ -380,25 +380,25 @@ vim .specify/extensions/jira/jira-config.yml
 1. Extension defaults (`extension.yml` → `defaults`)
 2. Project config (`jira-config.yml`)
 3. Local overrides (`jira-config.local.yml` - gitignored)
-4. Environment variables (`SPECKIT_JIRA_*`)
+4. Environment variables (`KITE_JIRA_*`)
 
 ### 4. Usage
 
 ```bash
 claude
-> /speckit.jira.specstoissues
+> /kite.jira.specstoissues
 ```
 
 **Command resolution:**
 
-1. AI agent finds command in `.claude/commands/speckit.jira.specstoissues.md`
+1. AI agent finds command in `.claude/commands/kite.jira.specstoissues.md`
 2. Command file references extension scripts/config
 3. Extension executes with full context
 
 ### 5. Update
 
 ```bash
-specify extension update jira
+kite extension update jira
 ```
 
 **Process:**
@@ -414,14 +414,14 @@ specify extension update jira
 ### 6. Removal
 
 ```bash
-specify extension remove jira
+kite extension remove jira
 ```
 
 **Process:**
 
 1. Confirm with user (show what will be removed)
 2. Unregister commands from AI agent
-3. Remove from `.specify/extensions/jira/`
+3. Remove from `.kite/extensions/jira/`
 4. Update registry
 5. Optionally preserve config for reinstall
 
@@ -461,7 +461,7 @@ $ARGUMENTS
 
 #### Claude Code Registration
 
-**Output**: `.claude/commands/speckit.jira.specstoissues.md`
+**Output**: `.claude/commands/kite.jira.specstoissues.md`
 
 ```markdown
 ---
@@ -470,8 +470,8 @@ tools:
   - 'jira-mcp-server/epic_create'
   - 'jira-mcp-server/story_create'
 scripts:
-  sh: .specify/scripts/bash/check-prerequisites.sh --json
-  ps: .specify/scripts/powershell/check-prerequisites.ps1 -Json
+  sh: .kite/scripts/bash/check-prerequisites.sh --json
+  ps: .kite/scripts/powershell/check-prerequisites.ps1 -Json
 ---
 
 # Command implementation (copied from extension)
@@ -479,7 +479,7 @@ scripts:
 $ARGUMENTS
 
 ## Steps
-1. Load jira-config.yml from .specify/extensions/jira/
+1. Load jira-config.yml from .kite/extensions/jira/
 2. Parse spec.md and tasks.md
 3. Create Jira items
 ```
@@ -492,11 +492,11 @@ $ARGUMENTS
 
 #### Gemini CLI Registration
 
-**Output**: `.gemini/commands/speckit.jira.specstoissues.toml`
+**Output**: `.gemini/commands/kite.jira.specstoissues.toml`
 
 ```toml
 [command]
-name = "speckit.jira.specstoissues"
+name = "kite.jira.specstoissues"
 description = "Create Jira hierarchy from spec and tasks"
 
 [command.tools]
@@ -506,8 +506,8 @@ tools = [
 ]
 
 [command.script]
-sh = ".specify/scripts/bash/check-prerequisites.sh --json"
-ps = ".specify/scripts/powershell/check-prerequisites.ps1 -Json"
+sh = ".kite/scripts/bash/check-prerequisites.sh --json"
+ps = ".kite/scripts/powershell/check-prerequisites.ps1 -Json"
 
 [command.template]
 content = """
@@ -516,7 +516,7 @@ content = """
 {{args}}
 
 ## Steps
-1. Load jira-config.yml from .specify/extensions/jira/
+1. Load jira-config.yml from .kite/extensions/jira/
 2. Parse spec.md and tasks.md
 3. Create Jira items
 """
@@ -530,7 +530,7 @@ content = """
 
 ### Registration Code
 
-**Location**: `src/specify_cli/extensions.py`
+**Location**: `src/kite_cli/extensions.py`
 
 ```python
 def register_extension_commands(
@@ -546,7 +546,7 @@ def register_extension_commands(
         return
 
     ext_id = manifest['extension']['id']
-    ext_dir = project_path / ".specify" / "extensions" / ext_id
+    ext_dir = project_path / ".kite" / "extensions" / ext_id
     agent_commands_dir = project_path / agent_config['folder'].rstrip('/') / "commands"
     agent_commands_dir.mkdir(parents=True, exist_ok=True)
 
@@ -604,7 +604,7 @@ def convert_to_claude(
 ### Configuration File Hierarchy
 
 ```yaml
-# .specify/extensions/jira/jira-config.yml (Project config)
+# .kite/extensions/jira/jira-config.yml (Project config)
 project:
   key: "MSATS"
 
@@ -617,14 +617,14 @@ defaults:
 ```
 
 ```yaml
-# .specify/extensions/jira/jira-config.local.yml (Local overrides - gitignored)
+# .kite/extensions/jira/jira-config.local.yml (Local overrides - gitignored)
 project:
   key: "MYTEST"  # Override for local testing
 ```
 
 ```bash
 # Environment variables (highest precedence)
-export SPECKIT_JIRA_PROJECT_KEY="DEVTEST"
+export KITE_JIRA_PROJECT_KEY="DEVTEST"
 ```
 
 ### Config Loading Function
@@ -637,20 +637,20 @@ export SPECKIT_JIRA_PROJECT_KEY="DEVTEST"
 1. Run helper script to load and merge config:
 
 ```bash
-config_json=$(bash .specify/extensions/jira/scripts/parse-jira-config.sh)
+config_json=$(bash .kite/extensions/jira/scripts/parse-jira-config.sh)
 echo "$config_json"
 ```
 
 1. Parse JSON and use in subsequent steps
 ````
 
-**Script**: `.specify/extensions/jira/scripts/parse-jira-config.sh`
+**Script**: `.kite/extensions/jira/scripts/parse-jira-config.sh`
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-EXT_DIR=".specify/extensions/jira"
+EXT_DIR=".kite/extensions/jira"
 CONFIG_FILE="$EXT_DIR/jira-config.yml"
 LOCAL_CONFIG="$EXT_DIR/jira-config.local.yml"
 
@@ -670,8 +670,8 @@ if [ -f "$LOCAL_CONFIG" ]; then
 fi
 
 # Apply environment variable overrides
-if [ -n "${SPECKIT_JIRA_PROJECT_KEY:-}" ]; then
-  defaults=$(echo "$defaults" | jq ".project.key = \"$SPECKIT_JIRA_PROJECT_KEY\"")
+if [ -n "${KITE_JIRA_PROJECT_KEY:-}" ]; then
+  defaults=$(echo "$defaults" | jq ".project.key = \"$KITE_JIRA_PROJECT_KEY\"")
 fi
 
 # Output merged config as JSON
@@ -691,7 +691,7 @@ echo "$defaults"
 ```python
 import jsonschema
 
-schema = load_yaml(".specify/extensions/jira/extension.yml")['config_schema']
+schema = load_yaml(".kite/extensions/jira/extension.yml")['config_schema']
 config = json.loads(config_json)
 
 try:
@@ -716,7 +716,7 @@ except jsonschema.ValidationError as e:
 ```yaml
 hooks:
   after_tasks:
-    command: "speckit.jira.specstoissues"
+    command: "kite.jira.specstoissues"
     optional: true
     prompt: "Create Jira issues from tasks?"
     description: "Automatically create Jira hierarchy"
@@ -727,7 +727,7 @@ hooks:
 
 **During extension installation**, record hooks in project config:
 
-**File**: `.specify/extensions.yml` (project-level extension config)
+**File**: `.kite/extensions.yml` (project-level extension config)
 
 ```yaml
 # Extensions installed in this project
@@ -743,14 +743,14 @@ settings:
 hooks:
   after_tasks:
     - extension: jira
-      command: speckit.jira.specstoissues
+      command: kite.jira.specstoissues
       enabled: true
       optional: true
       prompt: "Create Jira issues from tasks?"
 
   after_implement:
     - extension: jira
-      command: speckit.jira.sync-status
+      command: kite.jira.sync-status
       enabled: true
       optional: true
       prompt: "Sync completion status to Jira?"
@@ -769,9 +769,9 @@ After task generation completes, check for registered hooks:
 
 ```bash
 # Check if extensions.yml exists and has after_tasks hooks
-if [ -f ".specify/extensions.yml" ]; then
+if [ -f ".kite/extensions.yml" ]; then
   # Parse hooks for after_tasks
-  hooks=$(yq eval '.hooks.after_tasks[] | select(.enabled == true)' .specify/extensions.yml -o=json)
+  hooks=$(yq eval '.hooks.after_tasks[] | select(.enabled == true)' .kite/extensions.yml -o=json)
 
   if [ -n "$hooks" ]; then
     echo ""
@@ -808,7 +808,7 @@ fi
 
 **AI Agent Handling:**
 
-The AI agent sees `EXECUTE_COMMAND: speckit.jira.specstoissues` in output and automatically invokes that command.
+The AI agent sees `EXECUTE_COMMAND: kite.jira.specstoissues` in output and automatically invokes that command.
 
 **Alternative**: Direct call in agent context (if agent supports it):
 
@@ -837,7 +837,7 @@ Extensions can specify **conditions** for hooks:
 ```yaml
 hooks:
   after_tasks:
-    command: "speckit.jira.specstoissues"
+    command: "kite.jira.specstoissues"
     optional: true
     condition: "config.project.key is set and config.enabled == true"
 ```
@@ -864,7 +864,7 @@ def should_execute_hook(hook: dict, config: dict) -> bool:
 
 ### Dual Catalog System
 
-Spec Kit uses two catalog files with different purposes:
+Kite uses two catalog files with different purposes:
 
 #### User Catalog (`catalog.json`)
 
@@ -887,10 +887,10 @@ Spec Kit uses two catalog files with different purposes:
 
 **How It Works (default stack):**
 
-1. **Discover**: `specify extension search` searches both catalogs — community extensions appear automatically
+1. **Discover**: `kite extension search` searches both catalogs — community extensions appear automatically
 2. **Review**: Evaluate community extensions for security, quality, and organizational fit
-3. **Curate**: Copy approved entries from community catalog to your `catalog.json`, or add to `.specify/extension-catalogs.yml` with `install_allowed: true`
-4. **Install**: Use `specify extension add <name>` — only allowed from `install_allowed: true` catalogs
+3. **Curate**: Copy approved entries from community catalog to your `catalog.json`, or add to `.kite/extension-catalogs.yml` with `install_allowed: true`
+4. **Install**: Use `kite extension add <name>` — only allowed from `install_allowed: true` catalogs
 
 This approach gives organizations full control over which extensions can be installed while still providing community discoverability out of the box.
 
@@ -916,7 +916,7 @@ This approach gives organizations full control over which extensions can be inst
       "changelog": "https://github.com/statsperform/spec-kit-jira/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0,<2.0.0",
+        "kite_version": ">=0.1.0,<2.0.0",
         "tools": [
           {
             "name": "jira-mcp-server",
@@ -938,7 +938,7 @@ This approach gives organizations full control over which extensions can be inst
       "download_url": "https://github.com/example/spec-kit-linear/releases/download/v0.9.0/spec-kit-linear-0.9.0.zip",
       "repository": "https://github.com/example/spec-kit-linear",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "tags": ["issue-tracking", "linear"],
       "verified": false
@@ -951,29 +951,29 @@ This approach gives organizations full control over which extensions can be inst
 
 ```bash
 # List all available extensions
-specify extension search
+kite extension search
 
 # Search by keyword
-specify extension search jira
+kite extension search jira
 
 # Search by tag
-specify extension search --tag issue-tracking
+kite extension search --tag issue-tracking
 
 # Show extension details
-specify extension info jira
+kite extension info jira
 ```
 
 ### Custom Catalogs
 
-Spec Kit supports a **catalog stack** — an ordered list of catalogs that the CLI merges and searches across. This allows organizations to maintain their own org-approved extensions alongside an internal catalog and community discovery, all at once.
+Kite supports a **catalog stack** — an ordered list of catalogs that the CLI merges and searches across. This allows organizations to maintain their own org-approved extensions alongside an internal catalog and community discovery, all at once.
 
 #### Catalog Stack Resolution
 
 The active catalog stack is resolved in this order (first match wins):
 
-1. **`SPECKIT_CATALOG_URL` environment variable** — single catalog replacing all defaults (backward compat)
-2. **Project-level `.specify/extension-catalogs.yml`** — full control for the project
-3. **User-level `~/.specify/extension-catalogs.yml`** — personal defaults
+1. **`KITE_CATALOG_URL` environment variable** — single catalog replacing all defaults (backward compat)
+2. **Project-level `.kite/extension-catalogs.yml`** — full control for the project
+3. **User-level `~/.kite/extension-catalogs.yml`** — personal defaults
 4. **Built-in default stack** — `catalog.json` (install_allowed: true) + `catalog.community.json` (install_allowed: false)
 
 #### Default Built-in Stack
@@ -985,9 +985,9 @@ When no config file exists, the CLI uses:
 | 1 | `catalog.json` (default) | `true` | Curated extensions available for installation |
 | 2 | `catalog.community.json` (community) | `false` | Discovery only — browse but not install |
 
-This means `specify extension search` surfaces community extensions out of the box, while `specify extension add` is still restricted to entries from catalogs with `install_allowed: true`.
+This means `kite extension search` surfaces community extensions out of the box, while `kite extension add` is still restricted to entries from catalogs with `install_allowed: true`.
 
-#### `.specify/extension-catalogs.yml` Config File
+#### `.kite/extension-catalogs.yml` Config File
 
 ```yaml
 catalogs:
@@ -1010,27 +1010,27 @@ catalogs:
     description: "Community-contributed extensions (discovery only)"
 ```
 
-A user-level equivalent lives at `~/.specify/extension-catalogs.yml`. When a project-level config is present with one or more catalog entries, it takes full control and the built-in defaults are not applied. An empty `catalogs: []` list is treated the same as no config file, falling back to defaults.
+A user-level equivalent lives at `~/.kite/extension-catalogs.yml`. When a project-level config is present with one or more catalog entries, it takes full control and the built-in defaults are not applied. An empty `catalogs: []` list is treated the same as no config file, falling back to defaults.
 
 #### Catalog CLI Commands
 
 ```bash
 # List active catalogs with name, URL, priority, and install_allowed
-specify extension catalog list
+kite extension catalog list
 
 # Add a catalog (project-scoped)
-specify extension catalog add --name "internal" --install-allowed \
+kite extension catalog add --name "internal" --install-allowed \
   https://internal.company.com/spec-kit/catalog.json
 
 # Add a discovery-only catalog
-specify extension catalog add --name "community" \
+kite extension catalog add --name "community" \
   https://raw.githubusercontent.com/github/spec-kit/main/extensions/catalog.community.json
 
 # Remove a catalog
-specify extension catalog remove internal
+kite extension catalog remove internal
 
 # Show which catalog an extension came from
-specify extension info jira
+kite extension info jira
 # → Source catalog: default
 ```
 
@@ -1040,25 +1040,25 @@ When the same extension `id` appears in multiple catalogs, the higher-priority (
 
 #### `install_allowed: false` Behavior
 
-Extensions from discovery-only catalogs are shown in `specify extension search` results but cannot be installed directly:
+Extensions from discovery-only catalogs are shown in `kite extension search` results but cannot be installed directly:
 
 ```
 ⚠  'linear' is available in the 'community' catalog but installation is not allowed from that catalog.
 
-To enable installation, add 'linear' to an approved catalog (install_allowed: true) in .specify/extension-catalogs.yml.
+To enable installation, add 'linear' to an approved catalog (install_allowed: true) in .kite/extension-catalogs.yml.
 ```
 
-#### `SPECKIT_CATALOG_URL` (Backward Compatibility)
+#### `KITE_CATALOG_URL` (Backward Compatibility)
 
-The `SPECKIT_CATALOG_URL` environment variable still works — it is treated as a single `install_allowed: true` catalog, **replacing both defaults** for full backward compatibility:
+The `KITE_CATALOG_URL` environment variable still works — it is treated as a single `install_allowed: true` catalog, **replacing both defaults** for full backward compatibility:
 
 ```bash
 # Point to your organization's catalog
-export SPECKIT_CATALOG_URL="https://internal.company.com/spec-kit/catalog.json"
+export KITE_CATALOG_URL="https://internal.company.com/spec-kit/catalog.json"
 
 # All extension commands now use your custom catalog
-specify extension search       # Uses custom catalog
-specify extension add jira     # Installs from custom catalog
+kite extension search       # Uses custom catalog
+kite extension add jira     # Installs from custom catalog
 ```
 
 **Requirements:**
@@ -1069,22 +1069,22 @@ specify extension add jira     # Installs from custom catalog
 **Example for testing:**
 ```bash
 # Test with localhost during development
-export SPECKIT_CATALOG_URL="http://localhost:8000/catalog.json"
-specify extension search
+export KITE_CATALOG_URL="http://localhost:8000/catalog.json"
+kite extension search
 ```
 
 ---
 
 ## CLI Commands
 
-### `specify extension` Subcommands
+### `kite extension` Subcommands
 
-#### `specify extension list`
+#### `kite extension list`
 
 List installed extensions in current project.
 
 ```bash
-$ specify extension list
+$ kite extension list
 
 Installed Extensions:
   ✓ Jira Integration (v1.0.0)
@@ -1103,12 +1103,12 @@ Installed Extensions:
 - `--available`: Show available (not installed) extensions from catalog
 - `--all`: Show both installed and available
 
-#### `specify extension search [QUERY]`
+#### `kite extension search [QUERY]`
 
 Search extension catalog.
 
 ```bash
-$ specify extension search jira
+$ kite extension search jira
 
 Found 1 extension:
 
@@ -1127,7 +1127,7 @@ Found 1 extension:
 │ Documentation: github.com/.../docs                      │
 └─────────────────────────────────────────────────────────┘
 
-Install: specify extension add jira
+Install: kite extension add jira
 ```
 
 **Options:**
@@ -1136,12 +1136,12 @@ Install: specify extension add jira
 - `--author AUTHOR`: Filter by author
 - `--verified`: Show only verified extensions
 
-#### `specify extension info NAME`
+#### `kite extension info NAME`
 
 Show detailed information about an extension.
 
 ```bash
-$ specify extension info jira
+$ kite extension info jira
 
 Jira Integration (jira) v1.0.0
 
@@ -1154,14 +1154,14 @@ Repository: https://github.com/statsperform/spec-kit-jira
 Documentation: https://github.com/statsperform/spec-kit-jira/blob/main/docs/
 
 Requirements:
-  • Spec Kit: >=0.1.0,<2.0.0
+  • Kite: >=0.1.0,<2.0.0
   • Tools: jira-mcp-server (>=1.0.0)
 
 Provides:
   Commands:
-    • speckit.jira.specstoissues - Create Jira hierarchy from spec and tasks
-    • speckit.jira.discover-fields - Discover Jira custom fields
-    • speckit.jira.sync-status - Sync task completion status
+    • kite.jira.specstoissues - Create Jira hierarchy from spec and tasks
+    • kite.jira.discover-fields - Discover Jira custom fields
+    • kite.jira.sync-status - Sync task completion status
 
   Hooks:
     • after_tasks - Prompt to create Jira issues
@@ -1171,34 +1171,34 @@ Tags: issue-tracking, jira, atlassian, project-management
 
 Downloads: 1,250 | Stars: 45 | Verified: ✓
 
-Install: specify extension add jira
+Install: kite extension add jira
 ```
 
-#### `specify extension add NAME`
+#### `kite extension add NAME`
 
 Install an extension.
 
 ```bash
-$ specify extension add jira
+$ kite extension add jira
 
 Installing extension: Jira Integration
 
 ✓ Downloaded spec-kit-jira-1.0.0.zip (245 KB)
 ✓ Validated manifest
 ✓ Checked compatibility (spec-kit 0.1.0 ≥ 0.1.0)
-✓ Extracted to .specify/extensions/jira/
+✓ Extracted to .kite/extensions/jira/
 ✓ Registered 3 commands with claude
 ✓ Installed config template (jira-config.yml)
 
 ⚠  Configuration required:
-   Edit .specify/extensions/jira/jira-config.yml to set your Jira project key
+   Edit .kite/extensions/jira/jira-config.yml to set your Jira project key
 
 Extension installed successfully!
 
 Next steps:
-  1. Configure: vim .specify/extensions/jira/jira-config.yml
-  2. Discover fields: /speckit.jira.discover-fields
-  3. Use commands: /speckit.jira.specstoissues
+  1. Configure: vim .kite/extensions/jira/jira-config.yml
+  2. Discover fields: /kite.jira.discover-fields
+  3. Use commands: /kite.jira.specstoissues
 ```
 
 **Options:**
@@ -1207,28 +1207,28 @@ Next steps:
 - `--dev`: Install from a local path in development mode (the PATH is the positional `extension` argument).
 - `--priority NUMBER`: Set resolution priority (lower = higher precedence, default 10)
 
-#### `specify extension remove NAME`
+#### `kite extension remove NAME`
 
 Uninstall an extension.
 
 ```bash
-$ specify extension remove jira
+$ kite extension remove jira
 
 ⚠  This will remove:
    • 3 commands from AI agent
-   • Extension directory: .specify/extensions/jira/
+   • Extension directory: .kite/extensions/jira/
    • Config file: jira-config.yml (will be backed up)
 
 Continue? (yes/no): yes
 
 ✓ Unregistered commands
-✓ Backed up config to .specify/extensions/.backup/jira-config.yml
+✓ Backed up config to .kite/extensions/.backup/jira-config.yml
 ✓ Removed extension directory
 ✓ Updated registry
 
 Extension removed successfully.
 
-To reinstall: specify extension add jira
+To reinstall: kite extension add jira
 ```
 
 **Options:**
@@ -1236,12 +1236,12 @@ To reinstall: specify extension add jira
 - `--keep-config`: Don't remove config file
 - `--force`: Skip confirmation
 
-#### `specify extension update [NAME]`
+#### `kite extension update [NAME]`
 
 Update extension(s) to latest version.
 
 ```bash
-$ specify extension update jira
+$ kite extension update jira
 
 Checking for updates...
 
@@ -1272,26 +1272,26 @@ Changelog: https://github.com/statsperform/spec-kit-jira/blob/main/CHANGELOG.md#
 - `--check`: Check for updates without installing
 - `--force`: Force update even if already latest
 
-#### `specify extension enable/disable NAME`
+#### `kite extension enable/disable NAME`
 
 Enable or disable an extension without removing it.
 
 ```bash
-$ specify extension disable jira
+$ kite extension disable jira
 
 ✓ Disabled extension: jira
   • Commands unregistered (but files preserved)
   • Hooks will not execute
 
-To re-enable: specify extension enable jira
+To re-enable: kite extension enable jira
 ```
 
-#### `specify extension set-priority NAME PRIORITY`
+#### `kite extension set-priority NAME PRIORITY`
 
 Change the resolution priority of an installed extension.
 
 ```bash
-$ specify extension set-priority jira 5
+$ kite extension set-priority jira 5
 
 ✓ Extension 'Jira Integration' priority changed: 10 → 5
 
@@ -1332,13 +1332,13 @@ def check_compatibility(extension_manifest: dict) -> bool:
     requires = extension_manifest['requires']
 
     # 1. Check spec-kit version
-    current_speckit = get_speckit_version()  # e.g., "0.1.5"
-    required_speckit = requires['speckit_version']  # e.g., ">=0.1.0,<2.0.0"
+    current_kite = get_kite_version()  # e.g., "0.1.5"
+    required_kite = requires['kite_version']  # e.g., ">=0.1.0,<2.0.0"
 
-    if not version_satisfies(current_speckit, required_speckit):
+    if not version_satisfies(current_kite, required_kite):
         raise IncompatibleVersionError(
-            f"Extension requires spec-kit {required_speckit}, "
-            f"but {current_speckit} is installed. "
+            f"Extension requires spec-kit {required_kite}, "
+            f"but {current_kite} is installed. "
             f"Upgrade spec-kit with: uv tool install specify-cli --force"
         )
 
@@ -1380,18 +1380,18 @@ def check_compatibility(extension_manifest: dict) -> bool:
 ```yaml
 provides:
   commands:
-    - name: "speckit.jira.old-command"
+    - name: "kite.jira.old-command"
       file: "commands/old-command.md"
       deprecated: true
-      deprecated_message: "Use speckit.jira.new-command instead"
+      deprecated_message: "Use kite.jira.new-command instead"
       removal_version: "2.0.0"
 ```
 
 **At runtime, show warning:**
 
 ```text
-⚠️  Warning: /speckit.jira.old-command is deprecated
-   Use /speckit.jira.new-command instead
+⚠️  Warning: /kite.jira.old-command is deprecated
+   Use /kite.jira.new-command instead
    This command will be removed in v2.0.0
 ```
 
@@ -1440,10 +1440,10 @@ Extensions run with **same privileges as AI agent**:
 ```yaml
 # Future extension.yml
 permissions:
-  - "filesystem:read:.specify/extensions/jira/"  # Can only read own config
-  - "filesystem:write:.specify/memory/"          # Can write to memory
+  - "filesystem:read:.kite/extensions/jira/"  # Can only read own config
+  - "filesystem:write:.kite/memory/"          # Can write to memory
   - "network:external:*.atlassian.net"           # Can call Jira API
-  - "env:read:SPECKIT_JIRA_*"                    # Can read own env vars
+  - "env:read:KITE_JIRA_*"                    # Can read own env vars
 ```
 
 ### Package Integrity
@@ -1472,7 +1472,7 @@ CLI verifies signature before extraction.
 
 **Strategy**:
 
-1. **Core commands unchanged**: `/speckit.tasks`, `/speckit.implement`, etc. remain in core
+1. **Core commands unchanged**: `/kite.tasks`, `/kite.implement`, etc. remain in core
 
 2. **Optional extensions**: Users opt-in to extensions
 
@@ -1496,7 +1496,7 @@ CLI verifies signature before extraction.
 
 **Scenario 3**: User wants Jira (new requirement)
 
-- `specify extension add jira`
+- `kite extension add jira`
 - Configure and use
 
 **Scenario 4**: User has custom scripts calling `taskstoissues`
@@ -1510,11 +1510,11 @@ CLI verifies signature before extraction.
 
 ```bash
 # Old (core command)
-/speckit.taskstoissues
+/kite.taskstoissues
 
 # New (extension command)
-specify extension add github-projects
-/speckit.github.taskstoissues
+kite extension add github-projects
+/kite.github.taskstoissues
 ```
 
 **Migration alias** (if needed):
@@ -1523,12 +1523,12 @@ specify extension add github-projects
 # extension.yml
 provides:
   commands:
-    - name: "speckit.github.taskstoissues"
+    - name: "kite.github.taskstoissues"
       file: "commands/taskstoissues.md"
-      aliases: ["speckit.github.sync-taskstoissues"]  # Alternate namespaced entry point
+      aliases: ["kite.github.sync-taskstoissues"]  # Alternate namespaced entry point
 ```
 
-AI agents register both names, so callers can migrate to the alternate alias without relying on deprecated global shortcuts like `/speckit.taskstoissues`.
+AI agents register both names, so callers can migrate to the alternate alias without relying on deprecated global shortcuts like `/kite.taskstoissues`.
 
 ---
 
@@ -1543,10 +1543,10 @@ AI agents register both names, so callers can migrate to the alternate alias wit
 - [x] Extension manifest schema (`extension.yml`)
 - [x] Extension directory structure
 - [x] CLI commands:
-  - [x] `specify extension list`
-  - [x] `specify extension add` (from URL and local `--dev`)
-  - [x] `specify extension remove`
-- [x] Extension registry (`.specify/extensions/.registry`)
+  - [x] `kite extension list`
+  - [x] `kite extension add` (from URL and local `--dev`)
+  - [x] `kite extension remove`
+- [x] Extension registry (`.kite/extensions/.registry`)
 - [x] Command registration (Claude and 15+ other agents)
 - [x] Basic validation (manifest schema, compatibility)
 - [x] Documentation (extension development guide)
@@ -1591,11 +1591,11 @@ AI agents register both names, so callers can migrate to the alternate alias wit
 - [x] Community catalog (`extensions/catalog.community.json`)
 - [x] Catalog fetch and parsing with multi-catalog support
 - [x] CLI commands:
-  - [x] `specify extension search`
-  - [x] `specify extension info`
-  - [x] `specify extension catalog list`
-  - [x] `specify extension catalog add`
-  - [x] `specify extension catalog remove`
+  - [x] `kite extension search`
+  - [x] `kite extension info`
+  - [x] `kite extension catalog list`
+  - [x] `kite extension catalog add`
+  - [x] `kite extension catalog remove`
 - [x] Documentation (how to publish extensions)
 
 **Testing**:
@@ -1613,10 +1613,10 @@ AI agents register both names, so callers can migrate to the alternate alias wit
 
 - [x] Hook system (`hooks` in extension.yml)
 - [x] Hook registration and execution
-- [x] Project extensions config (`.specify/extensions.yml`)
+- [x] Project extensions config (`.kite/extensions.yml`)
 - [x] CLI commands:
-  - [x] `specify extension update` (with atomic backup/restore)
-  - [x] `specify extension enable/disable`
+  - [x] `kite extension update` (with atomic backup/restore)
+  - [x] `kite extension enable/disable`
 - [x] Command registration for multiple agents (15+ agents including Claude, Copilot, Gemini, Cursor, etc.)
 - [x] Extension update notifications (version comparison)
 - [x] Configuration layer resolution (project, local, env)
@@ -1631,7 +1631,7 @@ AI agents register both names, so callers can migrate to the alternate alias wit
 - [x] **Registry update/restore methods**: Clean API for enable/disable and rollback operations
 - [x] **Catalog error fallback**: `extension info` falls back to local info when catalog unavailable
 - [x] **`_install_allowed` flag**: Discovery-only catalogs can't be used for installation
-- [x] **Cache invalidation**: Cache invalidated when `SPECKIT_CATALOG_URL` changes
+- [x] **Cache invalidation**: Cache invalidated when `KITE_CATALOG_URL` changes
 
 **Testing**:
 
@@ -1670,7 +1670,7 @@ The following questions from the original RFC have been resolved during implemen
 
 **Question**: Should extension commands use namespace prefix?
 
-**Decision**: **Option C** - Both prefixed and aliases are supported. Commands use `speckit.{extension}.{command}` as canonical name, with optional aliases defined in manifest.
+**Decision**: **Option C** - Both prefixed and aliases are supported. Commands use `kite.{extension}.{command}` as canonical name, with optional aliases defined in manifest.
 
 **Implementation**: The `aliases` field in `extension.yml` allows extensions to register additional command names.
 
@@ -1680,7 +1680,7 @@ The following questions from the original RFC have been resolved during implemen
 
 **Question**: Where should extension configs live?
 
-**Decision**: **Option A** - Extension directory (`.specify/extensions/{ext-id}/{ext-id}-config.yml`). This keeps extensions self-contained and easier to manage.
+**Decision**: **Option A** - Extension directory (`.kite/extensions/{ext-id}/{ext-id}-config.yml`). This keeps extensions self-contained and easier to manage.
 
 **Implementation**: Each extension has its own config file within its directory, with layered resolution (defaults → project → local → env vars).
 
@@ -1700,7 +1700,7 @@ The following questions from the original RFC have been resolved during implemen
 
 **Question**: How should hooks execute?
 
-**Decision**: **Option A** - Hooks are registered in `.specify/extensions.yml` and executed by the AI agent when it sees the hook trigger. Hook state (enabled/disabled) is managed per-extension.
+**Decision**: **Option A** - Hooks are registered in `.kite/extensions.yml` and executed by the AI agent when it sees the hook trigger. Hook state (enabled/disabled) is managed per-extension.
 
 **Implementation**: `HookExecutor` class manages hook registration and state in `extensions.yml`.
 
@@ -1854,7 +1854,7 @@ spec-kit-jira/
 
 **Planned support matrix:**
 
-| Extension Feature | Spec Kit Version | AI Agent Support |
+| Extension Feature | Kite Version | AI Agent Support |
 |-------------------|------------------|------------------|
 | Basic commands | 0.2.0+ | Claude, Gemini, Copilot |
 | Hooks (after_tasks) | 0.3.0+ | Claude, Gemini |
@@ -1901,7 +1901,7 @@ spec-kit-jira/
             "requires": {
               "type": "object",
               "properties": {
-                "speckit_version": { "type": "string" },
+                "kite_version": { "type": "string" },
                 "tools": {
                   "type": "array",
                   "items": {
@@ -1935,7 +1935,7 @@ spec-kit-jira/
 
 ## Summary & Next Steps
 
-This RFC proposes a comprehensive extension system for Spec Kit that:
+This RFC proposes a comprehensive extension system for Kite that:
 
 1. **Keeps core lean** while enabling unlimited integrations
 2. **Supports multiple agents** (Claude, Gemini, Copilot, etc.)

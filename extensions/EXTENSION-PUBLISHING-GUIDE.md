@@ -1,6 +1,6 @@
 # Extension Publishing Guide
 
-This guide explains how to publish your extension to the Spec Kit extension catalog, making it discoverable by `specify extension search`.
+This guide explains how to publish your extension to the Kite extension catalog, making it discoverable by `kite extension search`.
 
 ## Table of Contents
 
@@ -69,11 +69,11 @@ extension:
   homepage: "https://github.com/your-org/spec-kit-your-extension"
 
 requires:
-  speckit_version: ">=0.1.0"    # Required spec-kit version
+  kite_version: ">=0.1.0"    # Required spec-kit version
 
 provides:
   commands:                       # List all commands
-    - name: "speckit.your-extension.command"
+    - name: "kite.your-extension.command"
       file: "commands/command.md"
       description: "Command description"
 
@@ -119,10 +119,10 @@ Test that users can install from your release:
 
 ```bash
 # Test dev installation
-specify extension add --dev /path/to/your-extension
+kite extension add --dev /path/to/your-extension
 
 # Test from GitHub archive
-specify extension add <extension-name> --from https://github.com/your-org/spec-kit-your-extension/archive/refs/tags/v1.0.0.zip
+kite extension add <extension-name> --from https://github.com/your-org/spec-kit-your-extension/archive/refs/tags/v1.0.0.zip
 ```
 
 ---
@@ -131,7 +131,7 @@ specify extension add <extension-name> --from https://github.com/your-org/spec-k
 
 ### Understanding the Catalogs
 
-Spec Kit uses a dual-catalog system. For details about how catalogs work, see the main [Extensions README](README.md#extension-catalogs).
+Kite uses a dual-catalog system. For details about how catalogs work, see the main [Extensions README](README.md#extension-catalogs).
 
 **For extension publishing**: All community extensions should be added to `catalog.community.json`. Users browse this catalog and copy extensions they trust into their own `catalog.json`.
 
@@ -169,7 +169,7 @@ Edit `extensions/catalog.community.json` and add your extension:
       "changelog": "https://github.com/your-org/spec-kit-your-extension/blob/main/CHANGELOG.md",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0",
+        "kite_version": ">=0.1.0",
         "tools": [
           {
             "name": "required-mcp-tool",
@@ -304,7 +304,7 @@ Any additional context or notes for reviewers.
 
 3. **Verification**:
    - If approved, `verified: true` is set
-   - Extension appears in `specify extension search --verified`
+   - Extension appears in `kite extension search --verified`
 
 ### Verification Criteria
 
@@ -470,7 +470,7 @@ When releasing a new version:
 A: The main catalog is for public extensions only. For private extensions:
 
 - Host your own catalog.json file
-- Users add your catalog: `specify extension add-catalog https://your-domain.com/catalog.json`
+- Users add your catalog: `kite extension add-catalog https://your-domain.com/catalog.json`
 - Not yet implemented - coming in Phase 4
 
 ### Q: How long does verification take?
@@ -522,7 +522,7 @@ A: Extensions should be free and open-source. Commercial support/services are al
   "changelog": "string (optional, valid URL)",
   "license": "string (required)",
   "requires": {
-    "speckit_version": "string (required, version specifier)",
+    "kite_version": "string (required, version specifier)",
     "tools": [
       {
         "name": "string (required)",

@@ -1,4 +1,4 @@
-# Spec Kit
+# Kite
 
 *Build high-quality software faster.*
 

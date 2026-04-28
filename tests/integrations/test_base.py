@@ -2,13 +2,13 @@
 
 import pytest
 
-from specify_cli.integrations.base import (
+from kite_cli.integrations.base import (
     IntegrationBase,
     IntegrationOption,
     MarkdownIntegration,
     SkillsIntegration,
 )
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations.manifest import IntegrationManifest
 from .conftest import StubIntegration
 
 
@@ -61,7 +61,7 @@ class TestIntegrationBase:
         assert len(created) > 0
         for f in created:
             assert f.parent == tmp_path / ".stub" / "commands"
-            assert f.name.startswith("speckit.")
+            assert f.name.startswith("kite.")
             assert f.name.endswith(".md")
 
     def test_setup_copies_templates(self, tmp_path, monkeypatch):
@@ -77,8 +77,8 @@ class TestIntegrationBase:
         project.mkdir()
         created = i.setup(project, IntegrationManifest("stub", project))
         assert len(created) == 2
-        assert (project / ".stub" / "commands" / "speckit.plan.md").exists()
-        assert (project / ".stub" / "commands" / "speckit.specify.md").exists()
+        assert (project / ".stub" / "commands" / "kite.plan.md").exists()
+        assert (project / ".stub" / "commands" / "kite.specify.md").exists()
 
     def test_install_delegates_to_setup(self, tmp_path):
         i = StubIntegration()
@@ -123,7 +123,7 @@ class TestBasePrimitives:
 
     def test_command_filename_default(self):
         i = StubIntegration()
-        assert i.command_filename("plan") == "speckit.plan.md"
+        assert i.command_filename("plan") == "kite.plan.md"
 
     def test_commands_dest(self, tmp_path):
         i = StubIntegration()
@@ -140,8 +140,8 @@ class TestBasePrimitives:
         src = tmp_path / "source.md"
         src.write_text("content", encoding="utf-8")
         dest_dir = tmp_path / "output"
-        result = IntegrationBase.copy_command_to_directory(src, dest_dir, "speckit.plan.md")
-        assert result == dest_dir / "speckit.plan.md"
+        result = IntegrationBase.copy_command_to_directory(src, dest_dir, "kite.plan.md")
+        assert result == dest_dir / "kite.plan.md"
         assert result.read_text(encoding="utf-8") == "content"
 
     def test_record_file_in_manifest(self, tmp_path):
@@ -166,7 +166,7 @@ class TestBasePrimitives:
         assert len(created) > 0
         for f in created:
             assert f.parent.name == "commands"
-            assert f.name.startswith("speckit.")
+            assert f.name.startswith("kite.")
             assert f.name.endswith(".md")
 
 
@@ -175,77 +175,77 @@ class TestBuildCommandInvocation:
 
     def test_base_core_command_dotted(self):
         i = StubIntegration()
-        assert i.build_command_invocation("speckit.plan") == "/speckit.plan"
+        assert i.build_command_invocation("kite.plan") == "/kite.plan"
 
     def test_base_core_command_bare(self):
         i = StubIntegration()
-        assert i.build_command_invocation("plan") == "/speckit.plan"
+        assert i.build_command_invocation("plan") == "/kite.plan"
 
     def test_base_core_command_with_args(self):
         i = StubIntegration()
-        assert i.build_command_invocation("plan", "my feature") == "/speckit.plan my feature"
+        assert i.build_command_invocation("plan", "my feature") == "/kite.plan my feature"
 
     def test_base_extension_command(self):
         i = StubIntegration()
-        assert i.build_command_invocation("speckit.git.commit") == "/speckit.git.commit"
+        assert i.build_command_invocation("kite.git.commit") == "/kite.git.commit"
 
     def test_base_extension_command_bare(self):
         i = StubIntegration()
-        assert i.build_command_invocation("git.commit") == "/speckit.git.commit"
+        assert i.build_command_invocation("git.commit") == "/kite.git.commit"
 
     def test_skills_core_command(self):
-        from specify_cli.integrations import get_integration
+        from kite_cli.integrations import get_integration
         i = get_integration("codex")
-        assert i.build_command_invocation("speckit.plan") == "/speckit-plan"
-        assert i.build_command_invocation("plan") == "/speckit-plan"
+        assert i.build_command_invocation("kite.plan") == "/kite-plan"
+        assert i.build_command_invocation("plan") == "/kite-plan"
 
     def test_skills_extension_command(self):
-        from specify_cli.integrations import get_integration
+        from kite_cli.integrations import get_integration
         i = get_integration("codex")
-        assert i.build_command_invocation("speckit.git.commit") == "/speckit-git-commit"
-        assert i.build_command_invocation("git.commit") == "/speckit-git-commit"
+        assert i.build_command_invocation("kite.git.commit") == "/kite-git-commit"
+        assert i.build_command_invocation("git.commit") == "/kite-git-commit"
 
     def test_skills_extension_command_with_args(self):
-        from specify_cli.integrations import get_integration
+        from kite_cli.integrations import get_integration
         i = get_integration("codex")
-        assert i.build_command_invocation("speckit.git.commit", "fix typo") == "/speckit-git-commit fix typo"
+        assert i.build_command_invocation("kite.git.commit", "fix typo") == "/kite-git-commit fix typo"
 
 
 class TestResolveCommandRefs:
-    """Tests for __SPECKIT_COMMAND_<NAME>__ placeholder resolution."""
+    """Tests for __KITE_COMMAND_<NAME>__ placeholder resolution."""
 
     def test_dot_separator_core_command(self):
-        text = "Run `__SPECKIT_COMMAND_PLAN__` to plan."
+        text = "Run `__KITE_COMMAND_PLAN__` to plan."
         result = IntegrationBase.resolve_command_refs(text, ".")
-        assert result == "Run `/speckit.plan` to plan."
+        assert result == "Run `/kite.plan` to plan."
 
     def test_hyphen_separator_core_command(self):
-        text = "Run `__SPECKIT_COMMAND_PLAN__` to plan."
+        text = "Run `__KITE_COMMAND_PLAN__` to plan."
         result = IntegrationBase.resolve_command_refs(text, "-")
-        assert result == "Run `/speckit-plan` to plan."
+        assert result == "Run `/kite-plan` to plan."
 
     def test_multiple_placeholders(self):
-        text = "__SPECKIT_COMMAND_SPECIFY__ then __SPECKIT_COMMAND_PLAN__ then __SPECKIT_COMMAND_TASKS__"
+        text = "__KITE_COMMAND_SPECIFY__ then __KITE_COMMAND_PLAN__ then __KITE_COMMAND_TASKS__"
         result = IntegrationBase.resolve_command_refs(text, ".")
-        assert result == "/speckit.specify then /speckit.plan then /speckit.tasks"
+        assert result == "/kite.specify then /kite.plan then /kite.tasks"
 
     def test_extension_command_dot(self):
-        text = "Run __SPECKIT_COMMAND_GIT_COMMIT__ to commit."
+        text = "Run __KITE_COMMAND_GIT_COMMIT__ to commit."
         result = IntegrationBase.resolve_command_refs(text, ".")
-        assert result == "Run /speckit.git.commit to commit."
+        assert result == "Run /kite.git.commit to commit."
 
     def test_extension_command_hyphen(self):
-        text = "Run __SPECKIT_COMMAND_GIT_COMMIT__ to commit."
+        text = "Run __KITE_COMMAND_GIT_COMMIT__ to commit."
         result = IntegrationBase.resolve_command_refs(text, "-")
-        assert result == "Run /speckit-git-commit to commit."
+        assert result == "Run /kite-git-commit to commit."
 
     def test_no_placeholders_unchanged(self):
         text = "No placeholders here."
         assert IntegrationBase.resolve_command_refs(text, ".") == text
 
     def test_default_separator_is_dot(self):
-        text = "__SPECKIT_COMMAND_PLAN__"
-        assert IntegrationBase.resolve_command_refs(text) == "/speckit.plan"
+        text = "__KITE_COMMAND_PLAN__"
+        assert IntegrationBase.resolve_command_refs(text) == "/kite.plan"
 
     def test_invoke_separator_class_attribute(self):
         assert IntegrationBase.invoke_separator == "."
@@ -259,39 +259,39 @@ class TestResolveCommandRefs:
         assert stub.effective_invoke_separator({"skills": True}) == "."
 
     def test_process_template_resolves_placeholders(self):
-        content = "---\ndescription: test\n---\nRun __SPECKIT_COMMAND_PLAN__ now."
+        content = "---\ndescription: test\n---\nRun __KITE_COMMAND_PLAN__ now."
         result = IntegrationBase.process_template(
             content, "test-agent", "sh", invoke_separator="."
         )
-        assert "/speckit.plan" in result
-        assert "__SPECKIT_COMMAND_" not in result
+        assert "/kite.plan" in result
+        assert "__KITE_COMMAND_" not in result
 
     def test_process_template_skills_separator(self):
-        content = "---\ndescription: test\n---\nRun __SPECKIT_COMMAND_PLAN__ now."
+        content = "---\ndescription: test\n---\nRun __KITE_COMMAND_PLAN__ now."
         result = IntegrationBase.process_template(
             content, "test-agent", "sh", invoke_separator="-"
         )
-        assert "/speckit-plan" in result
-        assert "__SPECKIT_COMMAND_" not in result
+        assert "/kite-plan" in result
+        assert "__KITE_COMMAND_" not in result
 
     def test_unclosed_placeholder_unchanged(self):
-        text = "Run __SPECKIT_COMMAND_PLAN to plan."
+        text = "Run __KITE_COMMAND_PLAN to plan."
         assert IntegrationBase.resolve_command_refs(text, ".") == text
 
     def test_empty_name_not_matched(self):
-        text = "Run __SPECKIT_COMMAND___ to plan."
+        text = "Run __KITE_COMMAND___ to plan."
         assert IntegrationBase.resolve_command_refs(text, ".") == text
 
     def test_lowercase_placeholder_not_matched(self):
-        text = "Run __SPECKIT_COMMAND_plan__ to plan."
+        text = "Run __KITE_COMMAND_plan__ to plan."
         assert IntegrationBase.resolve_command_refs(text, ".") == text
 
     def test_placeholder_adjacent_to_text(self):
-        text = "foo__SPECKIT_COMMAND_PLAN__bar"
+        text = "foo__KITE_COMMAND_PLAN__bar"
         result = IntegrationBase.resolve_command_refs(text, ".")
-        assert result == "foo/speckit.planbar"
+        assert result == "foo/kite.planbar"
 
     def test_placeholder_with_digits(self):
-        text = "__SPECKIT_COMMAND_V2_PLAN__"
+        text = "__KITE_COMMAND_V2_PLAN__"
         result = IntegrationBase.resolve_command_refs(text, ".")
-        assert result == "/speckit.v2.plan"
+        assert result == "/kite.v2.plan"

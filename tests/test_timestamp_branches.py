@@ -38,7 +38,7 @@ def _has_pwsh() -> bool:
 
 @pytest.fixture
 def git_repo(tmp_path: Path) -> Path:
-    """Create a temp git repo with scripts and .specify dir."""
+    """Create a temp git repo with scripts and .kite dir."""
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True
@@ -55,7 +55,7 @@ def git_repo(tmp_path: Path) -> Path:
     scripts_dir.mkdir(parents=True)
     shutil.copy(CREATE_FEATURE, scripts_dir / "create-new-feature.sh")
     shutil.copy(COMMON_SH, scripts_dir / "common.sh")
-    (tmp_path / ".specify" / "templates").mkdir(parents=True)
+    (tmp_path / ".kite" / "templates").mkdir(parents=True)
     return tmp_path
 
 
@@ -66,8 +66,8 @@ def ext_git_repo(tmp_path: Path) -> Path:
     subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.name", "Test User"], cwd=tmp_path, check=True)
     subprocess.run(["git", "commit", "--allow-empty", "-m", "init", "-q"], cwd=tmp_path, check=True)
-    # Extension script needs common.sh at .specify/scripts/bash/
-    specify_scripts = tmp_path / ".specify" / "scripts" / "bash"
+    # Extension script needs common.sh at .kite/scripts/bash/
+    specify_scripts = tmp_path / ".kite" / "scripts" / "bash"
     specify_scripts.mkdir(parents=True)
     shutil.copy(COMMON_SH, specify_scripts / "common.sh")
     # Also install core scripts for compatibility
@@ -75,14 +75,14 @@ def ext_git_repo(tmp_path: Path) -> Path:
     core_scripts.mkdir(parents=True)
     shutil.copy(COMMON_SH, core_scripts / "common.sh")
     # Copy extension script
-    ext_dir = tmp_path / ".specify" / "extensions" / "git" / "scripts" / "bash"
+    ext_dir = tmp_path / ".kite" / "extensions" / "git" / "scripts" / "bash"
     ext_dir.mkdir(parents=True)
     shutil.copy(EXT_CREATE_FEATURE, ext_dir / "create-new-feature.sh")
     # Also copy git-common.sh if it exists
     git_common = PROJECT_ROOT / "extensions" / "git" / "scripts" / "bash" / "git-common.sh"
     if git_common.exists():
         shutil.copy(git_common, ext_dir / "git-common.sh")
-    (tmp_path / ".specify" / "templates").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".kite" / "templates").mkdir(parents=True, exist_ok=True)
     (tmp_path / "specs").mkdir(exist_ok=True)
     return tmp_path
 
@@ -99,18 +99,18 @@ def ext_ps_git_repo(tmp_path: Path) -> Path:
     ps_dir.mkdir(parents=True)
     common_ps = PROJECT_ROOT / "scripts" / "powershell" / "common.ps1"
     shutil.copy(common_ps, ps_dir / "common.ps1")
-    # Also install at .specify/scripts/powershell/ for extension resolution
-    specify_ps = tmp_path / ".specify" / "scripts" / "powershell"
+    # Also install at .kite/scripts/powershell/ for extension resolution
+    specify_ps = tmp_path / ".kite" / "scripts" / "powershell"
     specify_ps.mkdir(parents=True)
     shutil.copy(common_ps, specify_ps / "common.ps1")
     # Copy extension script
-    ext_ps = tmp_path / ".specify" / "extensions" / "git" / "scripts" / "powershell"
+    ext_ps = tmp_path / ".kite" / "extensions" / "git" / "scripts" / "powershell"
     ext_ps.mkdir(parents=True)
     shutil.copy(EXT_CREATE_FEATURE_PS, ext_ps / "create-new-feature.ps1")
     git_common_ps = PROJECT_ROOT / "extensions" / "git" / "scripts" / "powershell" / "git-common.ps1"
     if git_common_ps.exists():
         shutil.copy(git_common_ps, ext_ps / "git-common.ps1")
-    (tmp_path / ".specify" / "templates").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".kite" / "templates").mkdir(parents=True, exist_ok=True)
     (tmp_path / "specs").mkdir(exist_ok=True)
     return tmp_path
 
@@ -122,7 +122,7 @@ def no_git_dir(tmp_path: Path) -> Path:
     scripts_dir.mkdir(parents=True)
     shutil.copy(CREATE_FEATURE, scripts_dir / "create-new-feature.sh")
     shutil.copy(COMMON_SH, scripts_dir / "common.sh")
-    (tmp_path / ".specify" / "templates").mkdir(parents=True)
+    (tmp_path / ".kite" / "templates").mkdir(parents=True)
     return tmp_path
 
 
@@ -367,7 +367,7 @@ class TestGetFeaturePathsSinglePrefix:
     @requires_bash
     def test_bash_specify_feature_prefixed_resolves_by_prefix(self, tmp_path: Path):
         """get_feature_paths: SPECIFY_FEATURE with one optional prefix uses effective name for lookup."""
-        (tmp_path / ".specify").mkdir()
+        (tmp_path / ".kite").mkdir()
         (tmp_path / "specs" / "001-target-spec").mkdir(parents=True)
         cmd = (
             f'cd "{tmp_path}" && export SPECIFY_FEATURE="feat/001-other" && '
@@ -906,7 +906,7 @@ def run_ps_script(cwd: Path, *args: str) -> subprocess.CompletedProcess:
 
 @pytest.fixture
 def ps_git_repo(tmp_path: Path) -> Path:
-    """Create a temp git repo with PowerShell scripts and .specify dir."""
+    """Create a temp git repo with PowerShell scripts and .kite dir."""
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True
@@ -924,7 +924,7 @@ def ps_git_repo(tmp_path: Path) -> Path:
     shutil.copy(CREATE_FEATURE_PS, ps_dir / "create-new-feature.ps1")
     common_ps = PROJECT_ROOT / "scripts" / "powershell" / "common.ps1"
     shutil.copy(common_ps, ps_dir / "common.ps1")
-    (tmp_path / ".specify" / "templates").mkdir(parents=True)
+    (tmp_path / ".kite" / "templates").mkdir(parents=True)
     return tmp_path
 
 
@@ -1003,7 +1003,7 @@ class TestGitBranchNameOverrideBash:
     """Tests for GIT_BRANCH_NAME env var override in extension create-new-feature.sh."""
 
     def _run_ext(self, ext_git_repo: Path, env_extras: dict, *extra_args: str):
-        script = ext_git_repo / ".specify" / "extensions" / "git" / "scripts" / "bash" / "create-new-feature.sh"
+        script = ext_git_repo / ".kite" / "extensions" / "git" / "scripts" / "bash" / "create-new-feature.sh"
         cmd = ["bash", str(script), "--json", *extra_args, "ignored"]
         return subprocess.run(cmd, cwd=ext_git_repo, capture_output=True, text=True,
                               env={**os.environ, **env_extras})
@@ -1058,7 +1058,7 @@ class TestGitBranchNameOverridePowerShell:
     """Tests for GIT_BRANCH_NAME env var override in extension create-new-feature.ps1."""
 
     def _run_ext(self, ext_ps_git_repo: Path, env_extras: dict):
-        script = ext_ps_git_repo / ".specify" / "extensions" / "git" / "scripts" / "powershell" / "create-new-feature.ps1"
+        script = ext_ps_git_repo / ".kite" / "extensions" / "git" / "scripts" / "powershell" / "create-new-feature.ps1"
         return subprocess.run(
             ["pwsh", "-NoProfile", "-File", str(script), "-Json", "ignored"],
             cwd=ext_ps_git_repo, capture_output=True, text=True,
@@ -1101,7 +1101,7 @@ class TestGitBranchNameOverridePowerShell:
 
 
 class TestFeatureDirectoryResolution:
-    """Tests for SPECIFY_FEATURE_DIRECTORY and .specify/feature.json resolution."""
+    """Tests for SPECIFY_FEATURE_DIRECTORY and .kite/feature.json resolution."""
 
     @requires_bash
     def test_env_var_overrides_branch_lookup(self, git_repo: Path):
@@ -1132,7 +1132,7 @@ class TestFeatureDirectoryResolution:
         custom_dir = git_repo / "specs" / "custom-feature"
         custom_dir.mkdir(parents=True)
 
-        feature_json = git_repo / ".specify" / "feature.json"
+        feature_json = git_repo / ".kite" / "feature.json"
         feature_json.write_text(
             json.dumps({"feature_directory": str(custom_dir)}) + "\n",
             encoding="utf-8",
@@ -1161,7 +1161,7 @@ class TestFeatureDirectoryResolution:
         json_dir = git_repo / "specs" / "json-feature"
         json_dir.mkdir(parents=True)
 
-        feature_json = git_repo / ".specify" / "feature.json"
+        feature_json = git_repo / ".kite" / "feature.json"
         feature_json.write_text(
             json.dumps({"feature_directory": str(json_dir)}) + "\n",
             encoding="utf-8",
@@ -1236,7 +1236,7 @@ class TestFeatureDirectoryResolution:
         custom_dir = git_repo / "specs" / "ps-json-feature"
         custom_dir.mkdir(parents=True)
 
-        feature_json = git_repo / ".specify" / "feature.json"
+        feature_json = git_repo / ".kite" / "feature.json"
         feature_json.write_text(
             json.dumps({"feature_directory": str(custom_dir)}) + "\n",
             encoding="utf-8",
@@ -1299,7 +1299,7 @@ class TestDescriptionQuoting:
     def test_ext_script_handles_special_chars(self, ext_git_repo: Path, description: str):
         """Extension create-new-feature.sh succeeds with special characters in description."""
         script = (
-            ext_git_repo / ".specify" / "extensions" / "git" / "scripts" / "bash" / "create-new-feature.sh"
+            ext_git_repo / ".kite" / "extensions" / "git" / "scripts" / "bash" / "create-new-feature.sh"
         )
         result = subprocess.run(
             ["bash", str(script), "--dry-run", "--short-name", "feat", description],

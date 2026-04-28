@@ -61,12 +61,12 @@ advanced:
 
 # Environment Variable Overrides:
 # You can override any setting with environment variables  using this pattern:
-# SPECKIT_MY_EXTENSION_{SECTION}_{KEY}
+# KITE_MY_EXTENSION_{SECTION}_{KEY}
 #
 # Examples:
-# - SPECKIT_MY_EXTENSION_CONNECTION_API_KEY: Override connection.api_key
-# - SPECKIT_MY_EXTENSION_PROJECT_ID: Override project.id
-# - SPECKIT_MY_EXTENSION_FEATURES_ENABLED: Override features.enabled
+# - KITE_MY_EXTENSION_CONNECTION_API_KEY: Override connection.api_key
+# - KITE_MY_EXTENSION_PROJECT_ID: Override project.id
+# - KITE_MY_EXTENSION_FEATURES_ENABLED: Override features.enabled
 #
 # Note: Use uppercase and replace dots with underscores
 

@@ -6,7 +6,7 @@ import os
 import pytest
 import yaml
 
-from specify_cli.integrations.catalog import (
+from kite_cli.integrations.catalog import (
     IntegrationCatalog,
     IntegrationCatalogEntry,
     IntegrationCatalogError,
@@ -76,8 +76,8 @@ class TestActiveCatalogs:
     def test_defaults_when_no_config(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
         active = cat.get_active_catalogs()
         assert len(active) == 2
@@ -85,9 +85,9 @@ class TestActiveCatalogs:
         assert active[1].name == "community"
 
     def test_env_var_override(self, tmp_path, monkeypatch):
-        (tmp_path / ".specify").mkdir()
+        (tmp_path / ".kite").mkdir()
         monkeypatch.setenv(
-            "SPECKIT_INTEGRATION_CATALOG_URL",
+            "KITE_INTEGRATION_CATALOG_URL",
             "https://custom.example.com/catalog.json",
         )
         cat = IntegrationCatalog(tmp_path)
@@ -96,7 +96,7 @@ class TestActiveCatalogs:
         assert active[0].name == "custom"
 
     def test_project_config_overrides_defaults(self, tmp_path):
-        specify = tmp_path / ".specify"
+        specify = tmp_path / ".kite"
         specify.mkdir()
         cfg = specify / "integration-catalogs.yml"
         cfg.write_text(yaml.dump({
@@ -110,7 +110,7 @@ class TestActiveCatalogs:
         assert active[0].name == "mine"
 
     def test_empty_config_raises(self, tmp_path):
-        specify = tmp_path / ".specify"
+        specify = tmp_path / ".kite"
         specify.mkdir()
         cfg = specify / "integration-catalogs.yml"
         cfg.write_text(yaml.dump({"catalogs": []}))
@@ -156,8 +156,8 @@ class TestCatalogFetch:
     def test_fetch_and_search_all(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
 
         catalog = {
@@ -184,8 +184,8 @@ class TestCatalogFetch:
     def test_search_by_tag(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
 
         catalog = {
@@ -204,8 +204,8 @@ class TestCatalogFetch:
     def test_search_by_query(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
 
         catalog = {
@@ -225,8 +225,8 @@ class TestCatalogFetch:
     def test_get_integration_info(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
 
         catalog = {
@@ -247,8 +247,8 @@ class TestCatalogFetch:
     def test_invalid_catalog_format(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv("USERPROFILE", str(tmp_path))
-        monkeypatch.delenv("SPECKIT_INTEGRATION_CATALOG_URL", raising=False)
-        (tmp_path / ".specify").mkdir()
+        monkeypatch.delenv("KITE_INTEGRATION_CATALOG_URL", raising=False)
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
 
         self._patch_urlopen(monkeypatch, {"schema_version": "1.0"})  # missing "integrations"
@@ -257,7 +257,7 @@ class TestCatalogFetch:
             cat.search()
 
     def test_clear_cache(self, tmp_path):
-        (tmp_path / ".specify").mkdir()
+        (tmp_path / ".kite").mkdir()
         cat = IntegrationCatalog(tmp_path)
         cat.cache_dir.mkdir(parents=True, exist_ok=True)
         (cat.cache_dir / "catalog-abc123.json").write_text("{}")
@@ -279,11 +279,11 @@ VALID_DESCRIPTOR = {
         "author": "my-org",
     },
     "requires": {
-        "speckit_version": ">=0.6.0",
+        "kite_version": ">=0.6.0",
     },
     "provides": {
         "commands": [
-            {"name": "speckit.specify", "file": "templates/speckit.specify.md"},
+            {"name": "kite.specify", "file": "templates/kite.specify.md"},
         ],
         "scripts": [],
     },
@@ -303,7 +303,7 @@ class TestIntegrationDescriptor:
         assert desc.name == "My Agent"
         assert desc.version == "1.0.0"
         assert desc.description == "Integration for My Agent"
-        assert desc.requires_speckit_version == ">=0.6.0"
+        assert desc.requires_kite_version == ">=0.6.0"
         assert len(desc.commands) == 1
         assert desc.scripts == []
 
@@ -340,10 +340,10 @@ class TestIntegrationDescriptor:
         with pytest.raises(IntegrationDescriptorError, match="Invalid version"):
             IntegrationDescriptor(p)
 
-    def test_missing_speckit_version(self, tmp_path):
+    def test_missing_kite_version(self, tmp_path):
         data = {**VALID_DESCRIPTOR, "requires": {}}
         p = self._write(tmp_path, data)
-        with pytest.raises(IntegrationDescriptorError, match="requires.speckit_version"):
+        with pytest.raises(IntegrationDescriptorError, match="requires.kite_version"):
             IntegrationDescriptor(p)
 
     def test_no_commands_or_scripts(self, tmp_path):
@@ -388,7 +388,7 @@ class TestIntegrationDescriptor:
 
     def test_tools_accessor(self, tmp_path):
         data = {**VALID_DESCRIPTOR, "requires": {
-            "speckit_version": ">=0.6.0",
+            "kite_version": ">=0.6.0",
             "tools": [{"name": "my-agent", "version": ">=1.0.0", "required": True}],
         }}
         p = self._write(tmp_path, data)
@@ -403,12 +403,12 @@ class TestIntegrationDescriptor:
 
 
 class TestIntegrationListCatalog:
-    """Test ``specify integration list --catalog``."""
+    """Test ``kite integration list --catalog``."""
 
     def _init_project(self, tmp_path):
         """Create a minimal spec-kit project."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = tmp_path / "proj"
         project.mkdir()
@@ -430,7 +430,7 @@ class TestIntegrationListCatalog:
     def test_list_catalog_flag(self, tmp_path, monkeypatch):
         """--catalog should show catalog entries."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path)
 
@@ -479,7 +479,7 @@ class TestIntegrationListCatalog:
     def test_list_without_catalog_still_works(self, tmp_path):
         """Default list (no --catalog) works as before."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path)
 
@@ -501,11 +501,11 @@ class TestIntegrationListCatalog:
 
 
 class TestIntegrationUpgrade:
-    """Test ``specify integration upgrade``."""
+    """Test ``kite integration upgrade``."""
 
     def _init_project(self, tmp_path, integration="copilot"):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = tmp_path / "proj"
         project.mkdir()
@@ -524,9 +524,9 @@ class TestIntegrationUpgrade:
         assert result.exit_code == 0, result.output
         return project
 
-    def test_upgrade_requires_speckit_project(self, tmp_path):
+    def test_upgrade_requires_kite_project(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         old = os.getcwd()
         try:
@@ -539,11 +539,11 @@ class TestIntegrationUpgrade:
 
     def test_upgrade_no_integration_installed(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = tmp_path / "proj"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old = os.getcwd()
         try:
             os.chdir(project)
@@ -555,7 +555,7 @@ class TestIntegrationUpgrade:
 
     def test_upgrade_succeeds(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path, "copilot")
 
@@ -570,12 +570,12 @@ class TestIntegrationUpgrade:
 
     def test_upgrade_blocks_on_modified_files(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path, "copilot")
 
         # Modify a tracked file so the manifest hash won't match
-        manifest_path = project / ".specify" / "integrations" / "copilot.manifest.json"
+        manifest_path = project / ".kite" / "integrations" / "copilot.manifest.json"
         assert manifest_path.exists(), "Manifest should exist after init"
         manifest_data = json.loads(manifest_path.read_text())
         tracked_files = manifest_data.get("files", {})
@@ -596,12 +596,12 @@ class TestIntegrationUpgrade:
 
     def test_upgrade_force_overwrites_modified(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path, "copilot")
 
         # Modify a tracked file
-        manifest_path = project / ".specify" / "integrations" / "copilot.manifest.json"
+        manifest_path = project / ".kite" / "integrations" / "copilot.manifest.json"
         manifest_data = json.loads(manifest_path.read_text())
         tracked_files = manifest_data.get("files", {})
         assert tracked_files, "Manifest should track at least one file"
@@ -621,7 +621,7 @@ class TestIntegrationUpgrade:
 
     def test_upgrade_wrong_integration_key(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path, "copilot")
 
@@ -637,12 +637,12 @@ class TestIntegrationUpgrade:
     def test_upgrade_no_manifest(self, tmp_path):
         """Upgrade with missing manifest suggests fresh install."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
         runner = CliRunner()
         project = self._init_project(tmp_path, "copilot")
 
         # Remove manifest
-        manifest_path = project / ".specify" / "integrations" / "copilot.manifest.json"
+        manifest_path = project / ".kite" / "integrations" / "copilot.manifest.json"
         if manifest_path.exists():
             manifest_path.unlink()
 

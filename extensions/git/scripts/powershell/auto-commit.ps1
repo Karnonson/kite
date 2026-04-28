@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # Git extension: auto-commit.ps1
-# Automatically commit changes after a Spec Kit command completes.
+# Automatically commit changes after a Kite command completes.
 # Checks per-command config keys in git-config.yml before committing.
 #
 # Usage: auto-commit.ps1 <event_name>
@@ -15,7 +15,7 @@ function Find-ProjectRoot {
     param([string]$StartDir)
     $current = Resolve-Path $StartDir
     while ($true) {
-        foreach ($marker in @('.specify', '.git')) {
+        foreach ($marker in @('.kite', '.git')) {
             if (Test-Path (Join-Path $current $marker)) {
                 return $current
             }
@@ -52,7 +52,7 @@ if (-not $isRepo) {
 }
 
 # Read per-command config from git-config.yml
-$configFile = Join-Path $repoRoot ".specify/extensions/git/git-config.yml"
+$configFile = Join-Path $repoRoot ".kite/extensions/git/git-config.yml"
 $enabled = $false
 $commitMsg = ""
 
@@ -146,7 +146,7 @@ $phase = if ($EventName -match '^before_') { 'before' } else { 'after' }
 
 # Use custom message if configured, otherwise default
 if (-not $commitMsg) {
-    $commitMsg = "[Spec Kit] Auto-commit $phase $commandName"
+    $commitMsg = "[Kite] Auto-commit $phase $commandName"
 }
 
 # Stage and commit

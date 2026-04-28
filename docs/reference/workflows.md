@@ -5,7 +5,7 @@ Workflows automate multi-step Spec-Driven Development processes — chaining com
 ## Run a Workflow
 
 ```bash
-specify workflow run <source>
+kite workflow run <source>
 ```
 
 | Option              | Description                                              |
@@ -17,15 +17,15 @@ Runs a workflow from a catalog ID, URL, or local file path. Inputs declared by t
 Example:
 
 ```bash
-specify workflow run speckit -i spec="Build a kanban board with drag-and-drop task management" -i scope=full
+kite workflow run kite -i spec="Build a kanban board with drag-and-drop task management" -i scope=full
 ```
 
-> **Note:** All workflow commands require a project already initialized with `specify init`.
+> **Note:** All workflow commands require a project already initialized with `kite init`.
 
 ## Resume a Workflow
 
 ```bash
-specify workflow resume <run_id>
+kite workflow resume <run_id>
 ```
 
 Resumes a paused or failed workflow run from the exact step where it stopped. Useful after responding to a gate step or fixing an issue that caused a failure.
@@ -33,7 +33,7 @@ Resumes a paused or failed workflow run from the exact step where it stopped. Us
 ## Workflow Status
 
 ```bash
-specify workflow status [<run_id>]
+kite workflow status [<run_id>]
 ```
 
 Shows the status of a specific run, or lists all runs if no ID is given. Run states: `created`, `running`, `completed`, `paused`, `failed`, `aborted`.
@@ -41,7 +41,7 @@ Shows the status of a specific run, or lists all runs if no ID is given. Run sta
 ## List Installed Workflows
 
 ```bash
-specify workflow list
+kite workflow list
 ```
 
 Lists workflows installed in the current project.
@@ -49,7 +49,7 @@ Lists workflows installed in the current project.
 ## Install a Workflow
 
 ```bash
-specify workflow add <source>
+kite workflow add <source>
 ```
 
 Installs a workflow from the catalog, a URL (HTTPS required), or a local file path.
@@ -57,7 +57,7 @@ Installs a workflow from the catalog, a URL (HTTPS required), or a local file pa
 ## Remove a Workflow
 
 ```bash
-specify workflow remove <workflow_id>
+kite workflow remove <workflow_id>
 ```
 
 Removes an installed workflow from the project.
@@ -65,7 +65,7 @@ Removes an installed workflow from the project.
 ## Search Available Workflows
 
 ```bash
-specify workflow search [query]
+kite workflow search [query]
 ```
 
 | Option  | Description     |
@@ -77,7 +77,7 @@ Searches all active catalogs for workflows matching the query.
 ## Workflow Info
 
 ```bash
-specify workflow info <workflow_id>
+kite workflow info <workflow_id>
 ```
 
 Shows detailed information about a workflow, including its steps, inputs, and requirements.
@@ -89,7 +89,7 @@ Workflow catalogs control where `search` and `add` look for workflows. Catalogs 
 ### List Catalogs
 
 ```bash
-specify workflow catalog list
+kite workflow catalog list
 ```
 
 Shows all active catalog sources.
@@ -97,19 +97,19 @@ Shows all active catalog sources.
 ### Add a Catalog
 
 ```bash
-specify workflow catalog add <url>
+kite workflow catalog add <url>
 ```
 
 | Option          | Description                      |
 | --------------- | -------------------------------- |
 | `--name <name>` | Optional name for the catalog    |
 
-Adds a custom catalog URL to the project's `.specify/workflow-catalogs.yml`.
+Adds a custom catalog URL to the project's `.kite/workflow-catalogs.yml`.
 
 ### Remove a Catalog
 
 ```bash
-specify workflow catalog remove <index>
+kite workflow catalog remove <index>
 ```
 
 Removes a catalog by its index in the catalog list.
@@ -118,26 +118,26 @@ Removes a catalog by its index in the catalog list.
 
 Catalogs are resolved in this order (first match wins):
 
-1. **Environment variable** — `SPECKIT_WORKFLOW_CATALOG_URL` overrides all catalogs
-2. **Project config** — `.specify/workflow-catalogs.yml`
-3. **User config** — `~/.specify/workflow-catalogs.yml`
+1. **Environment variable** — `KITE_WORKFLOW_CATALOG_URL` overrides all catalogs
+2. **Project config** — `.kite/workflow-catalogs.yml`
+3. **User config** — `~/.kite/workflow-catalogs.yml`
 4. **Built-in defaults** — official catalog + community catalog
 
 ## Workflow Definition
 
-Workflows are defined in YAML files. Here is the built-in **Full SDD Cycle** workflow that ships with Spec Kit:
+Workflows are defined in YAML files. Here is the built-in **Full SDD Cycle** workflow that ships with Kite:
 
 ```yaml
 schema_version: "1.0"
 workflow:
-  id: "speckit"
+  id: "kite"
   name: "Full SDD Cycle"
   version: "1.0.0"
   author: "GitHub"
   description: "Runs specify → plan → tasks → implement with review gates"
 
 requires:
-  speckit_version: ">=0.7.2"
+  kite_version: ">=0.7.2"
   integrations:
     any: ["copilot", "claude", "gemini"]
 
@@ -157,7 +157,7 @@ inputs:
 
 steps:
   - id: specify
-    command: speckit.specify
+    command: kite.specify
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
@@ -169,7 +169,7 @@ steps:
     on_reject: abort
 
   - id: plan
-    command: speckit.plan
+    command: kite.plan
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
@@ -181,13 +181,13 @@ steps:
     on_reject: abort
 
   - id: tasks
-    command: speckit.tasks
+    command: kite.tasks
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
 
   - id: implement
-    command: speckit.implement
+    command: kite.implement
     integration: "{{ inputs.integration }}"
     input:
       args: "{{ inputs.spec }}"
@@ -218,14 +218,14 @@ flowchart TB
 Run it with:
 
 ```bash
-specify workflow run speckit -i spec="Build a kanban board with drag-and-drop task management"
+kite workflow run kite -i spec="Build a kanban board with drag-and-drop task management"
 ```
 
 ## Step Types
 
 | Type         | Purpose                                          |
 | ------------ | ------------------------------------------------ |
-| `command`    | Invoke a Spec Kit command (e.g., `speckit.plan`) |
+| `command`    | Invoke a Kite command (e.g., `kite.plan`) |
 | `prompt`     | Send an arbitrary prompt to the AI coding agent  |
 | `shell`      | Execute a shell command and capture output       |
 | `gate`       | Pause for human approval before continuing       |
@@ -266,24 +266,24 @@ message: "{{ status | default('pending') }}"
 
 ## State and Resume
 
-Each workflow run persists its state at `.specify/workflows/runs/<run_id>/`:
+Each workflow run persists its state at `.kite/workflows/runs/<run_id>/`:
 
 - `state.json` — current run state and step progress
 - `inputs.json` — resolved input values
 - `log.jsonl` — step-by-step execution log
 
-This enables `specify workflow resume` to continue from the exact step where a run was paused (e.g., at a gate) or failed.
+This enables `kite workflow resume` to continue from the exact step where a run was paused (e.g., at a gate) or failed.
 
 ## FAQ
 
 ### What happens when a workflow hits a gate step?
 
-The workflow pauses and waits for human input. Run `specify workflow resume <run_id>` after reviewing to continue.
+The workflow pauses and waits for human input. Run `kite workflow resume <run_id>` after reviewing to continue.
 
 ### Can I run the same workflow multiple times?
 
-Yes. Each run gets a unique ID and its own state directory. Use `specify workflow status` to see all runs.
+Yes. Each run gets a unique ID and its own state directory. Use `kite workflow status` to see all runs.
 
 ### Who maintains workflows?
 
-Most workflows are independently created and maintained by their respective authors. The Spec Kit maintainers do not review, audit, endorse, or support workflow code. Review a workflow's source before installing and use at your own discretion.
+Most workflows are independently created and maintained by their respective authors. The Kite maintainers do not review, audit, endorse, or support workflow code. Review a workflow's source before installing and use at your own discretion.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Common functions and variables for all scripts
 
-# Find repository root by searching upward for .specify directory
+# Find repository root by searching upward for .kite directory
 # This is the primary marker for spec-kit projects
 find_specify_root() {
     local dir="${1:-$(pwd)}"
@@ -10,7 +10,7 @@ find_specify_root() {
     dir="$(cd -- "$dir" 2>/dev/null && pwd)" || return 1
     local prev_dir=""
     while true; do
-        if [ -d "$dir/.specify" ]; then
+        if [ -d "$dir/.kite" ]; then
             echo "$dir"
             return 0
         fi
@@ -24,17 +24,17 @@ find_specify_root() {
     return 1
 }
 
-# Get repository root, prioritizing .specify directory over git
+# Get repository root, prioritizing .kite directory over git
 # This prevents using a parent git repo when spec-kit is initialized in a subdirectory
 get_repo_root() {
-    # First, look for .specify directory (spec-kit's own marker)
+    # First, look for .kite directory (spec-kit's own marker)
     local specify_root
     if specify_root=$(find_specify_root); then
         echo "$specify_root"
         return
     fi
 
-    # Fallback to git if no .specify found
+    # Fallback to git if no .kite found
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
         git rev-parse --show-toplevel
         return
@@ -131,7 +131,7 @@ check_feature_branch() {
 
     # For non-git repos, we can't enforce branch naming but still provide output
     if [[ "$has_git_repo" != "true" ]]; then
-        echo "[specify] Warning: Git repository not detected; skipped branch validation" >&2
+        echo "[kite] Warning: Git repository not detected; skipped branch validation" >&2
         return 0
     fi
 
@@ -153,14 +153,14 @@ check_feature_branch() {
     return 0
 }
 
-# Safely read .specify/feature.json's "feature_directory" value.
+# Safely read .kite/feature.json's "feature_directory" value.
 # Prints the raw value (possibly relative) to stdout, or empty string if the file
 # is missing, unparseable, or does not contain the key. Always returns 0 so callers
 # under `set -e` cannot be aborted by parser failure.
 # Parser order mirrors the historical get_feature_paths behavior: jq -> python3 -> grep/sed.
 read_feature_json_feature_directory() {
     local repo_root="$1"
-    local fj="$repo_root/.specify/feature.json"
+    local fj="$repo_root/.kite/feature.json"
     [[ -f "$fj" ]] || { printf '%s' ''; return 0; }
 
     local _fd=''
@@ -185,8 +185,8 @@ read_feature_json_feature_directory() {
     return 0
 }
 
-# Returns 0 when .specify/feature.json lists feature_directory that exists as a directory
-# and matches the resolved active FEATURE_DIR (so /speckit.plan can skip git branch pattern checks).
+# Returns 0 when .kite/feature.json lists feature_directory that exists as a directory
+# and matches the resolved active FEATURE_DIR (so /kite.plan can skip git branch pattern checks).
 # Delegates parsing to read_feature_json_feature_directory, which is safe under `set -e`.
 feature_json_matches_feature_dir() {
     local repo_root="$1"
@@ -262,14 +262,14 @@ get_feature_paths() {
 
     # Resolve feature directory.  Priority:
     #   1. SPECIFY_FEATURE_DIRECTORY env var (explicit override)
-    #   2. .specify/feature.json "feature_directory" key (persisted by /speckit.specify)
+    #   2. .kite/feature.json "feature_directory" key (persisted by /kite.specify)
     #   3. Branch-name-based prefix lookup (legacy fallback)
     local feature_dir
     if [[ -n "${SPECIFY_FEATURE_DIRECTORY:-}" ]]; then
         feature_dir="$SPECIFY_FEATURE_DIRECTORY"
         # Normalize relative paths to absolute under repo root
         [[ "$feature_dir" != /* ]] && feature_dir="$repo_root/$feature_dir"
-    elif [[ -f "$repo_root/.specify/feature.json" ]]; then
+    elif [[ -f "$repo_root/.kite/feature.json" ]]; then
         # Shared, set -e-safe parser: jq -> python3 -> grep/sed. Returns empty on
         # missing/unparseable/unset so we fall through to the branch-prefix lookup.
         local _fd
@@ -339,21 +339,21 @@ check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
 
 # Resolve a template name to a file path using the priority stack:
-#   1. .specify/templates/overrides/
-#   2. .specify/presets/<preset-id>/templates/ (sorted by priority from .registry)
-#   3. .specify/extensions/<ext-id>/templates/
-#   4. .specify/templates/ (core)
+#   1. .kite/templates/overrides/
+#   2. .kite/presets/<preset-id>/templates/ (sorted by priority from .registry)
+#   3. .kite/extensions/<ext-id>/templates/
+#   4. .kite/templates/ (core)
 resolve_template() {
     local template_name="$1"
     local repo_root="$2"
-    local base="$repo_root/.specify/templates"
+    local base="$repo_root/.kite/templates"
 
     # Priority 1: Project overrides
     local override="$base/overrides/${template_name}.md"
     [ -f "$override" ] && echo "$override" && return 0
 
     # Priority 2: Installed presets (sorted by priority from .registry)
-    local presets_dir="$repo_root/.specify/presets"
+    local presets_dir="$repo_root/.kite/presets"
     if [ -d "$presets_dir" ]; then
         local registry_file="$presets_dir/.registry"
         if [ -f "$registry_file" ] && command -v python3 >/dev/null 2>&1; then
@@ -361,10 +361,10 @@ resolve_template() {
             # The python3 call is wrapped in an if-condition so that set -e does not
             # abort the function when python3 exits non-zero (e.g. invalid JSON).
             local sorted_presets=""
-            if sorted_presets=$(SPECKIT_REGISTRY="$registry_file" python3 -c "
+            if sorted_presets=$(KITE_REGISTRY="$registry_file" python3 -c "
 import json, sys, os
 try:
-    with open(os.environ['SPECKIT_REGISTRY']) as f:
+    with open(os.environ['KITE_REGISTRY']) as f:
         data = json.load(f)
     presets = data.get('presets', {})
     for pid, meta in sorted(presets.items(), key=lambda x: x[1].get('priority', 10) if isinstance(x[1], dict) else 10):
@@ -400,7 +400,7 @@ except Exception:
     fi
 
     # Priority 3: Extension-provided templates
-    local ext_dir="$repo_root/.specify/extensions"
+    local ext_dir="$repo_root/.kite/extensions"
     if [ -d "$ext_dir" ]; then
         for ext in "$ext_dir"/*/; do
             [ -d "$ext" ] || continue
@@ -430,7 +430,7 @@ except Exception:
 resolve_template_content() {
     local template_name="$1"
     local repo_root="$2"
-    local base="$repo_root/.specify/templates"
+    local base="$repo_root/.kite/templates"
 
     # Collect all layers (highest priority first)
     local -a layer_paths=()
@@ -444,15 +444,15 @@ resolve_template_content() {
     fi
 
     # Priority 2: Installed presets (sorted by priority from .registry)
-    local presets_dir="$repo_root/.specify/presets"
+    local presets_dir="$repo_root/.kite/presets"
     if [ -d "$presets_dir" ]; then
         local registry_file="$presets_dir/.registry"
         local sorted_presets=""
         if [ -f "$registry_file" ] && command -v python3 >/dev/null 2>&1; then
-            if sorted_presets=$(SPECKIT_REGISTRY="$registry_file" python3 -c "
+            if sorted_presets=$(KITE_REGISTRY="$registry_file" python3 -c "
 import json, sys, os
 try:
-    with open(os.environ['SPECKIT_REGISTRY']) as f:
+    with open(os.environ['KITE_REGISTRY']) as f:
         data = json.load(f)
     presets = data.get('presets', {})
     for pid, meta in sorted(presets.items(), key=lambda x: x[1].get('priority', 10) if isinstance(x[1], dict) else 10):
@@ -473,7 +473,7 @@ except Exception:
                             local result
                             local py_stderr
                             py_stderr=$(mktemp)
-                            result=$(SPECKIT_MANIFEST="$manifest" SPECKIT_TMPL="$template_name" python3 -c "
+                            result=$(KITE_MANIFEST="$manifest" KITE_TMPL="$template_name" python3 -c "
 import sys, os
 try:
     import yaml
@@ -482,10 +482,10 @@ except ImportError:
     print('replace\t')
     sys.exit(0)
 try:
-    with open(os.environ['SPECKIT_MANIFEST']) as f:
+    with open(os.environ['KITE_MANIFEST']) as f:
         data = yaml.safe_load(f)
     for t in data.get('provides', {}).get('templates', []):
-        if t.get('name') == os.environ['SPECKIT_TMPL'] and t.get('type', 'template') == 'template':
+        if t.get('name') == os.environ['KITE_TMPL'] and t.get('type', 'template') == 'template':
             print(t.get('strategy', 'replace') + '\t' + t.get('file', ''))
             sys.exit(0)
     print('replace\t')
@@ -550,7 +550,7 @@ except Exception:
     fi
 
     # Priority 3: Extension-provided templates (always "replace")
-    local ext_dir="$repo_root/.specify/extensions"
+    local ext_dir="$repo_root/.kite/extensions"
     if [ -d "$ext_dir" ]; then
         for ext in "$ext_dir"/*/; do
             [ -d "$ext" ] || continue

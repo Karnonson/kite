@@ -9,7 +9,7 @@ tools:
 
 <!-- CUSTOMIZE: Replace this entire file with your command documentation -->
 
-This is an example command that demonstrates how to create commands for Spec Kit extensions.
+This is an example command that demonstrates how to create commands for Kite extensions.
 
 ## Purpose
 
@@ -36,11 +36,11 @@ $ARGUMENTS
 Load extension configuration from the project:
 
 ``bash
-config_file=".specify/extensions/my-extension/my-extension-config.yml"
+config_file=".kite/extensions/my-extension/my-extension-config.yml"
 
 if [ ! -f "$config_file" ]; then
   echo "❌ Error: Configuration not found at $config_file"
-  echo "Run 'specify extension add my-extension' to install and configure"
+  echo "Run 'kite extension add my-extension' to install and configure"
   exit 1
 fi
 
@@ -50,7 +50,7 @@ setting_value=$(yq eval '.settings.key' "$config_file")
 
 # Apply environment variable overrides
 
-setting_value="${SPECKIT_MY_EXTENSION_KEY:-$setting_value}"
+setting_value="${KITE_MY_EXTENSION_KEY:-$setting_value}"
 
 # Validate configuration
 
@@ -99,7 +99,7 @@ echo ""
 Save results to a file if needed:
 
 ``bash
-output_file=".specify/my-extension-output.json"
+output_file=".kite/my-extension-output.json"
 
 cat > "$output_file" <<EOF
 {
@@ -135,12 +135,12 @@ This command uses the following configuration from `my-extension-config.yml`:
 
 Configuration can be overridden with environment variables:
 
-- `SPECKIT_MY_EXTENSION_KEY` - Overrides `settings.key`
-- `SPECKIT_MY_EXTENSION_ANOTHER_KEY` - Overrides `settings.another_key`
+- `KITE_MY_EXTENSION_KEY` - Overrides `settings.key`
+- `KITE_MY_EXTENSION_ANOTHER_KEY` - Overrides `settings.another_key`
 
 Example:
 ``bash
-export SPECKIT_MY_EXTENSION_KEY="override-value"
+export KITE_MY_EXTENSION_KEY="override-value"
 ``
 
 ## Troubleshooting
@@ -151,9 +151,9 @@ export SPECKIT_MY_EXTENSION_KEY="override-value"
 
 **Solution**: Install the extension and create configuration:
 ``bash
-specify extension add my-extension
-cp .specify/extensions/my-extension/config-template.yml \
-   .specify/extensions/my-extension/my-extension-config.yml
+kite extension add my-extension
+cp .kite/extensions/my-extension/config-template.yml \
+   .kite/extensions/my-extension/my-extension-config.yml
 ``
 
 ### "MCP tool not available"
@@ -182,7 +182,7 @@ cp .specify/extensions/my-extension/config-template.yml \
 
 # Run with default configuration
 >
-> /speckit.my-extension.example
+> /kite.my-extension.example
 ``
 
 ### Example 2: With Environment Override
@@ -191,8 +191,8 @@ cp .specify/extensions/my-extension/config-template.yml \
 
 # Override configuration with environment variable
 
-export SPECKIT_MY_EXTENSION_KEY="custom-value"
-> /speckit.my-extension.example
+export KITE_MY_EXTENSION_KEY="custom-value"
+> /kite.my-extension.example
 ``
 
 ### Example 3: After Core Command
@@ -201,10 +201,10 @@ export SPECKIT_MY_EXTENSION_KEY="custom-value"
 
 # Use as part of a workflow
 >
-> /speckit.tasks
-> /speckit.my-extension.example
+> /kite.tasks
+> /kite.my-extension.example
 ``
 
 ---
 
-*For more information, see the extension README or run `specify extension info my-extension`*
+*For more information, see the extension README or run `kite extension info my-extension`*

@@ -1,6 +1,6 @@
 # Workflow Publishing Guide
 
-This guide explains how to publish your workflow to the Spec Kit workflow catalog, making it discoverable by `specify workflow search`.
+This guide explains how to publish your workflow to the Kite workflow catalog, making it discoverable by `kite workflow search`.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This guide explains how to publish your workflow to the Spec Kit workflow catalo
 
 Before publishing a workflow, ensure you have:
 
-1. **Valid Workflow**: A working `workflow.yml` that passes `specify workflow run` validation
+1. **Valid Workflow**: A working `workflow.yml` that passes `kite workflow run` validation
 2. **Git Repository**: Workflow hosted on GitHub (or other public git hosting)
 3. **Documentation**: README.md with description, inputs, and step graph
 4. **License**: Open source license file (MIT, Apache 2.0, etc.)
@@ -57,7 +57,7 @@ workflow:
   model: "claude-sonnet-4-20250514"         # Default model (optional)
 
 requires:
-  speckit_version: ">=0.6.1"
+  kite_version: ">=0.6.1"
   integrations:
     any: ["claude", "gemini"]      # At least one required
 
@@ -73,7 +73,7 @@ inputs:
 
 steps:
   - id: specify
-    command: speckit.specify
+    command: kite.specify
     input:
       args: "{{ inputs.spec }}"
 
@@ -99,16 +99,16 @@ steps:
 
 ```bash
 # Run with required inputs
-specify workflow run ./workflow.yml --input spec="Build a user authentication system with OAuth support"
+kite workflow run ./workflow.yml --input spec="Build a user authentication system with OAuth support"
 
 # Check validation
-specify workflow info ./workflow.yml
+kite workflow info ./workflow.yml
 
 # Resume after a gate pause
-specify workflow resume <run_id>
+kite workflow resume <run_id>
 
 # Check run status
-specify workflow status <run_id>
+kite workflow status <run_id>
 ```
 
 ### 4. Create GitHub Release
@@ -129,7 +129,7 @@ https://raw.githubusercontent.com/your-org/spec-kit-workflow-your-workflow/v1.0.
 ### 5. Test Installation from URL
 
 ```bash
-specify workflow add your-workflow
+kite workflow add your-workflow
 # (once published to catalog)
 ```
 
@@ -139,7 +139,7 @@ specify workflow add your-workflow
 
 ### Understanding the Catalogs
 
-Spec Kit uses a dual-catalog system:
+Kite uses a dual-catalog system:
 
 - **`catalog.json`** — Official, verified workflows (install allowed by default)
 - **`catalog.community.json`** — Community-contributed workflows (discovery only by default)
@@ -175,7 +175,7 @@ Edit `workflows/catalog.community.json` and add your workflow.
       "repository": "https://github.com/your-org/spec-kit-workflow-your-workflow",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.15.0"
+        "kite_version": ">=0.15.0"
       },
       "tags": [
         "category",
@@ -214,11 +214,11 @@ git push origin add-your-workflow
 **Repository**: https://github.com/your-org/spec-kit-workflow-your-workflow
 
 ### Checklist
-- [ ] Valid workflow.yml (passes `specify workflow info`)
+- [ ] Valid workflow.yml (passes `kite workflow info`)
 - [ ] README.md with description, inputs, and step graph
 - [ ] LICENSE file included
 - [ ] GitHub release created with raw YAML URL
-- [ ] Workflow tested end-to-end with `specify workflow run`
+- [ ] Workflow tested end-to-end with `kite workflow run`
 - [ ] All gate steps have clear review messages
 - [ ] Input prompts are descriptive
 - [ ] Added to workflows/catalog.community.json (alphabetical order)
@@ -236,7 +236,7 @@ After submission, maintainers will review:
 4. **Security** — no malicious shell commands, safe operations
 5. **Documentation** — clear README explaining what the workflow does and when to use it
 
-Once verified, the workflow appears in `specify workflow search`.
+Once verified, the workflow appears in `kite workflow search`.
 
 ---
 

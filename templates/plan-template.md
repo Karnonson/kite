@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `__SPECKIT_COMMAND_PLAN__` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Note**: This template is filled in by the `__KITE_COMMAND_PLAN__` command. See `.kite/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
@@ -39,12 +39,12 @@
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (__SPECKIT_COMMAND_PLAN__ command output)
-├── research.md          # Phase 0 output (__SPECKIT_COMMAND_PLAN__ command)
-├── data-model.md        # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-├── quickstart.md        # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-├── contracts/           # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-└── tasks.md             # Phase 2 output (__SPECKIT_COMMAND_TASKS__ command - NOT created by __SPECKIT_COMMAND_PLAN__)
+├── plan.md              # This file (__KITE_COMMAND_PLAN__ command output)
+├── research.md          # Phase 0 output (__KITE_COMMAND_PLAN__ command)
+├── data-model.md        # Phase 1 output (__KITE_COMMAND_PLAN__ command)
+├── quickstart.md        # Phase 1 output (__KITE_COMMAND_PLAN__ command)
+├── contracts/           # Phase 1 output (__KITE_COMMAND_PLAN__ command)
+└── tasks.md             # Phase 2 output (__KITE_COMMAND_TASKS__ command - NOT created by __KITE_COMMAND_PLAN__)
 ```
 
 ### Source Code (repository root)

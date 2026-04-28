@@ -1,11 +1,11 @@
 # Extensions
 
-Extensions add new capabilities to Spec Kit — domain-specific commands, external tool integrations, quality gates, and more. They introduce new commands and templates that go beyond the built-in Spec-Driven Development workflow.
+Extensions add new capabilities to Kite — domain-specific commands, external tool integrations, quality gates, and more. They introduce new commands and templates that go beyond the built-in Spec-Driven Development workflow.
 
 ## Search Available Extensions
 
 ```bash
-specify extension search [query]
+kite extension search [query]
 ```
 
 | Option       | Description                          |
@@ -19,7 +19,7 @@ Searches all active catalogs for extensions matching the query. Without a query,
 ## Install an Extension
 
 ```bash
-specify extension add <name>
+kite extension add <name>
 ```
 
 | Option          | Description                                              |
@@ -30,12 +30,12 @@ specify extension add <name>
 
 Installs an extension from the catalog, a URL, or a local directory. Extension commands are automatically registered with the currently installed AI coding agent integration.
 
-> **Note:** All extension commands require a project already initialized with `specify init`.
+> **Note:** All extension commands require a project already initialized with `kite init`.
 
 ## Remove an Extension
 
 ```bash
-specify extension remove <name>
+kite extension remove <name>
 ```
 
 | Option          | Description                                    |
@@ -48,7 +48,7 @@ Removes an installed extension. Configuration files are backed up by default; us
 ## List Installed Extensions
 
 ```bash
-specify extension list
+kite extension list
 ```
 
 | Option        | Description                                        |
@@ -61,7 +61,7 @@ Lists installed extensions with their status, version, and command counts.
 ## Extension Info
 
 ```bash
-specify extension info <name>
+kite extension info <name>
 ```
 
 Shows detailed information about an installed or available extension, including its description, version, commands, and configuration.
@@ -69,7 +69,7 @@ Shows detailed information about an installed or available extension, including 
 ## Update Extensions
 
 ```bash
-specify extension update [<name>]
+kite extension update [<name>]
 ```
 
 Updates a specific extension, or all installed extensions if no name is given.
@@ -77,8 +77,8 @@ Updates a specific extension, or all installed extensions if no name is given.
 ## Enable / Disable an Extension
 
 ```bash
-specify extension enable <name>
-specify extension disable <name>
+kite extension enable <name>
+kite extension disable <name>
 ```
 
 Disable an extension without removing it. Disabled extensions are not loaded and their commands are not available. Re-enable with `enable`.
@@ -86,7 +86,7 @@ Disable an extension without removing it. Disabled extensions are not loaded and
 ## Set Extension Priority
 
 ```bash
-specify extension set-priority <name> <priority>
+kite extension set-priority <name> <priority>
 ```
 
 Changes the resolution priority of an extension. When multiple extensions provide a command with the same name, the extension with the lowest priority number takes precedence.
@@ -98,7 +98,7 @@ Extension catalogs control where `search` and `add` look for extensions. Catalog
 ### List Catalogs
 
 ```bash
-specify extension catalog list
+kite extension catalog list
 ```
 
 Shows all active catalogs in the stack with their priorities and install permissions.
@@ -106,7 +106,7 @@ Shows all active catalogs in the stack with their priorities and install permiss
 ### Add a Catalog
 
 ```bash
-specify extension catalog add <url>
+kite extension catalog add <url>
 ```
 
 | Option                               | Description                                        |
@@ -116,12 +116,12 @@ specify extension catalog add <url>
 | `--install-allowed / --no-install-allowed` | Whether extensions can be installed from this catalog |
 | `--description <text>`               | Optional description                               |
 
-Adds a catalog to the project's `.specify/extension-catalogs.yml`.
+Adds a catalog to the project's `.kite/extension-catalogs.yml`.
 
 ### Remove a Catalog
 
 ```bash
-specify extension catalog remove <name>
+kite extension catalog remove <name>
 ```
 
 Removes a catalog from the project configuration.
@@ -130,12 +130,12 @@ Removes a catalog from the project configuration.
 
 Catalogs are resolved in this order (first match wins):
 
-1. **Environment variable** — `SPECKIT_CATALOG_URL` overrides all catalogs
-2. **Project config** — `.specify/extension-catalogs.yml`
-3. **User config** — `~/.specify/extension-catalogs.yml`
+1. **Environment variable** — `KITE_CATALOG_URL` overrides all catalogs
+2. **Project config** — `.kite/extension-catalogs.yml`
+3. **User config** — `~/.kite/extension-catalogs.yml`
 4. **Built-in defaults** — official catalog + community catalog
 
-Example `.specify/extension-catalogs.yml`:
+Example `.kite/extension-catalogs.yml`:
 
 ```yaml
 catalogs:
@@ -151,7 +151,7 @@ catalogs:
 Most extensions include configuration files in their install directory:
 
 ```text
-.specify/extensions/<ext>/
+.kite/extensions/<ext>/
 ├── <ext>-config.yml           # Project config (version controlled)
 ├── <ext>-config.local.yml     # Local overrides (gitignored)
 └── <ext>-config.template.yml  # Template reference
@@ -162,40 +162,40 @@ Configuration is merged in this order (highest priority last):
 1. **Extension defaults** (from `extension.yml`)
 2. **Project config** (`<ext>-config.yml`)
 3. **Local overrides** (`<ext>-config.local.yml`)
-4. **Environment variables** (`SPECKIT_<EXT>_*`)
+4. **Environment variables** (`KITE_<EXT>_*`)
 
 To set up configuration for a newly installed extension, copy the template:
 
 ```bash
-cp .specify/extensions/<ext>/<ext>-config.template.yml \
-   .specify/extensions/<ext>/<ext>-config.yml
+cp .kite/extensions/<ext>/<ext>-config.template.yml \
+   .kite/extensions/<ext>/<ext>-config.yml
 ```
 
 ## FAQ
 
 ### Why can't I find an extension with `search`?
 
-Check the spelling of the extension name. The extension may not be published yet, or it may be in a catalog you haven't added. Use `specify extension catalog list` to see which catalogs are active.
+Check the spelling of the extension name. The extension may not be published yet, or it may be in a catalog you haven't added. Use `kite extension catalog list` to see which catalogs are active.
 
 ### Why doesn't the extension command appear in my AI coding agent?
 
-Verify the extension is installed and enabled with `specify extension list`. If it shows as installed, restart your AI coding agent — it may need to reload for it to take effect.
+Verify the extension is installed and enabled with `kite extension list`. If it shows as installed, restart your AI coding agent — it may need to reload for it to take effect.
 
 ### How do I set up extension configuration?
 
 Copy the config template that ships with the extension:
 
 ```bash
-cp .specify/extensions/<ext>/<ext>-config.template.yml \
-   .specify/extensions/<ext>/<ext>-config.yml
+cp .kite/extensions/<ext>/<ext>-config.template.yml \
+   .kite/extensions/<ext>/<ext>-config.yml
 ```
 
 See [Extension Configuration](#extension-configuration) for details on config layers and overrides.
 
 ### How do I resolve an incompatible version error?
 
-Update Spec Kit to the version required by the extension.
+Update Kite to the version required by the extension.
 
 ### Who maintains extensions?
 
-Most extensions are independently created and maintained by their respective authors. The Spec Kit maintainers do not review, audit, endorse, or support extension code. Review an extension's source code before installing and use at your own discretion. For issues with a specific extension, contact its author or file an issue on the extension's repository.
+Most extensions are independently created and maintained by their respective authors. The Kite maintainers do not review, audit, endorse, or support extension code. Review an extension's source code before installing and use at your own discretion. For issues with a specific extension, contact its author or file an issue on the extension's repository.

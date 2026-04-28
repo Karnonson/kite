@@ -2,8 +2,8 @@
 
 import yaml
 
-from specify_cli.integrations import get_integration
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import get_integration
+from kite_cli.integrations.manifest import IntegrationManifest
 
 from .test_integration_base_skills import SkillsIntegrationTests
 

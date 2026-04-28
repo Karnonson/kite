@@ -13,9 +13,9 @@ import tomllib
 
 import pytest
 
-from specify_cli.integrations import INTEGRATION_REGISTRY, get_integration
-from specify_cli.integrations.base import TomlIntegration
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import INTEGRATION_REGISTRY, get_integration
+from kite_cli.integrations.base import TomlIntegration
+from kite_cli.integrations.manifest import IntegrationManifest
 
 
 class TomlIntegrationTests:
@@ -76,7 +76,7 @@ class TomlIntegrationTests:
         cmd_files = [f for f in created if "scripts" not in f.parts]
         for f in cmd_files:
             assert f.exists()
-            assert f.name.startswith("speckit.")
+            assert f.name.startswith("kite.")
             assert f.name.endswith(".toml")
 
     def test_setup_writes_to_correct_directory(self, tmp_path):
@@ -106,7 +106,7 @@ class TomlIntegrationTests:
             assert "{SCRIPT}" not in content, f"{f.name} has unprocessed {{SCRIPT}}"
             assert "__AGENT__" not in content, f"{f.name} has unprocessed __AGENT__"
             assert "{ARGS}" not in content, f"{f.name} has unprocessed {{ARGS}}"
-            assert "__SPECKIT_COMMAND_" not in content, f"{f.name} has unprocessed __SPECKIT_COMMAND_*__"
+            assert "__KITE_COMMAND_" not in content, f"{f.name} has unprocessed __KITE_COMMAND_*__"
 
     def test_toml_has_description(self, tmp_path):
         """Every TOML command file should have a description key."""
@@ -369,8 +369,8 @@ class TomlIntegrationTests:
             ctx_path = tmp_path / i.context_file
             assert ctx_path.exists(), f"Context file {i.context_file} not created for {self.KEY}"
             content = ctx_path.read_text(encoding="utf-8")
-            assert "<!-- SPECKIT START -->" in content
-            assert "<!-- SPECKIT END -->" in content
+            assert "<!-- KITE START -->" in content
+            assert "<!-- KITE END -->" in content
             assert "read the current plan" in content
 
     def test_teardown_removes_context_section(self, tmp_path):
@@ -384,15 +384,15 @@ class TomlIntegrationTests:
             ctx_path.write_text("# My Rules\n\n" + content + "\n# Footer\n", encoding="utf-8")
             i.teardown(tmp_path, m)
             remaining = ctx_path.read_text(encoding="utf-8")
-            assert "<!-- SPECKIT START -->" not in remaining
-            assert "<!-- SPECKIT END -->" not in remaining
+            assert "<!-- KITE START -->" not in remaining
+            assert "<!-- KITE END -->" not in remaining
             assert "# My Rules" in remaining
 
     # -- CLI auto-promote -------------------------------------------------
 
     def test_ai_flag_auto_promotes(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"promote-{self.KEY}"
         project.mkdir()
@@ -423,7 +423,7 @@ class TomlIntegrationTests:
 
     def test_integration_flag_creates_files(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"int-{self.KEY}"
         project.mkdir()
@@ -453,14 +453,14 @@ class TomlIntegrationTests:
         i = get_integration(self.KEY)
         cmd_dir = i.commands_dest(project)
         assert cmd_dir.is_dir(), f"Commands directory {cmd_dir} not created"
-        commands = sorted(cmd_dir.glob("speckit.*.toml"))
+        commands = sorted(cmd_dir.glob("kite.*.toml"))
         assert len(commands) > 0, f"No command files in {cmd_dir}"
 
     def test_init_options_includes_context_file(self, tmp_path):
         """init-options.json must include context_file for the active integration."""
         import json
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"opts-{self.KEY}"
         project.mkdir()
@@ -474,7 +474,7 @@ class TomlIntegrationTests:
         finally:
             os.chdir(old_cwd)
         assert result.exit_code == 0
-        opts = json.loads((project / ".specify" / "init-options.json").read_text())
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
         i = get_integration(self.KEY)
         assert opts.get("context_file") == i.context_file, (
             f"Expected context_file={i.context_file!r}, got {opts.get('context_file')!r}"
@@ -502,13 +502,13 @@ class TomlIntegrationTests:
 
         # Command files (.toml)
         for stem in self.COMMAND_STEMS:
-            files.append(f"{cmd_dir}/speckit.{stem}.toml")
+            files.append(f"{cmd_dir}/kite.{stem}.toml")
 
         # Framework files
-        files.append(".specify/integration.json")
-        files.append(".specify/init-options.json")
-        files.append(f".specify/integrations/{self.KEY}.manifest.json")
-        files.append(".specify/integrations/speckit.manifest.json")
+        files.append(".kite/integration.json")
+        files.append(".kite/init-options.json")
+        files.append(f".kite/integrations/{self.KEY}.manifest.json")
+        files.append(".kite/integrations/kite.manifest.json")
 
         if script_variant == "sh":
             for name in [
@@ -517,7 +517,7 @@ class TomlIntegrationTests:
                 "create-new-feature.sh",
                 "setup-plan.sh",
             ]:
-                files.append(f".specify/scripts/bash/{name}")
+                files.append(f".kite/scripts/bash/{name}")
         else:
             for name in [
                 "check-prerequisites.ps1",
@@ -525,7 +525,7 @@ class TomlIntegrationTests:
                 "create-new-feature.ps1",
                 "setup-plan.ps1",
             ]:
-                files.append(f".specify/scripts/powershell/{name}")
+                files.append(f".kite/scripts/powershell/{name}")
 
         for name in [
             "checklist-template.md",
@@ -534,12 +534,12 @@ class TomlIntegrationTests:
             "spec-template.md",
             "tasks-template.md",
         ]:
-            files.append(f".specify/templates/{name}")
+            files.append(f".kite/templates/{name}")
 
-        files.append(".specify/memory/constitution.md")
+        files.append(".kite/memory/constitution.md")
         # Bundled workflow
-        files.append(".specify/workflows/speckit/workflow.yml")
-        files.append(".specify/workflows/workflow-registry.json")
+        files.append(".kite/workflows/kite/workflow.yml")
+        files.append(".kite/workflows/workflow-registry.json")
 
         # Agent context file (if set)
         if i.context_file:
@@ -548,9 +548,9 @@ class TomlIntegrationTests:
         return sorted(files)
 
     def test_complete_file_inventory_sh(self, tmp_path):
-        """Every file produced by specify init --integration <key> --script sh."""
+        """Every file produced by kite init --integration <key> --script sh."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"inventory-sh-{self.KEY}"
         project.mkdir()
@@ -584,9 +584,9 @@ class TomlIntegrationTests:
         )
 
     def test_complete_file_inventory_ps(self, tmp_path):
-        """Every file produced by specify init --integration <key> --script ps."""
+        """Every file produced by kite init --integration <key> --script ps."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / f"inventory-ps-{self.KEY}"
         project.mkdir()

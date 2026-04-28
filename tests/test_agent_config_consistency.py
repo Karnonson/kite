@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from specify_cli import AGENT_CONFIG, AI_ASSISTANT_ALIASES, AI_ASSISTANT_HELP
-from specify_cli.extensions import CommandRegistrar
+from kite_cli import AGENT_CONFIG, AI_ASSISTANT_ALIASES, AI_ASSISTANT_HELP
+from kite_cli.extensions import CommandRegistrar
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -72,7 +72,7 @@ class TestAgentConfigConsistency:
 
     def test_extension_registrar_includes_tabnine(self):
         """CommandRegistrar.AGENT_CONFIGS should include tabnine with correct TOML config."""
-        from specify_cli.extensions import CommandRegistrar
+        from kite_cli.extensions import CommandRegistrar
 
         assert "tabnine" in CommandRegistrar.AGENT_CONFIGS
         cfg = CommandRegistrar.AGENT_CONFIGS["tabnine"]

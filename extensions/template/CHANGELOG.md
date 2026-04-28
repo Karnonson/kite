@@ -18,7 +18,7 @@ and this project adheres to  [Semantic Versioning](https://semver.org/spec/v2.0.
 ### Added
 
 - Initial release of extension
-- Command: `/speckit.my-extension.example` - Example command functionality
+- Command: `/kite.my-extension.example` - Example command functionality
 - Configuration system with template
 - Documentation and examples
 
@@ -30,7 +30,7 @@ and this project adheres to  [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Requirements
 
-- Spec Kit: >=0.1.0
+- Kite: >=0.1.0
 - External dependencies (if any)
 
 ---

@@ -1,6 +1,6 @@
 # Extension Development Guide
 
-A guide for creating Spec Kit extensions.
+A guide for creating Kite extensions.
 
 ---
 
@@ -28,20 +28,20 @@ extension:
   license: "MIT"
 
 requires:
-  speckit_version: ">=0.1.0"            # Minimum spec-kit version
+  kite_version: ">=0.1.0"            # Minimum spec-kit version
   tools:                                # Optional: External tools required
     - name: "my-tool"
       required: true
       version: ">=1.0.0"
   commands:                             # Optional: Core commands needed
-    - "speckit.tasks"
+    - "kite.tasks"
 
 provides:
   commands:
-    - name: "speckit.my-ext.hello"      # Must follow pattern: speckit.{ext-id}.{cmd}
+    - name: "kite.my-ext.hello"      # Must follow pattern: kite.{ext-id}.{cmd}
       file: "commands/hello.md"
       description: "Say hello"
-      aliases: ["speckit.my-ext.hi"]    # Optional aliases, same pattern
+      aliases: ["kite.my-ext.hi"]    # Optional aliases, same pattern
 
   config:                               # Optional: Config files
     - name: "my-ext-config.yml"
@@ -51,7 +51,7 @@ provides:
 
 hooks:                                  # Optional: Integration hooks
   after_tasks:
-    command: "speckit.my-ext.hello"
+    command: "kite.my-ext.hello"
     optional: true
     prompt: "Run hello command?"
 
@@ -100,19 +100,19 @@ echo "Arguments: $ARGUMENTS"
 
 ## Extension Configuration
 
-Load extension config from `.specify/extensions/my-ext/my-ext-config.yml`.
+Load extension config from `.kite/extensions/my-ext/my-ext-config.yml`.
 
 ### 5. Test Locally
 
 ```bash
 cd /path/to/spec-kit-project
-specify extension add --dev /path/to/my-extension
+kite extension add --dev /path/to/my-extension
 ```
 
 ### 6. Verify Installation
 
 ```bash
-specify extension list
+kite extension list
 
 # Should show:
 #  ✓ My Extension (v1.0.0)
@@ -126,10 +126,10 @@ If using Claude:
 
 ```bash
 claude
-> /speckit.my-ext.hello world
+> /kite.my-ext.hello world
 ```
 
-The command will be available in `.claude/commands/speckit.my-ext.hello.md`.
+The command will be available in `.claude/commands/kite.my-ext.hello.md`.
 
 ---
 
@@ -165,7 +165,7 @@ Compatibility requirements.
 
 **Required sub-fields**:
 
-- `speckit_version`: Semantic version specifier (e.g., ">=0.1.0,<2.0.0")
+- `kite_version`: Semantic version specifier (e.g., ">=0.1.0,<2.0.0")
 
 **Optional sub-fields**:
 
@@ -183,10 +183,10 @@ What the extension provides.
 
 **Command object**:
 
-- `name`: Command name (must match `speckit.{ext-id}.{command}`)
+- `name`: Command name (must match `kite.{ext-id}.{command}`)
 - `file`: Path to command file (relative to extension root)
 - `description`: Command description (optional)
-- `aliases`: Alternative command names (optional, array; each must match `speckit.{ext-id}.{command}`)
+- `aliases`: Alternative command names (optional, array; each must match `kite.{ext-id}.{command}`)
 
 ### Optional Fields
 
@@ -279,7 +279,7 @@ scripts:
 
 ```yaml
 scripts:
-  sh: .specify/scripts/bash/helper.sh
+  sh: .kite/scripts/bash/helper.sh
 ```
 
 This allows scripts to reference core spec-kit scripts.
@@ -316,22 +316,22 @@ credentials:
 In your command, load config with layered precedence:
 
 1. Extension defaults (`extension.yml` → `defaults`)
-2. Project config (`.specify/extensions/my-ext/my-ext-config.yml`)
-3. Local overrides (`.specify/extensions/my-ext/my-ext-config.local.yml` - gitignored)
-4. Environment variables (`SPECKIT_MY_EXT_*`)
+2. Project config (`.kite/extensions/my-ext/my-ext-config.yml`)
+3. Local overrides (`.kite/extensions/my-ext/my-ext-config.local.yml` - gitignored)
+4. Environment variables (`KITE_MY_EXT_*`)
 
 **Example loading script**:
 
 ```bash
 #!/usr/bin/env bash
-EXT_DIR=".specify/extensions/my-ext"
+EXT_DIR=".kite/extensions/my-ext"
 
 # Load and merge config
 config=$(yq eval '.' "$EXT_DIR/my-ext-config.yml" -o=json)
 
 # Apply env overrides
-if [ -n "${SPECKIT_MY_EXT_API_KEY:-}" ]; then
-  config=$(echo "$config" | jq ".api.api_key = \"$SPECKIT_MY_EXT_API_KEY\"")
+if [ -n "${KITE_MY_EXT_API_KEY:-}" ]; then
+  config=$(echo "$config" | jq ".api.api_key = \"$KITE_MY_EXT_API_KEY\"")
 fi
 
 echo "$config"
@@ -341,7 +341,7 @@ echo "$config"
 
 ## Excluding Files with `.extensionignore`
 
-Extension authors can create a `.extensionignore` file in the extension root to exclude files and folders from being copied when a user installs the extension with `specify extension add`. This is useful for keeping development-only files (tests, CI configs, docs source, etc.) out of the installed copy.
+Extension authors can create a `.extensionignore` file in the extension root to exclude files and folders from being copied when a user installs the extension with `kite extension add`. This is useful for keeping development-only files (tests, CI configs, docs source, etc.) out of the installed copy.
 
 ### Format
 
@@ -416,9 +416,9 @@ The following `.gitignore` features are **not applicable** in this context:
 
 ### Command Name
 
-- **Pattern**: `^speckit\.[a-z0-9-]+\.[a-z0-9-]+$`
-- **Valid**: `speckit.my-ext.hello`, `speckit.tool.cmd`
-- **Invalid**: `my-ext.hello` (missing prefix), `speckit.hello` (no extension namespace)
+- **Pattern**: `^kite\.[a-z0-9-]+\.[a-z0-9-]+$`
+- **Valid**: `kite.my-ext.hello`, `kite.tool.cmd`
+- **Invalid**: `my-ext.hello` (missing prefix), `kite.hello` (no extension namespace)
 
 ### Command File Path
 
@@ -436,26 +436,26 @@ The following `.gitignore` features are **not applicable** in this context:
 2. **Install locally**:
 
    ```bash
-   specify extension add --dev /path/to/extension
+   kite extension add --dev /path/to/extension
    ```
 
 3. **Verify installation**:
 
    ```bash
-   specify extension list
+   kite extension list
    ```
 
 4. **Test commands** with your AI agent
 5. **Check command registration**:
 
    ```bash
-   ls .claude/commands/speckit.my-ext.*
+   ls .claude/commands/kite.my-ext.*
    ```
 
 6. **Remove extension**:
 
    ```bash
-   specify extension remove my-ext
+   kite extension remove my-ext
    ```
 
 ### Automated Testing
@@ -466,7 +466,7 @@ Create tests for your extension:
 # tests/test_my_extension.py
 import pytest
 from pathlib import Path
-from specify_cli.extensions import ExtensionManifest
+from kite_cli.extensions import ExtensionManifest
 
 def test_manifest_valid():
     """Test extension manifest is valid."""
@@ -507,7 +507,7 @@ def test_command_files_exist():
 
    ```bash
    git clone https://github.com/you/spec-kit-my-ext
-   specify extension add --dev spec-kit-my-ext/
+   kite extension add --dev spec-kit-my-ext/
    ```
 
 ### Option 2: ZIP Archive (Future)
@@ -521,7 +521,7 @@ zip -r spec-kit-my-ext-1.0.0.zip extension.yml commands/ scripts/ docs/
 Users install with:
 
 ```bash
-specify extension add <extension-name> --from https://github.com/.../spec-kit-my-ext-1.0.0.zip
+kite extension add <extension-name> --from https://github.com/.../spec-kit-my-ext-1.0.0.zip
 ```
 
 ### Option 3: Community Reference Catalog
@@ -535,7 +535,7 @@ Submit to the community catalog for public discovery:
 5. **After merge**, your extension becomes available:
    - Users can browse `catalog.community.json` to discover your extension
    - Users copy the entry to their own `catalog.json`
-   - Users install with: `specify extension add my-ext` (from their catalog)
+   - Users install with: `kite extension add my-ext` (from their catalog)
 
 See the [Extension Publishing Guide](EXTENSION-PUBLISHING-GUIDE.md) for detailed submission instructions.
 
@@ -592,10 +592,10 @@ extension:
   version: "1.0.0"
   description: "Minimal example"
 requires:
-  speckit_version: ">=0.1.0"
+  kite_version: ">=0.1.0"
 provides:
   commands:
-    - name: "speckit.minimal.hello"
+    - name: "kite.minimal.hello"
       file: "commands/hello.md"
 ```
 
@@ -638,7 +638,7 @@ timeout: 30
 
 Load config:
 ```bash
-config_file=".specify/extensions/tool/tool-config.yml"
+config_file=".kite/extensions/tool/tool-config.yml"
 endpoint=$(yq eval '.api_endpoint' "$config_file")
 echo "Using endpoint: $endpoint"
 ```
@@ -652,7 +652,7 @@ Extension that runs automatically:
 # extension.yml
 hooks:
   after_tasks:
-    command: "speckit.auto.analyze"
+    command: "kite.auto.analyze"
     optional: false  # Always run
     description: "Analyze tasks after generation"
 ```
@@ -686,7 +686,7 @@ hooks:
 3. Commands registered in registry:
 
    ```bash
-   cat .specify/extensions/.registry
+   cat .kite/extensions/.registry
    ```
 
 **Fix**: Reinstall extension to trigger registration
@@ -695,7 +695,7 @@ hooks:
 
 **Check**:
 
-1. Config file exists: `.specify/extensions/{ext-id}/{ext-id}-config.yml`
+1. Config file exists: `.kite/extensions/{ext-id}/{ext-id}-config.yml`
 2. YAML syntax is valid: `yq eval '.' config.yml`
 3. Environment variables set correctly
 

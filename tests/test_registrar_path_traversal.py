@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from specify_cli.agents import CommandRegistrar
+from kite_cli.agents import CommandRegistrar
 
 
 TRAVERSAL_PAYLOADS = [
@@ -94,7 +94,7 @@ class TestAliasTraversal:
         with pytest.raises(ValueError, match="escapes|outside|Invalid"):
             registrar.register_commands(
                 "gemini",
-                [_cmd("speckit.myext.ok", [bad_alias])],
+                [_cmd("kite.myext.ok", [bad_alias])],
                 "myext",
                 ext_dir,
                 project,
@@ -112,7 +112,7 @@ class TestAliasTraversal:
         with pytest.raises(ValueError, match="escapes|outside|Invalid"):
             registrar.register_commands(
                 "copilot",
-                [_cmd("speckit.myext.ok", [bad_alias])],
+                [_cmd("kite.myext.ok", [bad_alias])],
                 "myext",
                 ext_dir,
                 project,
@@ -180,25 +180,25 @@ class TestSafeRegistration:
         registrar = CommandRegistrar()
         registered = registrar.register_commands(
             "claude",
-            [_cmd("speckit.myext.hello", ["speckit.myext.hi"])],
+            [_cmd("kite.myext.hello", ["kite.myext.hi"])],
             "myext",
             ext_dir,
             project,
         )
 
-        assert "speckit.myext.hello" in registered
-        assert "speckit.myext.hi" in registered
+        assert "kite.myext.hello" in registered
+        assert "kite.myext.hi" in registered
         assert (
             project
             / ".claude"
             / "skills"
-            / "speckit-myext-hello"
+            / "kite-myext-hello"
             / "SKILL.md"
         ).exists()
         assert (
             project
             / ".claude"
             / "skills"
-            / "speckit-myext-hi"
+            / "kite-myext-hi"
             / "SKILL.md"
         ).exists()

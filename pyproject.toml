@@ -1,7 +1,7 @@
 [project]
-name = "specify-cli"
-version = "0.8.2.dev0"
-description = "Specify CLI, part of GitHub Spec Kit. A tool to bootstrap your projects for Spec-Driven Development (SDD)."
+name = "kite-cli"
+version = "0.7.2"
+description = "Kite CLI — a guided SDLC workflow for non-technical builders. Forked from GitHub Kite."
 requires-python = ">=3.11"
 dependencies = [
     "typer>=0.24.0",
@@ -16,34 +16,34 @@ dependencies = [
 ]
 
 [project.scripts]
-specify = "specify_cli:main"
+kite = "kite_cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/specify_cli"]
+packages = ["src/kite_cli"]
 
 [tool.hatch.build.targets.wheel.force-include]
 # Bundle core assets so `specify init` works without network access (air-gapped / enterprise)
 # Page templates (exclude commands/ — bundled separately below to avoid duplication)
-"templates/checklist-template.md" = "specify_cli/core_pack/templates/checklist-template.md"
-"templates/constitution-template.md" = "specify_cli/core_pack/templates/constitution-template.md"
-"templates/plan-template.md" = "specify_cli/core_pack/templates/plan-template.md"
-"templates/spec-template.md" = "specify_cli/core_pack/templates/spec-template.md"
-"templates/tasks-template.md" = "specify_cli/core_pack/templates/tasks-template.md"
-"templates/vscode-settings.json" = "specify_cli/core_pack/templates/vscode-settings.json"
+"templates/checklist-template.md" = "kite_cli/core_pack/templates/checklist-template.md"
+"templates/constitution-template.md" = "kite_cli/core_pack/templates/constitution-template.md"
+"templates/plan-template.md" = "kite_cli/core_pack/templates/plan-template.md"
+"templates/spec-template.md" = "kite_cli/core_pack/templates/spec-template.md"
+"templates/tasks-template.md" = "kite_cli/core_pack/templates/tasks-template.md"
+"templates/vscode-settings.json" = "kite_cli/core_pack/templates/vscode-settings.json"
 # Command templates
-"templates/commands" = "specify_cli/core_pack/commands"
-"scripts/bash" = "specify_cli/core_pack/scripts/bash"
-"scripts/powershell" = "specify_cli/core_pack/scripts/powershell"
+"templates/commands" = "kite_cli/core_pack/commands"
+"scripts/bash" = "kite_cli/core_pack/scripts/bash"
+"scripts/powershell" = "kite_cli/core_pack/scripts/powershell"
 # Bundled extensions (installable via `specify extension add <name>`)
-"extensions/git" = "specify_cli/core_pack/extensions/git"
+"extensions/git" = "kite_cli/core_pack/extensions/git"
 # Bundled workflows (auto-installed during `specify init`)
-"workflows/speckit" = "specify_cli/core_pack/workflows/speckit"
+"workflows/kite" = "kite_cli/core_pack/workflows/kite"
 # Bundled presets (installable via `specify preset add <name>` or `specify init --preset <name>`)
-"presets/lean" = "specify_cli/core_pack/presets/lean"
+"presets/lean" = "kite_cli/core_pack/presets/lean"
 
 [project.optional-dependencies]
 test = [

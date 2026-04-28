@@ -1,6 +1,6 @@
 # Lean Workflow
 
-A minimal preset that strips the Spec Kit workflow down to its essentials — just the prompt, just the artifact.
+A minimal preset that strips the Kite workflow down to its essentials — just the prompt, just the artifact.
 
 ## When to Use
 
@@ -10,11 +10,11 @@ Use Lean when you want the structured specify → plan → tasks → implement p
 
 | Command | Output | Description |
 |---------|--------|-------------|
-| `speckit.specify` | `spec.md` | Create a specification from a feature description |
-| `speckit.plan` | `plan.md` | Create an implementation plan from the spec |
-| `speckit.tasks` | `tasks.md` | Create dependency-ordered tasks from spec and plan |
-| `speckit.implement` | *(code)* | Execute all tasks in order, marking progress |
-| `speckit.constitution` | `constitution.md` | Create or update the project constitution |
+| `kite.specify` | `spec.md` | Create a specification from a feature description |
+| `kite.plan` | `plan.md` | Create an implementation plan from the spec |
+| `kite.tasks` | `tasks.md` | Create dependency-ordered tasks from spec and plan |
+| `kite.implement` | *(code)* | Execute all tasks in order, marking progress |
+| `kite.constitution` | `constitution.md` | Create or update the project constitution |
 
 ## What It Replaces
 
@@ -24,20 +24,20 @@ Lean overrides the five core workflow commands with self-contained prompts that 
 
 ```bash
 # Lean is a bundled preset — no download needed
-specify preset add lean
+kite preset add lean
 ```
 
 ## Development
 
 ```bash
 # Test from local directory
-specify preset add --dev ./presets/lean
+kite preset add --dev ./presets/lean
 
 # Verify commands resolve
-specify preset resolve speckit.specify
+kite preset resolve kite.specify
 
 # Remove when done
-specify preset remove lean
+kite preset remove lean
 ```
 
 ## License

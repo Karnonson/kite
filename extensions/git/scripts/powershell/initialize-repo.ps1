@@ -10,7 +10,7 @@ function Find-ProjectRoot {
     param([string]$StartDir)
     $current = Resolve-Path $StartDir
     while ($true) {
-        foreach ($marker in @('.specify', '.git')) {
+        foreach ($marker in @('.kite', '.git')) {
             if (Test-Path (Join-Path $current $marker)) {
                 return $current
             }
@@ -26,8 +26,8 @@ if (-not $repoRoot) { $repoRoot = Get-Location }
 Set-Location $repoRoot
 
 # Read commit message from extension config, fall back to default
-$commitMsg = "[Spec Kit] Initial commit"
-$configFile = Join-Path $repoRoot ".specify/extensions/git/git-config.yml"
+$commitMsg = "[Kite] Initial commit"
+$configFile = Join-Path $repoRoot ".kite/extensions/git/git-config.yml"
 if (Test-Path $configFile) {
     foreach ($line in Get-Content $configFile) {
         if ($line -match '^init_commit_message:\s*(.+)$') {

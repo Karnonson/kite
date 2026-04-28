@@ -10,7 +10,7 @@ Tests cover:
 import json
 from pathlib import Path
 
-from specify_cli import save_init_options
+from kite_cli import save_init_options
 
 
 class TestSaveBranchNumbering:
@@ -20,26 +20,26 @@ class TestSaveBranchNumbering:
         opts = {"branch_numbering": "timestamp", "ai": "claude"}
         save_init_options(tmp_path, opts)
 
-        saved = json.loads((tmp_path / ".specify/init-options.json").read_text())
+        saved = json.loads((tmp_path / ".kite/init-options.json").read_text())
         assert saved["branch_numbering"] == "timestamp"
 
     def test_save_branch_numbering_sequential(self, tmp_path: Path):
         opts = {"branch_numbering": "sequential", "ai": "claude"}
         save_init_options(tmp_path, opts)
 
-        saved = json.loads((tmp_path / ".specify/init-options.json").read_text())
+        saved = json.loads((tmp_path / ".kite/init-options.json").read_text())
         assert saved["branch_numbering"] == "sequential"
 
     def test_branch_numbering_defaults_to_sequential(self, tmp_path: Path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project_dir = tmp_path / "proj"
         runner = CliRunner()
         result = runner.invoke(app, ["init", str(project_dir), "--ai", "claude", "--ignore-agent-tools", "--no-git", "--script", "sh"])
         assert result.exit_code == 0
 
-        saved = json.loads((project_dir / ".specify/init-options.json").read_text())
+        saved = json.loads((project_dir / ".kite/init-options.json").read_text())
         assert saved["branch_numbering"] == "sequential"
 
 
@@ -48,7 +48,7 @@ class TestBranchNumberingValidation:
 
     def test_invalid_branch_numbering_rejected(self, tmp_path: Path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["init", str(tmp_path / "proj"), "--ai", "claude", "--branch-numbering", "foobar", "--ignore-agent-tools"])
@@ -57,7 +57,7 @@ class TestBranchNumberingValidation:
 
     def test_valid_branch_numbering_sequential(self, tmp_path: Path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["init", str(tmp_path / "proj"), "--ai", "claude", "--branch-numbering", "sequential", "--ignore-agent-tools", "--no-git", "--script", "sh"])
@@ -66,7 +66,7 @@ class TestBranchNumberingValidation:
 
     def test_valid_branch_numbering_timestamp(self, tmp_path: Path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         result = runner.invoke(app, ["init", str(tmp_path / "proj"), "--ai", "claude", "--branch-numbering", "timestamp", "--ignore-agent-tools", "--no-git", "--script", "sh"])

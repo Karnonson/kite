@@ -5,7 +5,7 @@ The core `specify` commands handle project initialization, system checks, and ve
 ## Initialize a Project
 
 ```bash
-specify init [<project_name>]
+kite init [<project_name>]
 ```
 
 | Option                   | Description                                                              |
@@ -20,7 +20,7 @@ specify init [<project_name>]
 | `--preset <id>`          | Install a preset during initialization                                   |
 | `--branch-numbering`     | Branch numbering strategy: `sequential` (default) or `timestamp`         |
 
-Creates a new Spec Kit project with the necessary directory structure, templates, scripts, and AI coding agent integration files.
+Creates a new Kite project with the necessary directory structure, templates, scripts, and AI coding agent integration files.
 
 Use `<project_name>` to create a new directory, or `--here` (or `.`) to initialize in the current directory. If the directory already has files, use `--force` to merge without confirmation.
 
@@ -28,37 +28,37 @@ Use `<project_name>` to create a new directory, or `--here` (or `.`) to initiali
 
 ```bash
 # Create a new project with an integration
-specify init my-project --integration copilot
+kite init my-project --integration copilot
 
 # Initialize in the current directory
-specify init --here --integration copilot
+kite init --here --integration copilot
 
 # Force merge into a non-empty directory
-specify init --here --force --integration copilot
+kite init --here --force --integration copilot
 
 # Use PowerShell scripts (Windows/cross-platform)
-specify init my-project --integration copilot --script ps
+kite init my-project --integration copilot --script ps
 
 # Skip git initialization
-specify init my-project --integration copilot --no-git
+kite init my-project --integration copilot --no-git
 
 # Install a preset during initialization
-specify init my-project --integration copilot --preset compliance
+kite init my-project --integration copilot --preset compliance
 
 # Use timestamp-based branch numbering (useful for distributed teams)
-specify init my-project --integration copilot --branch-numbering timestamp
+kite init my-project --integration copilot --branch-numbering timestamp
 ```
 
 ### Environment Variables
 
 | Variable          | Description                                                              |
 | ----------------- | ------------------------------------------------------------------------ |
-| `SPECIFY_FEATURE` | Override feature detection for non-Git repositories. Set to the feature directory name (e.g., `001-photo-albums`) to work on a specific feature when not using Git branches. Must be set in the context of the agent prior to using `/speckit.plan` or follow-up commands. |
+| `SPECIFY_FEATURE` | Override feature detection for non-Git repositories. Set to the feature directory name (e.g., `001-photo-albums`) to work on a specific feature when not using Git branches. Must be set in the context of the agent prior to using `/kite.plan` or follow-up commands. |
 
 ## Check Installed Tools
 
 ```bash
-specify check
+kite check
 ```
 
 Checks that required tools are available on your system: `git` and any CLI-based AI coding agents. IDE-based agents are skipped since they don't require a CLI tool.
@@ -69,7 +69,7 @@ Checks that required tools are available on your system: `git` and any CLI-based
 specify version
 ```
 
-Displays the Spec Kit CLI version, Python version, platform, and architecture.
+Displays the Kite CLI version, Python version, platform, and architecture.
 
 A quick version check is also available via:
 

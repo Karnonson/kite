@@ -1,11 +1,11 @@
-"""Tests for ``specify integration`` subcommand (list, install, uninstall, switch)."""
+"""Tests for ``kite integration`` subcommand (list, install, uninstall, switch)."""
 
 import json
 import os
 
 from typer.testing import CliRunner
 
-from specify_cli import app
+from kite_cli import app
 
 
 runner = CliRunner()
@@ -35,7 +35,7 @@ def _init_project(tmp_path, integration="copilot"):
 
 
 class TestIntegrationList:
-    def test_list_requires_speckit_project(self, tmp_path):
+    def test_list_requires_kite_project(self, tmp_path):
         old_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
@@ -75,7 +75,7 @@ class TestIntegrationList:
 
 
 class TestIntegrationInstall:
-    def test_install_requires_speckit_project(self, tmp_path):
+    def test_install_requires_kite_project(self, tmp_path):
         old_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
@@ -121,10 +121,10 @@ class TestIntegrationInstall:
         assert "uninstall" in result.output
 
     def test_install_into_bare_project(self, tmp_path):
-        """Install into a project with .specify/ but no integration."""
+        """Install into a project with .kite/ but no integration."""
         project = tmp_path / "bare"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -138,20 +138,20 @@ class TestIntegrationInstall:
         assert "installed successfully" in result.output
 
         # integration.json written
-        data = json.loads((project / ".specify" / "integration.json").read_text(encoding="utf-8"))
+        data = json.loads((project / ".kite" / "integration.json").read_text(encoding="utf-8"))
         assert data["integration"] == "claude"
 
         # Manifest created
-        assert (project / ".specify" / "integrations" / "claude.manifest.json").exists()
+        assert (project / ".kite" / "integrations" / "claude.manifest.json").exists()
 
         # Claude uses skills directory (not commands)
-        assert (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
 
     def test_install_bare_project_gets_shared_infra(self, tmp_path):
         """Installing into a bare project should create shared scripts and templates."""
         project = tmp_path / "bare"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -164,15 +164,15 @@ class TestIntegrationInstall:
         assert result.exit_code == 0, result.output
 
         # Shared infrastructure should be present
-        assert (project / ".specify" / "scripts").is_dir()
-        assert (project / ".specify" / "templates").is_dir()
+        assert (project / ".kite" / "scripts").is_dir()
+        assert (project / ".kite" / "templates").is_dir()
 
 
 # ── uninstall ────────────────────────────────────────────────────────
 
 
 class TestIntegrationUninstall:
-    def test_uninstall_requires_speckit_project(self, tmp_path):
+    def test_uninstall_requires_kite_project(self, tmp_path):
         old_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
@@ -185,7 +185,7 @@ class TestIntegrationUninstall:
     def test_uninstall_no_integration(self, tmp_path):
         project = tmp_path / "proj"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -198,8 +198,8 @@ class TestIntegrationUninstall:
     def test_uninstall_removes_files(self, tmp_path):
         project = _init_project(tmp_path, "claude")
         # Claude uses skills directory
-        assert (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
-        assert (project / ".specify" / "integrations" / "claude.manifest.json").exists()
+        assert (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
+        assert (project / ".kite" / "integrations" / "claude.manifest.json").exists()
 
         old_cwd = os.getcwd()
         try:
@@ -211,18 +211,18 @@ class TestIntegrationUninstall:
         assert "uninstalled" in result.output
 
         # Command files removed
-        assert not (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert not (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
 
         # Manifest removed
-        assert not (project / ".specify" / "integrations" / "claude.manifest.json").exists()
+        assert not (project / ".kite" / "integrations" / "claude.manifest.json").exists()
 
         # integration.json removed
-        assert not (project / ".specify" / "integration.json").exists()
+        assert not (project / ".kite" / "integration.json").exists()
 
     def test_uninstall_preserves_modified_files(self, tmp_path):
         """Full lifecycle: install → modify → uninstall → modified file kept."""
         project = _init_project(tmp_path, "claude")
-        plan_file = project / ".claude" / "skills" / "speckit-plan" / "SKILL.md"
+        plan_file = project / ".claude" / "skills" / "kite-plan" / "SKILL.md"
         assert plan_file.exists()
 
         # Modify a file
@@ -255,7 +255,7 @@ class TestIntegrationUninstall:
     def test_uninstall_preserves_shared_infra(self, tmp_path):
         """Shared scripts and templates are not removed by integration uninstall."""
         project = _init_project(tmp_path, "claude")
-        shared_script = project / ".specify" / "scripts" / "bash" / "common.sh"
+        shared_script = project / ".kite" / "scripts" / "bash" / "common.sh"
         assert shared_script.exists()
 
         old_cwd = os.getcwd()
@@ -268,14 +268,14 @@ class TestIntegrationUninstall:
 
         # Shared infrastructure preserved
         assert shared_script.exists()
-        assert (project / ".specify" / "templates").is_dir()
+        assert (project / ".kite" / "templates").is_dir()
 
 
 # ── switch ───────────────────────────────────────────────────────────
 
 
 class TestIntegrationSwitch:
-    def test_switch_requires_speckit_project(self, tmp_path):
+    def test_switch_requires_kite_project(self, tmp_path):
         old_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
@@ -310,7 +310,7 @@ class TestIntegrationSwitch:
     def test_switch_between_integrations(self, tmp_path):
         project = _init_project(tmp_path, "claude")
         # Verify claude files exist (claude uses skills)
-        assert (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
 
         old_cwd = os.getcwd()
         try:
@@ -325,19 +325,19 @@ class TestIntegrationSwitch:
         assert "Switched to" in result.output
 
         # Old claude files removed
-        assert not (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert not (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
 
         # New copilot files created
-        assert (project / ".github" / "agents" / "speckit.plan.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.plan.agent.md").exists()
 
         # integration.json updated
-        data = json.loads((project / ".specify" / "integration.json").read_text(encoding="utf-8"))
+        data = json.loads((project / ".kite" / "integration.json").read_text(encoding="utf-8"))
         assert data["integration"] == "copilot"
 
     def test_switch_preserves_shared_infra(self, tmp_path):
         """Switching preserves shared scripts, templates, and memory."""
         project = _init_project(tmp_path, "claude")
-        shared_script = project / ".specify" / "scripts" / "bash" / "common.sh"
+        shared_script = project / ".kite" / "scripts" / "bash" / "common.sh"
         assert shared_script.exists()
         shared_content = shared_script.read_text(encoding="utf-8")
 
@@ -360,7 +360,7 @@ class TestIntegrationSwitch:
         """Switch when no integration is installed should just install the target."""
         project = tmp_path / "bare"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -373,7 +373,7 @@ class TestIntegrationSwitch:
         assert result.exit_code == 0
         assert "Switched to" in result.output
 
-        data = json.loads((project / ".specify" / "integration.json").read_text(encoding="utf-8"))
+        data = json.loads((project / ".kite" / "integration.json").read_text(encoding="utf-8"))
         assert data["integration"] == "claude"
 
 
@@ -385,7 +385,7 @@ class TestIntegrationLifecycle:
         """Full lifecycle: install → modify file → uninstall → verify modified file kept."""
         project = tmp_path / "lifecycle"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
 
         old_cwd = os.getcwd()
         try:
@@ -400,7 +400,7 @@ class TestIntegrationLifecycle:
             assert "installed successfully" in result.output
 
             # Claude uses skills directory
-            plan_file = project / ".claude" / "skills" / "speckit-plan" / "SKILL.md"
+            plan_file = project / ".claude" / "skills" / "kite-plan" / "SKILL.md"
             assert plan_file.exists()
 
             # Modify one file
@@ -426,7 +426,7 @@ class TestScriptTypeValidation:
         """--script with an invalid value should fail with a clear error."""
         project = tmp_path / "proj"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -443,7 +443,7 @@ class TestScriptTypeValidation:
         """Both 'sh' and 'ps' should be accepted."""
         project = tmp_path / "proj"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
@@ -459,8 +459,8 @@ class TestScriptTypeValidation:
 class TestParseIntegrationOptionsEqualsForm:
     def test_equals_form_parsed(self):
         """--commands-dir=./x should be parsed the same as --commands-dir ./x."""
-        from specify_cli import _parse_integration_options
-        from specify_cli.integrations import get_integration
+        from kite_cli import _parse_integration_options
+        from kite_cli.integrations import get_integration
 
         integration = get_integration("generic")
         assert integration is not None
@@ -478,13 +478,13 @@ class TestUninstallNoManifestClearsInitOptions:
         """When no manifest exists, uninstall should still clear init-options.json."""
         project = tmp_path / "proj"
         project.mkdir()
-        (project / ".specify").mkdir()
+        (project / ".kite").mkdir()
 
         # Write integration.json and init-options.json without a manifest
-        int_json = project / ".specify" / "integration.json"
+        int_json = project / ".kite" / "integration.json"
         int_json.write_text(json.dumps({"integration": "claude"}), encoding="utf-8")
 
-        opts_json = project / ".specify" / "init-options.json"
+        opts_json = project / ".kite" / "init-options.json"
         opts_json.write_text(json.dumps({
             "integration": "claude",
             "ai": "claude",
@@ -515,7 +515,7 @@ class TestSwitchClearsMetadataAfterTeardown:
         project = _init_project(tmp_path, "claude")
 
         # Verify initial state
-        int_json = project / ".specify" / "integration.json"
+        int_json = project / ".kite" / "integration.json"
         assert json.loads(int_json.read_text(encoding="utf-8"))["integration"] == "claude"
 
         old_cwd = os.getcwd()
@@ -535,6 +535,6 @@ class TestSwitchClearsMetadataAfterTeardown:
         assert data["integration"] == "copilot"
 
         # init-options.json should reference copilot
-        opts_json = project / ".specify" / "init-options.json"
+        opts_json = project / ".kite" / "init-options.json"
         opts = json.loads(opts_json.read_text(encoding="utf-8"))
         assert opts.get("ai") == "copilot"

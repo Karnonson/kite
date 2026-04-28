@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from tests.conftest import strip_ansi
-from specify_cli.extensions import (
+from kite_cli.extensions import (
     CatalogEntry,
     CORE_COMMAND_NAMES,
     ExtensionManifest,
@@ -61,13 +61,13 @@ def valid_manifest_data():
             "license": "MIT",
         },
         "requires": {
-            "speckit_version": ">=0.1.0",
-            "commands": ["speckit.tasks"],
+            "kite_version": ">=0.1.0",
+            "commands": ["kite.tasks"],
         },
         "provides": {
             "commands": [
                 {
-                    "name": "speckit.test-ext.hello",
+                    "name": "kite.test-ext.hello",
                     "file": "commands/hello.md",
                     "description": "Test command",
                 }
@@ -75,7 +75,7 @@ def valid_manifest_data():
         },
         "hooks": {
             "after_tasks": {
-                "command": "speckit.test-ext.hello",
+                "command": "kite.test-ext.hello",
                 "optional": True,
                 "prompt": "Run test?",
             }
@@ -120,8 +120,8 @@ def project_dir(temp_dir):
     proj_dir = temp_dir / "project"
     proj_dir.mkdir()
 
-    # Create .specify directory
-    specify_dir = proj_dir / ".specify"
+    # Create .kite directory
+    specify_dir = proj_dir / ".kite"
     specify_dir.mkdir()
 
     return proj_dir
@@ -193,7 +193,7 @@ class TestExtensionManifest:
         assert manifest.version == "1.0.0"
         assert manifest.description == "A test extension"
         assert len(manifest.commands) == 1
-        assert manifest.commands[0]["name"] == "speckit.test-ext.hello"
+        assert manifest.commands[0]["name"] == "kite.test-ext.hello"
 
     def test_core_command_names_match_bundled_templates(self):
         """Core command reservations should stay aligned with bundled templates."""
@@ -264,11 +264,11 @@ class TestExtensionManifest:
         with pytest.raises(ValidationError, match="Invalid command name"):
             ExtensionManifest(manifest_path)
 
-    def test_command_name_autocorrect_speckit_prefix(self, temp_dir, valid_manifest_data):
-        """Test that 'speckit.command' is auto-corrected to 'speckit.{ext_id}.command'."""
+    def test_command_name_autocorrect_kite_prefix(self, temp_dir, valid_manifest_data):
+        """Test that 'kite.command' is auto-corrected to 'kite.{ext_id}.command'."""
         import yaml
 
-        valid_manifest_data["provides"]["commands"][0]["name"] = "speckit.hello"
+        valid_manifest_data["provides"]["commands"][0]["name"] = "kite.hello"
 
         manifest_path = temp_dir / "extension.yml"
         with open(manifest_path, 'w') as f:
@@ -276,13 +276,13 @@ class TestExtensionManifest:
 
         manifest = ExtensionManifest(manifest_path)
 
-        assert manifest.commands[0]["name"] == "speckit.test-ext.hello"
+        assert manifest.commands[0]["name"] == "kite.test-ext.hello"
         assert len(manifest.warnings) == 1
-        assert "speckit.hello" in manifest.warnings[0]
-        assert "speckit.test-ext.hello" in manifest.warnings[0]
+        assert "kite.hello" in manifest.warnings[0]
+        assert "kite.test-ext.hello" in manifest.warnings[0]
 
     def test_command_name_autocorrect_matching_ext_id_prefix(self, temp_dir, valid_manifest_data):
-        """Test that '{ext_id}.command' is auto-corrected to 'speckit.{ext_id}.command'."""
+        """Test that '{ext_id}.command' is auto-corrected to 'kite.{ext_id}.command'."""
         import yaml
 
         # Set ext_id to match the legacy namespace so correction is valid
@@ -295,10 +295,10 @@ class TestExtensionManifest:
 
         manifest = ExtensionManifest(manifest_path)
 
-        assert manifest.commands[0]["name"] == "speckit.docguard.guard"
+        assert manifest.commands[0]["name"] == "kite.docguard.guard"
         assert len(manifest.warnings) == 1
         assert "docguard.guard" in manifest.warnings[0]
-        assert "speckit.docguard.guard" in manifest.warnings[0]
+        assert "kite.docguard.guard" in manifest.warnings[0]
 
     def test_command_name_mismatched_namespace_not_corrected(self, temp_dir, valid_manifest_data):
         """Test that 'X.command' is NOT corrected when X doesn't match ext_id."""
@@ -315,10 +315,10 @@ class TestExtensionManifest:
             ExtensionManifest(manifest_path)
 
     def test_alias_free_form_accepted(self, temp_dir, valid_manifest_data):
-        """Aliases are free-form — a 'speckit.command' alias must be accepted unchanged."""
+        """Aliases are free-form — a 'kite.command' alias must be accepted unchanged."""
         import yaml
 
-        valid_manifest_data["provides"]["commands"][0]["aliases"] = ["speckit.hello"]
+        valid_manifest_data["provides"]["commands"][0]["aliases"] = ["kite.hello"]
 
         manifest_path = temp_dir / "extension.yml"
         with open(manifest_path, 'w') as f:
@@ -326,7 +326,7 @@ class TestExtensionManifest:
 
         manifest = ExtensionManifest(manifest_path)
 
-        assert manifest.commands[0]["aliases"] == ["speckit.hello"]
+        assert manifest.commands[0]["aliases"] == ["kite.hello"]
         assert manifest.warnings == []
 
     def test_valid_command_name_has_no_warnings(self, temp_dir, valid_manifest_data):
@@ -362,7 +362,7 @@ class TestExtensionManifest:
         valid_manifest_data["provides"]["commands"] = []
         valid_manifest_data["hooks"] = {
             "after_specify": {
-                "command": "speckit.test-ext.notify",
+                "command": "kite.test-ext.notify",
                 "optional": True,
                 "prompt": "Run notification?",
             }
@@ -407,7 +407,7 @@ class TestExtensionManifest:
         """Non-mapping hook entries must raise ValidationError, not silently skip."""
         import yaml
 
-        valid_manifest_data["hooks"]["after_tasks"] = "speckit.test-ext.hello"
+        valid_manifest_data["hooks"]["after_tasks"] = "kite.test-ext.hello"
 
         manifest_path = temp_dir / "extension.yml"
         with open(manifest_path, 'w') as f:
@@ -735,7 +735,7 @@ class TestExtensionManager:
         assert manager.registry.is_installed("test-ext")
 
         # Check extension directory was copied
-        ext_dir = project_dir / ".specify" / "extensions" / "test-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "test-ext"
         assert ext_dir.exists()
         assert (ext_dir / "extension.yml").exists()
         assert (ext_dir / "commands" / "hello.md").exists()
@@ -767,11 +767,11 @@ class TestExtensionManager:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.analyze.extra",
+                        "name": "kite.analyze.extra",
                         "file": "commands/cmd.md",
                     }
                 ]
@@ -786,7 +786,7 @@ class TestExtensionManager:
             manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
     def test_install_accepts_free_form_alias(self, temp_dir, project_dir):
-        """Aliases are free-form — a short 'speckit.shortcut' alias must be preserved unchanged."""
+        """Aliases are free-form — a short 'kite.shortcut' alias must be preserved unchanged."""
         import yaml
 
         ext_dir = temp_dir / "alias-shortcut"
@@ -801,13 +801,13 @@ class TestExtensionManager:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.alias-shortcut.cmd",
+                        "name": "kite.alias-shortcut.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.shortcut"],
+                        "aliases": ["kite.shortcut"],
                     }
                 ]
             },
@@ -819,7 +819,7 @@ class TestExtensionManager:
         manager = ExtensionManager(project_dir)
         manifest = manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        assert manifest.commands[0]["aliases"] == ["speckit.shortcut"]
+        assert manifest.commands[0]["aliases"] == ["kite.shortcut"]
         assert manifest.warnings == []
 
     def test_install_rejects_namespace_squatting(self, temp_dir, project_dir):
@@ -838,13 +838,13 @@ class TestExtensionManager:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.other-ext.cmd",
+                        "name": "kite.other-ext.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.squat-ext.ok"],
+                        "aliases": ["kite.squat-ext.ok"],
                     }
                 ]
             },
@@ -872,20 +872,20 @@ class TestExtensionManager:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-one.sync",
+                        "name": "kite.ext-one.sync",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.shared.sync"],
+                        "aliases": ["kite.shared.sync"],
                     }
                 ]
             },
         }
         (first_dir / "extension.yml").write_text(yaml.dump(first_manifest))
         (first_dir / "commands" / "cmd.md").write_text("---\ndescription: Test\n---\n\nBody")
-        installed_ext_dir = project_dir / ".specify" / "extensions" / "ext-one"
+        installed_ext_dir = project_dir / ".kite" / "extensions" / "ext-one"
         installed_ext_dir.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(first_dir, installed_ext_dir)
 
@@ -900,11 +900,11 @@ class TestExtensionManager:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.shared.sync",
+                        "name": "kite.shared.sync",
                         "file": "commands/cmd.md",
                     }
                 ]
@@ -926,7 +926,7 @@ class TestExtensionManager:
         # Install extension
         manager.install_from_directory(extension_dir, "0.1.0", register_commands=False)
 
-        ext_dir = project_dir / ".specify" / "extensions" / "test-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "test-ext"
         assert ext_dir.exists()
 
         # Remove extension
@@ -970,7 +970,7 @@ class TestExtensionManager:
         manager.install_from_directory(extension_dir, "0.1.0", register_commands=False)
 
         # Create a config file
-        ext_dir = project_dir / ".specify" / "extensions" / "test-ext"
+        ext_dir = project_dir / ".kite" / "extensions" / "test-ext"
         config_file = ext_dir / "test-ext-config.yml"
         config_file.write_text("test: config")
 
@@ -978,7 +978,7 @@ class TestExtensionManager:
         manager.remove("test-ext", keep_config=False)
 
         # Check backup was created (now in subdirectory per extension)
-        backup_dir = project_dir / ".specify" / "extensions" / ".backup" / "test-ext"
+        backup_dir = project_dir / ".kite" / "extensions" / ".backup" / "test-ext"
         backup_file = backup_dir / "test-ext-config.yml"
         assert backup_file.exists()
         assert backup_file.read_text() == "test: config"
@@ -1092,7 +1092,7 @@ $ARGUMENTS
 
     def test_adjust_script_paths_does_not_mutate_input(self):
         """Path adjustments should not mutate caller-owned frontmatter dicts."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
         registrar = AgentCommandRegistrar()
         original = {
             "scripts": {
@@ -1105,42 +1105,42 @@ $ARGUMENTS
         adjusted = registrar._adjust_script_paths(original)
 
         assert original == before
-        assert adjusted["scripts"]["sh"] == ".specify/scripts/bash/setup-plan.sh {ARGS}"
-        assert adjusted["scripts"]["ps"] == ".specify/scripts/powershell/setup-plan.ps1 {ARGS}"
+        assert adjusted["scripts"]["sh"] == ".kite/scripts/bash/setup-plan.sh {ARGS}"
+        assert adjusted["scripts"]["ps"] == ".kite/scripts/powershell/setup-plan.ps1 {ARGS}"
 
     def test_adjust_script_paths_preserves_extension_local_paths(self):
-        """Extension-local script paths should not be rewritten into .specify/.specify."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        """Extension-local script paths should not be rewritten into .kite/.kite."""
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
         registrar = AgentCommandRegistrar()
         original = {
             "scripts": {
-                "sh": ".specify/extensions/test-ext/scripts/setup.sh {ARGS}",
+                "sh": ".kite/extensions/test-ext/scripts/setup.sh {ARGS}",
                 "ps": "scripts/powershell/setup-plan.ps1 {ARGS}",
             }
         }
 
         adjusted = registrar._adjust_script_paths(original)
 
-        assert adjusted["scripts"]["sh"] == ".specify/extensions/test-ext/scripts/setup.sh {ARGS}"
-        assert adjusted["scripts"]["ps"] == ".specify/scripts/powershell/setup-plan.ps1 {ARGS}"
+        assert adjusted["scripts"]["sh"] == ".kite/extensions/test-ext/scripts/setup.sh {ARGS}"
+        assert adjusted["scripts"]["ps"] == ".kite/scripts/powershell/setup-plan.ps1 {ARGS}"
 
     def test_rewrite_project_relative_paths_preserves_extension_local_body_paths(self):
         """Body rewrites should preserve extension-local assets while fixing top-level refs."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
 
         body = (
-            "Read `.specify/extensions/test-ext/templates/spec.md`\n"
+            "Read `.kite/extensions/test-ext/templates/spec.md`\n"
             "Run scripts/bash/setup-plan.sh\n"
         )
 
         rewritten = AgentCommandRegistrar.rewrite_project_relative_paths(body)
 
-        assert ".specify/extensions/test-ext/templates/spec.md" in rewritten
-        assert ".specify/scripts/bash/setup-plan.sh" in rewritten
+        assert ".kite/extensions/test-ext/templates/spec.md" in rewritten
+        assert ".kite/scripts/bash/setup-plan.sh" in rewritten
 
     def test_render_toml_command_handles_embedded_triple_double_quotes(self):
         """TOML renderer should stay valid when body includes triple double-quotes."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
         registrar = AgentCommandRegistrar()
         output = registrar.render_toml_command(
             {"description": "x"},
@@ -1153,7 +1153,7 @@ $ARGUMENTS
 
     def test_render_toml_command_escapes_when_both_triple_quote_styles_exist(self):
         """If body has both triple quote styles, fall back to escaped basic string."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
         registrar = AgentCommandRegistrar()
         output = registrar.render_toml_command(
             {"description": "x"},
@@ -1167,7 +1167,7 @@ $ARGUMENTS
 
     def test_render_toml_command_preserves_multiline_description(self):
         """Multiline descriptions should render as parseable TOML with preserved semantics."""
-        from specify_cli.agents import CommandRegistrar as AgentCommandRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentCommandRegistrar
 
         registrar = AgentCommandRegistrar()
         output = registrar.render_toml_command(
@@ -1197,10 +1197,10 @@ $ARGUMENTS
         )
 
         assert len(registered) == 1
-        assert "speckit.test-ext.hello" in registered
+        assert "kite.test-ext.hello" in registered
 
         # Check command file was created
-        cmd_file = claude_dir / "speckit-test-ext-hello" / "SKILL.md"
+        cmd_file = claude_dir / "kite-test-ext-hello" / "SKILL.md"
         assert cmd_file.exists()
 
         content = cmd_file.read_text()
@@ -1224,14 +1224,14 @@ $ARGUMENTS
                 "description": "Test",
             },
             "requires": {
-                "speckit_version": ">=0.1.0",
+                "kite_version": ">=0.1.0",
             },
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-alias.cmd",
+                        "name": "kite.ext-alias.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.ext-alias.shortcut"],
+                        "aliases": ["kite.ext-alias.shortcut"],
                     }
                 ]
             },
@@ -1251,27 +1251,27 @@ $ARGUMENTS
         registered = registrar.register_commands_for_claude(manifest, ext_dir, project_dir)
 
         assert len(registered) == 2
-        assert "speckit.ext-alias.cmd" in registered
-        assert "speckit.ext-alias.shortcut" in registered
-        assert (claude_dir / "speckit-ext-alias-cmd" / "SKILL.md").exists()
-        assert (claude_dir / "speckit-ext-alias-shortcut" / "SKILL.md").exists()
+        assert "kite.ext-alias.cmd" in registered
+        assert "kite.ext-alias.shortcut" in registered
+        assert (claude_dir / "kite-ext-alias-cmd" / "SKILL.md").exists()
+        assert (claude_dir / "kite-ext-alias-shortcut" / "SKILL.md").exists()
 
     def test_unregister_commands_for_codex_skills_uses_mapped_names(self, project_dir):
         """Codex skill cleanup should use the same mapped names as registration."""
         skills_dir = project_dir / ".agents" / "skills"
-        (skills_dir / "speckit-specify").mkdir(parents=True)
-        (skills_dir / "speckit-specify" / "SKILL.md").write_text("body")
-        (skills_dir / "speckit-shortcut").mkdir(parents=True)
-        (skills_dir / "speckit-shortcut" / "SKILL.md").write_text("body")
+        (skills_dir / "kite-specify").mkdir(parents=True)
+        (skills_dir / "kite-specify" / "SKILL.md").write_text("body")
+        (skills_dir / "kite-shortcut").mkdir(parents=True)
+        (skills_dir / "kite-shortcut" / "SKILL.md").write_text("body")
 
         registrar = CommandRegistrar()
         registrar.unregister_commands(
-            {"codex": ["speckit.specify", "speckit.shortcut"]},
+            {"codex": ["kite.specify", "kite.shortcut"]},
             project_dir,
         )
 
-        assert not (skills_dir / "speckit-specify" / "SKILL.md").exists()
-        assert not (skills_dir / "speckit-shortcut" / "SKILL.md").exists()
+        assert not (skills_dir / "kite-specify" / "SKILL.md").exists()
+        assert not (skills_dir / "kite-shortcut" / "SKILL.md").exists()
 
     def test_register_commands_for_all_agents_distinguishes_codex_from_amp(self, extension_dir, project_dir):
         """A Codex project under .agents/skills should not implicitly activate Amp."""
@@ -1295,11 +1295,11 @@ $ARGUMENTS
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, extension_dir, project_dir)
 
-        skill_file = skills_dir / "speckit-test-ext-hello" / "SKILL.md"
+        skill_file = skills_dir / "kite-test-ext-hello" / "SKILL.md"
         assert skill_file.exists()
 
         content = skill_file.read_text()
-        assert "name: speckit-test-ext-hello" in content
+        assert "name: kite-test-ext-hello" in content
         assert "description: Test hello command" in content
         assert "compatibility:" in content
         assert "metadata:" in content
@@ -1322,11 +1322,11 @@ $ARGUMENTS
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-scripted.plan",
+                        "name": "kite.ext-scripted.plan",
                         "file": "commands/plan.md",
                         "description": "Scripted command",
                     }
@@ -1349,7 +1349,7 @@ Agent __AGENT__
 """
         )
 
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text('{"ai":"codex","ai_skills":true,"script":"sh"}')
 
@@ -1360,14 +1360,14 @@ Agent __AGENT__
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        skill_file = skills_dir / "speckit-ext-scripted-plan" / "SKILL.md"
+        skill_file = skills_dir / "kite-ext-scripted-plan" / "SKILL.md"
         assert skill_file.exists()
 
         content = skill_file.read_text()
         assert "{SCRIPT}" not in content
         assert "__AGENT__" not in content
         assert "{ARGS}" not in content
-        assert '.specify/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
+        assert '.kite/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
 
     @pytest.mark.parametrize("agent_name,skills_path", [
         ("codex", ".agents/skills"),
@@ -1395,11 +1395,11 @@ Agent __AGENT__
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": f"speckit.ext-{agent_name}.run",
+                        "name": f"kite.ext-{agent_name}.run",
                         "file": "commands/run.md",
                         "description": "Scripted command",
                     }
@@ -1419,7 +1419,7 @@ Agent __AGENT__
             "Agent is __AGENT__.\n"
         )
 
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(f'{{"ai":"{agent_name}","script":"sh"}}')
 
@@ -1432,7 +1432,7 @@ Agent __AGENT__
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent(agent_name, manifest, ext_dir, project_dir)
 
-        skill_dir_name = f"speckit-ext-{agent_name}-run"
+        skill_dir_name = f"kite-ext-{agent_name}-run"
         skill_file = skills_dir / skill_dir_name / "SKILL.md"
         assert skill_file.exists(), f"SKILL.md not created for {agent_name}"
 
@@ -1440,7 +1440,7 @@ Agent __AGENT__
         assert "{SCRIPT}" not in content, f"{{SCRIPT}} not resolved for {agent_name}"
         assert "__AGENT__" not in content, f"__AGENT__ not resolved for {agent_name}"
         assert "{ARGS}" not in content, f"{{ARGS}} not resolved for {agent_name}"
-        assert '.specify/scripts/bash/setup-plan.sh' in content
+        assert '.kite/scripts/bash/setup-plan.sh' in content
 
     def test_codex_skill_alias_frontmatter_matches_alias_name(self, project_dir, temp_dir):
         """Codex alias skills should render their own matching `name:` frontmatter."""
@@ -1458,13 +1458,13 @@ Agent __AGENT__
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-alias-skill.cmd",
+                        "name": "kite.ext-alias-skill.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.ext-alias-skill.shortcut"],
+                        "aliases": ["kite.ext-alias-skill.shortcut"],
                     }
                 ]
             },
@@ -1481,13 +1481,13 @@ Agent __AGENT__
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        primary = skills_dir / "speckit-ext-alias-skill-cmd" / "SKILL.md"
-        alias = skills_dir / "speckit-ext-alias-skill-shortcut" / "SKILL.md"
+        primary = skills_dir / "kite-ext-alias-skill-cmd" / "SKILL.md"
+        alias = skills_dir / "kite-ext-alias-skill-shortcut" / "SKILL.md"
 
         assert primary.exists()
         assert alias.exists()
-        assert "name: speckit-ext-alias-skill-cmd" in primary.read_text()
-        assert "name: speckit-ext-alias-skill-shortcut" in alias.read_text()
+        assert "name: kite-ext-alias-skill-cmd" in primary.read_text()
+        assert "name: kite-ext-alias-skill-shortcut" in alias.read_text()
 
     def test_codex_skill_registration_uses_fallback_script_variant_without_init_options(
         self, project_dir, temp_dir
@@ -1507,11 +1507,11 @@ Agent __AGENT__
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-script-fallback.plan",
+                        "name": "kite.ext-script-fallback.plan",
                         "file": "commands/plan.md",
                     }
                 ]
@@ -1532,7 +1532,7 @@ Run {SCRIPT}
 """
         )
 
-        # Intentionally do NOT create .specify/init-options.json
+        # Intentionally do NOT create .kite/init-options.json
         skills_dir = project_dir / ".agents" / "skills"
         skills_dir.mkdir(parents=True)
 
@@ -1540,15 +1540,15 @@ Run {SCRIPT}
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        skill_file = skills_dir / "speckit-ext-script-fallback-plan" / "SKILL.md"
+        skill_file = skills_dir / "kite-ext-script-fallback-plan" / "SKILL.md"
         assert skill_file.exists()
 
         content = skill_file.read_text()
         assert "{SCRIPT}" not in content
         if platform.system().lower().startswith("win"):
-            assert ".specify/scripts/powershell/setup-plan.ps1 -Json" in content
+            assert ".kite/scripts/powershell/setup-plan.ps1 -Json" in content
         else:
-            assert '.specify/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
+            assert '.kite/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
 
     def test_codex_skill_registration_handles_non_dict_init_options(
         self, project_dir, temp_dir
@@ -1568,11 +1568,11 @@ Run {SCRIPT}
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-script-list-init.plan",
+                        "name": "kite.ext-script-list-init.plan",
                         "file": "commands/plan.md",
                     }
                 ]
@@ -1592,7 +1592,7 @@ Run {SCRIPT}
 """
         )
 
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text("[]")
 
@@ -1603,8 +1603,8 @@ Run {SCRIPT}
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        content = (skills_dir / "speckit-ext-script-list-init-plan" / "SKILL.md").read_text()
-        assert '.specify/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
+        content = (skills_dir / "kite-ext-script-list-init-plan" / "SKILL.md").read_text()
+        assert '.kite/scripts/bash/setup-plan.sh --json "$ARGUMENTS"' in content
 
     def test_codex_skill_registration_fallback_prefers_powershell_on_windows(
         self, project_dir, temp_dir, monkeypatch
@@ -1612,7 +1612,7 @@ Run {SCRIPT}
         """Without init metadata, Windows fallback should prefer ps scripts over sh."""
         import yaml
 
-        monkeypatch.setattr("specify_cli.agents.platform.system", lambda: "Windows")
+        monkeypatch.setattr("kite_cli.agents.platform.system", lambda: "Windows")
 
         ext_dir = temp_dir / "ext-script-windows-fallback"
         ext_dir.mkdir()
@@ -1626,11 +1626,11 @@ Run {SCRIPT}
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-script-windows-fallback.plan",
+                        "name": "kite.ext-script-windows-fallback.plan",
                         "file": "commands/plan.md",
                     }
                 ]
@@ -1658,12 +1658,12 @@ Run {SCRIPT}
         registrar = CommandRegistrar()
         registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        skill_file = skills_dir / "speckit-ext-script-windows-fallback-plan" / "SKILL.md"
+        skill_file = skills_dir / "kite-ext-script-windows-fallback-plan" / "SKILL.md"
         assert skill_file.exists()
 
         content = skill_file.read_text()
-        assert ".specify/scripts/powershell/setup-plan.ps1 -Json" in content
-        assert ".specify/scripts/bash/setup-plan.sh" not in content
+        assert ".kite/scripts/powershell/setup-plan.ps1 -Json" in content
+        assert ".kite/scripts/bash/setup-plan.sh" not in content
 
     def test_register_commands_for_copilot(self, extension_dir, project_dir):
         """Test registering commands for Copilot agent with .agent.md extension."""
@@ -1679,14 +1679,14 @@ Run {SCRIPT}
         )
 
         assert len(registered) == 1
-        assert "speckit.test-ext.hello" in registered
+        assert "kite.test-ext.hello" in registered
 
         # Verify command file uses .agent.md extension
-        cmd_file = agents_dir / "speckit.test-ext.hello.agent.md"
+        cmd_file = agents_dir / "kite.test-ext.hello.agent.md"
         assert cmd_file.exists()
 
         # Verify NO plain .md file was created
-        plain_md_file = agents_dir / "speckit.test-ext.hello.md"
+        plain_md_file = agents_dir / "kite.test-ext.hello.md"
         assert not plain_md_file.exists()
 
         content = cmd_file.read_text()
@@ -1706,12 +1706,12 @@ Run {SCRIPT}
         )
 
         # Verify companion .prompt.md file exists
-        prompt_file = project_dir / ".github" / "prompts" / "speckit.test-ext.hello.prompt.md"
+        prompt_file = project_dir / ".github" / "prompts" / "kite.test-ext.hello.prompt.md"
         assert prompt_file.exists()
 
         # Verify content has correct agent frontmatter
         content = prompt_file.read_text()
-        assert content == "---\nagent: speckit.test-ext.hello\n---\n"
+        assert content == "---\nagent: kite.test-ext.hello\n---\n"
 
     def test_copilot_aliases_get_companion_prompts(self, project_dir, temp_dir):
         """Test that aliases also get companion .prompt.md files for Copilot."""
@@ -1728,13 +1728,13 @@ Run {SCRIPT}
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.ext-alias-copilot.cmd",
+                        "name": "kite.ext-alias-copilot.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.ext-alias-copilot.shortcut"],
+                        "aliases": ["kite.ext-alias-copilot.shortcut"],
                     }
                 ]
             },
@@ -1761,8 +1761,8 @@ Run {SCRIPT}
 
         # Both primary and alias get companion .prompt.md
         prompts_dir = project_dir / ".github" / "prompts"
-        assert (prompts_dir / "speckit.ext-alias-copilot.cmd.prompt.md").exists()
-        assert (prompts_dir / "speckit.ext-alias-copilot.shortcut.prompt.md").exists()
+        assert (prompts_dir / "kite.ext-alias-copilot.cmd.prompt.md").exists()
+        assert (prompts_dir / "kite.ext-alias-copilot.shortcut.prompt.md").exists()
 
     def test_non_copilot_agent_no_companion_file(self, extension_dir, project_dir):
         """Test that non-copilot agents do NOT create .prompt.md files."""
@@ -1796,11 +1796,11 @@ Run {SCRIPT}
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.cleanup-ext.run",
+                        "name": "kite.cleanup-ext.run",
                         "file": "commands/run.md",
                         "description": "Run",
                     }
@@ -1815,15 +1815,15 @@ Run {SCRIPT}
         skills_dir.mkdir(parents=True)
 
         registrar = CommandRegistrar()
-        from specify_cli.extensions import ExtensionManifest
+        from kite_cli.extensions import ExtensionManifest
         manifest = ExtensionManifest(ext_dir / "extension.yml")
         registered = registrar.register_commands_for_agent("codex", manifest, ext_dir, project_dir)
 
-        skill_subdir = skills_dir / "speckit-cleanup-ext-run"
+        skill_subdir = skills_dir / "kite-cleanup-ext-run"
         assert skill_subdir.exists(), "Skill subdirectory should exist after registration"
         assert (skill_subdir / "SKILL.md").exists()
 
-        registrar.unregister_commands({"codex": ["speckit.cleanup-ext.run"]}, project_dir)
+        registrar.unregister_commands({"codex": ["kite.cleanup-ext.run"]}, project_dir)
 
         assert not (skill_subdir / "SKILL.md").exists(), "SKILL.md should be removed"
         assert not skill_subdir.exists(), "Empty parent subdirectory should be removed"
@@ -1883,7 +1883,7 @@ class TestIntegration:
         assert installed[0]["id"] == "test-ext"
 
         # Verify command registered
-        cmd_file = project_dir / ".claude" / "skills" / "speckit-test-ext-hello" / "SKILL.md"
+        cmd_file = project_dir / ".claude" / "skills" / "kite-test-ext-hello" / "SKILL.md"
         assert cmd_file.exists()
 
         # Verify registry has registered commands (now a dict keyed by agent)
@@ -1891,7 +1891,7 @@ class TestIntegration:
         registered_commands = metadata["registered_commands"]
         # Check that the command is registered for at least one agent
         assert any(
-            "speckit.test-ext.hello" in cmds
+            "kite.test-ext.hello" in cmds
             for cmds in registered_commands.values()
         )
 
@@ -1917,8 +1917,8 @@ class TestIntegration:
         assert "copilot" in metadata["registered_commands"]
 
         # Verify files exist before cleanup
-        agent_file = agents_dir / "speckit.test-ext.hello.agent.md"
-        prompt_file = project_dir / ".github" / "prompts" / "speckit.test-ext.hello.prompt.md"
+        agent_file = agents_dir / "kite.test-ext.hello.agent.md"
+        prompt_file = project_dir / ".github" / "prompts" / "kite.test-ext.hello.prompt.md"
         assert agent_file.exists()
         assert prompt_file.exists()
 
@@ -1946,11 +1946,11 @@ class TestIntegration:
                     "version": "1.0.0",
                     "description": f"Extension {i}",
                 },
-                "requires": {"speckit_version": ">=0.1.0"},
+                "requires": {"kite_version": ">=0.1.0"},
                 "provides": {
                     "commands": [
                         {
-                            "name": f"speckit.ext{i}.cmd",
+                            "name": f"kite.ext{i}.cmd",
                             "file": "commands/cmd.md",
                         }
                     ]
@@ -1993,18 +1993,18 @@ class TestExtensionCatalog:
         """Test catalog initialization."""
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
         assert catalog.project_root == project_dir
-        assert catalog.cache_dir == project_dir / ".specify" / "extensions" / ".cache"
+        assert catalog.cache_dir == project_dir / ".kite" / "extensions" / ".cache"
 
     def test_cache_directory_creation(self, temp_dir):
         """Test catalog cache directory is created when fetching."""
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -2041,7 +2041,7 @@ class TestExtensionCatalog:
         """Test that expired cache is not used."""
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -2071,10 +2071,10 @@ class TestExtensionCatalog:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         # Use a single-catalog config so community extensions don't interfere
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump(
                 {
@@ -2139,10 +2139,10 @@ class TestExtensionCatalog:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         # Use a single-catalog config so community extensions don't interfere
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump(
                 {
@@ -2203,10 +2203,10 @@ class TestExtensionCatalog:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         # Use a single-catalog config so community extensions don't interfere
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump(
                 {
@@ -2274,10 +2274,10 @@ class TestExtensionCatalog:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         # Use a single-catalog config so community extensions don't interfere
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump(
                 {
@@ -2338,10 +2338,10 @@ class TestExtensionCatalog:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         # Use a single-catalog config so community extensions don't interfere
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump(
                 {
@@ -2398,7 +2398,7 @@ class TestExtensionCatalog:
         """Test clearing catalog cache."""
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -2421,7 +2421,7 @@ class TestExtensionCatalog:
     def _make_catalog(self, temp_dir):
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
         return ExtensionCatalog(project_dir)
 
     def test_make_request_no_token_no_auth_header(self, temp_dir, monkeypatch):
@@ -2516,7 +2516,7 @@ class TestExtensionCatalog:
 
     def test_redirect_preserves_auth_for_github_to_codeload(self):
         """Auth header is preserved when GitHub redirects to codeload.github.com."""
-        from specify_cli._github_http import _StripAuthOnRedirect
+        from kite_cli._github_http import _StripAuthOnRedirect
         from urllib.request import Request
         import io
 
@@ -2532,7 +2532,7 @@ class TestExtensionCatalog:
 
     def test_redirect_strips_auth_for_github_to_external(self):
         """Auth header is stripped when GitHub redirects to a non-GitHub host."""
-        from specify_cli._github_http import _StripAuthOnRedirect
+        from kite_cli._github_http import _StripAuthOnRedirect
         from urllib.request import Request
         import io
 
@@ -2654,14 +2654,14 @@ class TestCatalogStack:
         """Create a minimal spec-kit project directory."""
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
         return project_dir
 
     def _write_catalog_config(self, project_dir: Path, catalogs: list) -> None:
-        """Write extension-catalogs.yml to project .specify dir."""
+        """Write extension-catalogs.yml to project .kite dir."""
         import yaml as yaml_module
 
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump({"catalogs": catalogs}, f)
 
@@ -2701,10 +2701,10 @@ class TestCatalogStack:
         assert entries[1].install_allowed is False
 
     def test_env_var_overrides_default_stack(self, temp_dir, monkeypatch):
-        """SPECKIT_CATALOG_URL replaces the entire default stack."""
+        """KITE_CATALOG_URL replaces the entire default stack."""
         project_dir = self._make_project(temp_dir)
         custom_url = "https://example.com/catalog.json"
-        monkeypatch.setenv("SPECKIT_CATALOG_URL", custom_url)
+        monkeypatch.setenv("KITE_CATALOG_URL", custom_url)
 
         catalog = ExtensionCatalog(project_dir)
         entries = catalog.get_active_catalogs()
@@ -2714,9 +2714,9 @@ class TestCatalogStack:
         assert entries[0].install_allowed is True
 
     def test_env_var_invalid_url_raises(self, temp_dir, monkeypatch):
-        """SPECKIT_CATALOG_URL with http:// (non-localhost) raises ValidationError."""
+        """KITE_CATALOG_URL with http:// (non-localhost) raises ValidationError."""
         project_dir = self._make_project(temp_dir)
-        monkeypatch.setenv("SPECKIT_CATALOG_URL", "http://example.com/catalog.json")
+        monkeypatch.setenv("KITE_CATALOG_URL", "http://example.com/catalog.json")
 
         catalog = ExtensionCatalog(project_dir)
         with pytest.raises(ValidationError, match="HTTPS"):
@@ -2796,7 +2796,7 @@ class TestCatalogStack:
         import yaml as yaml_module
 
         project_dir = self._make_project(temp_dir)
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump({"catalogs": []}, f)
 
@@ -2812,7 +2812,7 @@ class TestCatalogStack:
         import yaml as yaml_module
 
         project_dir = self._make_project(temp_dir)
-        config_path = project_dir / ".specify" / "extension-catalogs.yml"
+        config_path = project_dir / ".kite" / "extension-catalogs.yml"
         with open(config_path, "w") as f:
             yaml_module.dump({
                 "catalogs": [
@@ -2835,7 +2835,7 @@ class TestCatalogStack:
         project_dir = self._make_project(temp_dir)
         catalog = ExtensionCatalog(project_dir)
 
-        result = catalog._load_catalog_config(project_dir / ".specify" / "nonexistent.yml")
+        result = catalog._load_catalog_config(project_dir / ".kite" / "nonexistent.yml")
         assert result is None
 
     def test_load_catalog_config_localhost_allowed(self, temp_dir):
@@ -3063,12 +3063,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "README.md").exists()
         assert (dest / "tests" / "test_foo.py").exists()
 
@@ -3088,12 +3088,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         # Included
         assert (dest / "README.md").exists()
         assert (dest / "extension.yml").exists()
@@ -3117,12 +3117,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "README.md").exists()
         assert not (dest / "helpers.pyc").exists()
         assert not (dest / "commands" / "cache.pyc").exists()
@@ -3138,12 +3138,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "README.md").exists()
         assert not (dest / "notes.txt").exists()
 
@@ -3157,12 +3157,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "extension.yml").exists()
         assert not (dest / ".extensionignore").exists()
 
@@ -3181,12 +3181,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "docs" / "guide.md").exists()
         assert not (dest / "docs" / "internal" / "draft.md").exists()
 
@@ -3201,12 +3201,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         # Everything should still be copied — the '..' pattern matches nothing inside
         assert (dest / "README.md").exists()
         assert (dest / "extension.yml").exists()
@@ -3223,12 +3223,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         # Nothing matches — /etc/passwd is anchored to root and there's no 'etc' dir
         assert (dest / "README.md").exists()
         assert (dest / "passwd").exists()
@@ -3244,12 +3244,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "README.md").exists()
         assert (dest / "notes.txt").exists()
         assert (dest / "extension.yml").exists()
@@ -3270,12 +3270,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert (dest / "docs" / "guide.md").exists()
         assert not (dest / "docs" / "internal" / "draft.md").exists()
 
@@ -3293,12 +3293,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         # docs/*.draft.md should only match directly inside docs/, NOT subdirs
         assert not (dest / "docs" / "api.draft.md").exists()
         assert (dest / "docs" / "sub" / "api.draft.md").exists()
@@ -3318,12 +3318,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         assert not (dest / "docs" / "api.draft.md").exists()
         assert not (dest / "docs" / "sub" / "api.draft.md").exists()
         assert (dest / "docs" / "guide.md").exists()
@@ -3343,12 +3343,12 @@ class TestExtensionIgnore:
 
         proj_dir = temp_dir / "project"
         proj_dir.mkdir()
-        (proj_dir / ".specify").mkdir()
+        (proj_dir / ".kite").mkdir()
 
         manager = ExtensionManager(proj_dir)
         manager.install_from_directory(ext_dir, "0.1.0", register_commands=False)
 
-        dest = proj_dir / ".specify" / "extensions" / "test-ext"
+        dest = proj_dir / ".kite" / "extensions" / "test-ext"
         # docs/*.md excludes all .md in docs, but !docs/api.md re-includes it
         assert not (dest / "docs" / "guide.md").exists()
         assert not (dest / "docs" / "internal.md").exists()
@@ -3362,15 +3362,15 @@ class TestExtensionAddCLI:
         """extension add by display name should use resolved ID for download_extension()."""
         from typer.testing import CliRunner
         from unittest.mock import patch, MagicMock
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
         # Create project structure
         project_dir = tmp_path / "test-project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
-        (project_dir / ".specify" / "extensions").mkdir(parents=True)
+        (project_dir / ".kite").mkdir()
+        (project_dir / ".kite" / "extensions").mkdir(parents=True)
 
         # Mock catalog that returns extension by display name
         mock_catalog = MagicMock()
@@ -3394,7 +3394,7 @@ class TestExtensionAddCLI:
 
         mock_catalog.download_extension.side_effect = mock_download
 
-        with patch("specify_cli.extensions.ExtensionCatalog", return_value=mock_catalog), \
+        with patch("kite_cli.extensions.ExtensionCatalog", return_value=mock_catalog), \
              patch.object(Path, "cwd", return_value=project_dir):
             result = runner.invoke(
                 app,
@@ -3417,15 +3417,15 @@ class TestExtensionAddCLI:
         """extension add should give a clear error when a bundled extension is not found locally."""
         from typer.testing import CliRunner
         from unittest.mock import patch, MagicMock
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
         # Create project structure
         project_dir = tmp_path / "test-project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
-        (project_dir / ".specify" / "extensions").mkdir(parents=True)
+        (project_dir / ".kite").mkdir()
+        (project_dir / ".kite" / "extensions").mkdir(parents=True)
 
         # Mock catalog that returns a bundled extension without download_url
         mock_catalog = MagicMock()
@@ -3439,8 +3439,8 @@ class TestExtensionAddCLI:
         }
         mock_catalog.search.return_value = []
 
-        with patch("specify_cli.extensions.ExtensionCatalog", return_value=mock_catalog), \
-             patch("specify_cli._locate_bundled_extension", return_value=None), \
+        with patch("kite_cli.extensions.ExtensionCatalog", return_value=mock_catalog), \
+             patch("kite_cli._locate_bundled_extension", return_value=None), \
              patch.object(Path, "cwd", return_value=project_dir):
             result = runner.invoke(
                 app,
@@ -3462,7 +3462,7 @@ class TestDownloadExtensionBundled:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -3485,7 +3485,7 @@ class TestDownloadExtensionBundled:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -3514,7 +3514,7 @@ class TestDownloadExtensionBundled:
 
         project_dir = temp_dir / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         catalog = ExtensionCatalog(project_dir)
 
@@ -3549,11 +3549,11 @@ class TestExtensionUpdateCLI:
                 "version": version,
                 "description": "A test extension",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.test-ext.hello",
+                        "name": "kite.test-ext.hello",
                         "file": "commands/hello.md",
                         "description": "Test command",
                     }
@@ -3561,7 +3561,7 @@ class TestExtensionUpdateCLI:
             },
             "hooks": {
                 "after_tasks": {
-                    "command": "speckit.test-ext.hello",
+                    "command": "kite.test-ext.hello",
                     "optional": True,
                 }
             },
@@ -3589,8 +3589,8 @@ class TestExtensionUpdateCLI:
                 "version": version,
                 "description": "A test extension",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
-            "provides": {"commands": [{"name": "speckit.test-ext.hello", "file": "commands/hello.md"}]},
+            "requires": {"kite_version": ">=0.1.0"},
+            "provides": {"commands": [{"name": "kite.test-ext.hello", "file": "commands/hello.md"}]},
         }
 
         with zipfile.ZipFile(zip_path, "w") as zf:
@@ -3600,12 +3600,12 @@ class TestExtensionUpdateCLI:
         """Successful update should keep original installed_at and apply new version."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         project_dir = tmp_path / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
         (project_dir / ".claude" / "skills").mkdir(parents=True)
 
         manager = ExtensionManager(project_dir)
@@ -3613,15 +3613,15 @@ class TestExtensionUpdateCLI:
         manager.install_from_directory(v1_dir, "0.1.0")
         original_installed_at = manager.registry.get("test-ext")["installed_at"]
         original_config_content = (
-            project_dir / ".specify" / "extensions" / "test-ext" / "linear-config.yml"
+            project_dir / ".kite" / "extensions" / "test-ext" / "linear-config.yml"
         ).read_text()
 
         zip_path = tmp_path / "test-ext-update.zip"
         self._create_catalog_zip(zip_path, "2.0.0")
         v2_dir = self._create_extension_source(tmp_path, "2.0.0")
 
-        def fake_install_from_zip(self_obj, _zip_path, speckit_version):
-            return self_obj.install_from_directory(v2_dir, speckit_version)
+        def fake_install_from_zip(self_obj, _zip_path, kite_version):
+            return self_obj.install_from_directory(v2_dir, kite_version)
 
         with patch.object(Path, "cwd", return_value=project_dir), \
              patch.object(ExtensionCatalog, "get_extension_info", return_value={
@@ -3640,7 +3640,7 @@ class TestExtensionUpdateCLI:
         assert updated["version"] == "2.0.0"
         assert updated["installed_at"] == original_installed_at
         restored_config_content = (
-            project_dir / ".specify" / "extensions" / "test-ext" / "linear-config.yml"
+            project_dir / ".kite" / "extensions" / "test-ext" / "linear-config.yml"
         ).read_text()
         assert restored_config_content == original_config_content
 
@@ -3648,13 +3648,13 @@ class TestExtensionUpdateCLI:
         """Failed update should restore original registry, hooks, and command files."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
         import yaml
 
         runner = CliRunner()
         project_dir = tmp_path / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
         (project_dir / ".claude" / "skills").mkdir(parents=True)
 
         manager = ExtensionManager(project_dir)
@@ -3662,11 +3662,11 @@ class TestExtensionUpdateCLI:
         manager.install_from_directory(v1_dir, "0.1.0")
 
         backup_registry_entry = manager.registry.get("test-ext")
-        hooks_before = yaml.safe_load((project_dir / ".specify" / "extensions.yml").read_text())
+        hooks_before = yaml.safe_load((project_dir / ".kite" / "extensions.yml").read_text())
 
         registered_commands = backup_registry_entry.get("registered_commands", {})
         command_files = []
-        from specify_cli.agents import CommandRegistrar as AgentRegistrar
+        from kite_cli.agents import CommandRegistrar as AgentRegistrar
         agent_registrar = AgentRegistrar()
         for agent_name, cmd_names in registered_commands.items():
             if agent_name not in agent_registrar.AGENT_CONFIGS:
@@ -3701,7 +3701,7 @@ class TestExtensionUpdateCLI:
         restored_entry = ExtensionManager(project_dir).registry.get("test-ext")
         assert restored_entry == backup_registry_entry
 
-        hooks_after = yaml.safe_load((project_dir / ".specify" / "extensions.yml").read_text())
+        hooks_after = yaml.safe_load((project_dir / ".kite" / "extensions.yml").read_text())
         assert hooks_after == hooks_before
 
         for cmd_file in command_files:
@@ -3715,7 +3715,7 @@ class TestExtensionListCLI:
         """extension list should display the extension ID."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3895,7 +3895,7 @@ class TestExtensionPriority:
 
     def test_corrupted_extension_entry_not_picked_up_as_unregistered(self, project_dir):
         """Corrupted registry entries are still tracked and NOT picked up as unregistered."""
-        extensions_dir = project_dir / ".specify" / "extensions"
+        extensions_dir = project_dir / ".kite" / "extensions"
 
         valid_dir = extensions_dir / "valid-ext" / "templates"
         valid_dir.mkdir(parents=True)
@@ -3911,7 +3911,7 @@ class TestExtensionPriority:
         registry.data["extensions"]["broken-ext"] = "corrupted"
         registry._save()
 
-        from specify_cli.presets import PresetResolver
+        from kite_cli.presets import PresetResolver
 
         resolver = PresetResolver(project_dir)
         # Corrupted extension templates should NOT be resolved
@@ -3931,7 +3931,7 @@ class TestExtensionPriorityCLI:
         """Test extension add command with --priority option."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3950,7 +3950,7 @@ class TestExtensionPriorityCLI:
         """Test extension list shows priority."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3969,7 +3969,7 @@ class TestExtensionPriorityCLI:
         """Test set-priority command changes extension priority."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -3995,7 +3995,7 @@ class TestExtensionPriorityCLI:
         """Test set-priority with same value shows already set message."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -4014,7 +4014,7 @@ class TestExtensionPriorityCLI:
         """Test set-priority rejects invalid priority values."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -4032,12 +4032,12 @@ class TestExtensionPriorityCLI:
         """Test set-priority fails for non-installed extension."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
-        # Ensure .specify exists
-        (project_dir / ".specify").mkdir(parents=True, exist_ok=True)
+        # Ensure .kite exists
+        (project_dir / ".kite").mkdir(parents=True, exist_ok=True)
 
         with patch.object(Path, "cwd", return_value=project_dir):
             result = runner.invoke(app, ["extension", "set-priority", "nonexistent", "5"])
@@ -4049,7 +4049,7 @@ class TestExtensionPriorityCLI:
         """Test set-priority works with extension display name."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
 
@@ -4152,8 +4152,8 @@ class TestHookInvocationRendering:
     """Test hook invocation formatting for different agent modes."""
 
     def test_kimi_hooks_render_skill_invocation(self, project_dir):
-        """Kimi projects should render /skill:speckit-* invocations."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        """Kimi projects should render /skill:kite-* invocations."""
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "kimi", "ai_skills": False}))
 
@@ -4163,19 +4163,19 @@ class TestHookInvocationRendering:
             [
                 {
                     "extension": "test-ext",
-                    "command": "speckit.plan",
+                    "command": "kite.plan",
                     "optional": False,
                 }
             ],
         )
 
-        assert "Executing: `/skill:speckit-plan`" in message
-        assert "EXECUTE_COMMAND: speckit.plan" in message
-        assert "EXECUTE_COMMAND_INVOCATION: /skill:speckit-plan" in message
+        assert "Executing: `/skill:kite-plan`" in message
+        assert "EXECUTE_COMMAND: kite.plan" in message
+        assert "EXECUTE_COMMAND_INVOCATION: /skill:kite-plan" in message
 
     def test_codex_hooks_render_dollar_skill_invocation(self, project_dir):
-        """Codex projects with --ai-skills should render $speckit-* invocations."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        """Codex projects with --ai-skills should render $kite-* invocations."""
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "codex", "ai_skills": True}))
 
@@ -4183,17 +4183,17 @@ class TestHookInvocationRendering:
         execution = hook_executor.execute_hook(
             {
                 "extension": "test-ext",
-                "command": "speckit.tasks",
+                "command": "kite.tasks",
                 "optional": False,
             }
         )
 
-        assert execution["command"] == "speckit.tasks"
-        assert execution["invocation"] == "$speckit-tasks"
+        assert execution["command"] == "kite.tasks"
+        assert execution["invocation"] == "$kite-tasks"
 
     def test_non_skill_command_keeps_slash_invocation(self, project_dir):
         """Custom hook commands should keep slash invocation style."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "kimi", "ai_skills": False}))
 
@@ -4215,7 +4215,7 @@ class TestHookInvocationRendering:
 
     def test_extension_command_uses_hyphenated_skill_invocation(self, project_dir):
         """Multi-segment extension command ids should map to hyphenated skills."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "kimi", "ai_skills": False}))
 
@@ -4225,15 +4225,15 @@ class TestHookInvocationRendering:
             [
                 {
                     "extension": "test-ext",
-                    "command": "speckit.test-ext.hello",
+                    "command": "kite.test-ext.hello",
                     "optional": False,
                 }
             ],
         )
 
-        assert "Executing: `/skill:speckit-test-ext-hello`" in message
-        assert "EXECUTE_COMMAND: speckit.test-ext.hello" in message
-        assert "EXECUTE_COMMAND_INVOCATION: /skill:speckit-test-ext-hello" in message
+        assert "Executing: `/skill:kite-test-ext-hello`" in message
+        assert "EXECUTE_COMMAND: kite.test-ext.hello" in message
+        assert "EXECUTE_COMMAND_INVOCATION: /skill:kite-test-ext-hello" in message
 
     def test_hook_executor_caches_init_options_lookup(self, project_dir, monkeypatch):
         """Init options should be loaded once per executor instance."""
@@ -4243,16 +4243,16 @@ class TestHookInvocationRendering:
             calls["count"] += 1
             return {"ai": "kimi", "ai_skills": False}
 
-        monkeypatch.setattr("specify_cli.load_init_options", fake_load_init_options)
+        monkeypatch.setattr("kite_cli.load_init_options", fake_load_init_options)
 
         hook_executor = HookExecutor(project_dir)
-        assert hook_executor._render_hook_invocation("speckit.plan") == "/skill:speckit-plan"
-        assert hook_executor._render_hook_invocation("speckit.tasks") == "/skill:speckit-tasks"
+        assert hook_executor._render_hook_invocation("kite.plan") == "/skill:kite-plan"
+        assert hook_executor._render_hook_invocation("kite.tasks") == "/skill:kite-tasks"
         assert calls["count"] == 1
 
     def test_hook_message_falls_back_when_invocation_is_empty(self, project_dir):
         """Hook messages should still render actionable command placeholders."""
-        init_options = project_dir / ".specify" / "init-options.json"
+        init_options = project_dir / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "kimi", "ai_skills": False}))
 
@@ -4274,7 +4274,7 @@ class TestHookInvocationRendering:
 
 
 class TestExtensionRemoveCLI:
-    """CLI tests for `specify extension remove` confirmation prompt wording."""
+    """CLI tests for `kite extension remove` confirmation prompt wording."""
 
     def _install_ext(self, project_dir, ext_dir):
         """Install extension and return the manager."""
@@ -4286,15 +4286,15 @@ class TestExtensionRemoveCLI:
         """Confirmation prompt should say '1 command' (singular) when one command registered."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         project_dir = tmp_path / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         manager = self._install_ext(project_dir, extension_dir)
         # Inject registered_commands with 1 entry so cmd_count == 1
-        manager.registry.update("test-ext", {"registered_commands": {"claude": ["speckit.test-ext.hello"]}})
+        manager.registry.update("test-ext", {"registered_commands": {"claude": ["kite.test-ext.hello"]}})
 
         runner = CliRunner()
         with patch.object(Path, "cwd", return_value=project_dir):
@@ -4309,15 +4309,15 @@ class TestExtensionRemoveCLI:
         """Confirmation prompt should say '2 commands' (plural) when two commands registered."""
         from typer.testing import CliRunner
         from unittest.mock import patch
-        from specify_cli import app
+        from kite_cli import app
 
         project_dir = tmp_path / "project"
         project_dir.mkdir()
-        (project_dir / ".specify").mkdir()
+        (project_dir / ".kite").mkdir()
 
         manager = self._install_ext(project_dir, extension_dir)
         # Inject registered_commands with 2 entries so cmd_count == 2
-        manager.registry.update("test-ext", {"registered_commands": {"claude": ["speckit.test-ext.hello", "speckit.test-ext.run"]}})
+        manager.registry.update("test-ext", {"registered_commands": {"claude": ["kite.test-ext.hello", "kite.test-ext.run"]}})
 
         runner = CliRunner()
         with patch.object(Path, "cwd", return_value=project_dir):

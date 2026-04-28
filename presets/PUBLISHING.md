@@ -1,6 +1,6 @@
 # Preset Publishing Guide
 
-This guide explains how to publish your preset to the Spec Kit preset catalog, making it discoverable by `specify preset search`.
+This guide explains how to publish your preset to the Kite preset catalog, making it discoverable by `kite preset search`.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ Before publishing a preset, ensure you have:
 3. **Documentation**: README.md with description and usage instructions
 4. **License**: Open source license file (MIT, Apache 2.0, etc.)
 5. **Versioning**: Semantic versioning (e.g., 1.0.0)
-6. **Testing**: Preset tested on real projects with `specify preset add --dev`
+6. **Testing**: Preset tested on real projects with `kite preset add --dev`
 
 ---
 
@@ -45,7 +45,7 @@ your-preset/
 │   └── ...
 │
 └── commands/                  # Command overrides (optional)
-    └── speckit.specify.md
+    └── kite.specify.md
 ```
 
 Start from the [scaffold](scaffold/) if you're creating a new preset.
@@ -67,7 +67,7 @@ preset:
   license: "MIT"
 
 requires:
-  speckit_version: ">=0.1.0"      # Required spec-kit version
+  kite_version: ">=0.1.0"      # Required spec-kit version
 
 provides:
   templates:
@@ -90,39 +90,39 @@ tags:                              # 2-5 relevant tags
 - ✅ `repository` URL is valid and public
 - ✅ All template and command files exist in the preset directory
 - ✅ Template names are lowercase with hyphens only
-- ✅ Command names use dot notation (e.g. `speckit.specify`)
+- ✅ Command names use dot notation (e.g. `kite.specify`)
 - ✅ Tags are lowercase and descriptive
 
 ### 3. Test Locally
 
 ```bash
 # Install from local directory
-specify preset add --dev /path/to/your-preset
+kite preset add --dev /path/to/your-preset
 
 # Verify templates resolve from your preset
-specify preset resolve spec-template
+kite preset resolve spec-template
 
 # Verify preset info
-specify preset info your-preset
+kite preset info your-preset
 
 # List installed presets
-specify preset list
+kite preset list
 
 # Remove when done testing
-specify preset remove your-preset
+kite preset remove your-preset
 ```
 
 If your preset includes command overrides, verify they appear in the agent directories:
 
 ```bash
 # Check Claude commands (if using Claude)
-ls .claude/commands/speckit.*.md
+ls .claude/commands/kite.*.md
 
 # Check Copilot commands (if using Copilot)
-ls .github/agents/speckit.*.agent.md
+ls .github/agents/kite.*.agent.md
 
 # Check Gemini commands (if using Gemini)
-ls .gemini/commands/speckit.*.toml
+ls .gemini/commands/kite.*.toml
 ```
 
 ### 4. Create GitHub Release
@@ -144,7 +144,7 @@ https://github.com/your-org/spec-kit-preset-your-preset/archive/refs/tags/v1.0.0
 ### 5. Test Installation from Archive
 
 ```bash
-specify preset add --from https://github.com/your-org/spec-kit-preset-your-preset/archive/refs/tags/v1.0.0.zip
+kite preset add --from https://github.com/your-org/spec-kit-preset-your-preset/archive/refs/tags/v1.0.0.zip
 ```
 
 ---
@@ -153,7 +153,7 @@ specify preset add --from https://github.com/your-org/spec-kit-preset-your-prese
 
 ### Understanding the Catalogs
 
-Spec Kit uses a dual-catalog system:
+Kite uses a dual-catalog system:
 
 - **`catalog.json`** — Official, verified presets (install allowed by default)
 - **`catalog.community.json`** — Community-contributed presets (discovery only by default)
@@ -188,7 +188,7 @@ Edit `presets/catalog.community.json` and add your preset.
       "repository": "https://github.com/your-org/spec-kit-preset-your-preset",
       "license": "MIT",
       "requires": {
-        "speckit_version": ">=0.1.0"
+        "kite_version": ">=0.1.0"
       },
       "provides": {
         "templates": 3,
@@ -245,8 +245,8 @@ git push origin add-your-preset
 - [ ] README.md with description and usage
 - [ ] LICENSE file included
 - [ ] GitHub release created
-- [ ] Preset tested with `specify preset add --dev`
-- [ ] Templates resolve correctly (`specify preset resolve`)
+- [ ] Preset tested with `kite preset add --dev`
+- [ ] Templates resolve correctly (`kite preset resolve`)
 - [ ] Commands register to agent directories (if applicable)
 - [ ] Commands match template sections (command + template are coherent)
 - [ ] Added to presets/catalog.community.json
@@ -265,7 +265,7 @@ After submission, maintainers will review:
 4. **Security** — no malicious content, safe file operations
 5. **Documentation** — clear README explaining what the preset does
 
-Once verified, `verified: true` is set and the preset appears in `specify preset search`.
+Once verified, `verified: true` is set and the preset appears in `kite preset search`.
 
 ---
 

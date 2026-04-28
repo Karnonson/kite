@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from specify_cli.integrations.manifest import IntegrationManifest, _sha256
+from kite_cli.integrations.manifest import IntegrationManifest, _sha256
 
 
 class TestManifestRecordFile:
@@ -194,7 +194,7 @@ class TestManifestPersistence:
 
     def test_manifest_path(self, tmp_path):
         m = IntegrationManifest("copilot", tmp_path)
-        assert m.manifest_path == tmp_path / ".specify" / "integrations" / "copilot.manifest.json"
+        assert m.manifest_path == tmp_path / ".kite" / "integrations" / "copilot.manifest.json"
 
     def test_load_missing_raises(self, tmp_path):
         with pytest.raises(FileNotFoundError):
@@ -219,28 +219,28 @@ class TestManifestPersistence:
 
 class TestManifestLoadValidation:
     def test_load_non_dict_raises(self, tmp_path):
-        path = tmp_path / ".specify" / "integrations" / "bad.manifest.json"
+        path = tmp_path / ".kite" / "integrations" / "bad.manifest.json"
         path.parent.mkdir(parents=True)
         path.write_text('"just a string"', encoding="utf-8")
         with pytest.raises(ValueError, match="JSON object"):
             IntegrationManifest.load("bad", tmp_path)
 
     def test_load_bad_files_type_raises(self, tmp_path):
-        path = tmp_path / ".specify" / "integrations" / "bad.manifest.json"
+        path = tmp_path / ".kite" / "integrations" / "bad.manifest.json"
         path.parent.mkdir(parents=True)
         path.write_text(json.dumps({"files": ["not", "a", "dict"]}), encoding="utf-8")
         with pytest.raises(ValueError, match="mapping"):
             IntegrationManifest.load("bad", tmp_path)
 
     def test_load_bad_files_values_raises(self, tmp_path):
-        path = tmp_path / ".specify" / "integrations" / "bad.manifest.json"
+        path = tmp_path / ".kite" / "integrations" / "bad.manifest.json"
         path.parent.mkdir(parents=True)
         path.write_text(json.dumps({"files": {"a.txt": 123}}), encoding="utf-8")
         with pytest.raises(ValueError, match="mapping"):
             IntegrationManifest.load("bad", tmp_path)
 
     def test_load_invalid_json_raises(self, tmp_path):
-        path = tmp_path / ".specify" / "integrations" / "bad.manifest.json"
+        path = tmp_path / ".kite" / "integrations" / "bad.manifest.json"
         path.parent.mkdir(parents=True)
         path.write_text("{not valid json", encoding="utf-8")
         with pytest.raises(ValueError, match="invalid JSON"):

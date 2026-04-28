@@ -35,8 +35,8 @@ def temp_dir():
 
 @pytest.fixture
 def project_dir(temp_dir):
-    """Create a mock spec-kit project with .specify/ directory."""
-    specify_dir = temp_dir / ".specify"
+    """Create a mock spec-kit project with .kite/ directory."""
+    specify_dir = temp_dir / ".kite"
     specify_dir.mkdir()
     (specify_dir / "workflows").mkdir()
     return temp_dir
@@ -63,12 +63,12 @@ inputs:
 
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
     input:
       args: "{{ inputs.spec }}"
 
   - id: step-two
-    command: speckit.plan
+    command: kite.plan
     input:
       args: "{{ steps.step-one.output.command }}"
 """
@@ -77,7 +77,7 @@ steps:
 @pytest.fixture
 def sample_workflow_file(project_dir, sample_workflow_yaml):
     """Write a sample workflow YAML to a file and return its path."""
-    wf_dir = project_dir / ".specify" / "workflows" / "test-workflow"
+    wf_dir = project_dir / ".kite" / "workflows" / "test-workflow"
     wf_dir.mkdir(parents=True, exist_ok=True)
     wf_path = wf_dir / "workflow.yml"
     wf_path.write_text(sample_workflow_yaml, encoding="utf-8")
@@ -90,12 +90,12 @@ class TestStepRegistry:
     """Test STEP_REGISTRY and auto-discovery."""
 
     def test_registry_populated(self):
-        from specify_cli.workflows import STEP_REGISTRY
+        from kite_cli.workflows import STEP_REGISTRY
 
         assert len(STEP_REGISTRY) >= 10
 
     def test_all_step_types_registered(self):
-        from specify_cli.workflows import STEP_REGISTRY
+        from kite_cli.workflows import STEP_REGISTRY
 
         expected = {
             "command", "shell", "prompt", "gate", "if", "switch",
@@ -104,27 +104,27 @@ class TestStepRegistry:
         assert expected.issubset(set(STEP_REGISTRY.keys()))
 
     def test_get_step_type(self):
-        from specify_cli.workflows import get_step_type
+        from kite_cli.workflows import get_step_type
 
         step = get_step_type("command")
         assert step is not None
         assert step.type_key == "command"
 
     def test_get_step_type_missing(self):
-        from specify_cli.workflows import get_step_type
+        from kite_cli.workflows import get_step_type
 
         assert get_step_type("nonexistent") is None
 
     def test_register_step_duplicate_raises(self):
-        from specify_cli.workflows import _register_step
-        from specify_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows import _register_step
+        from kite_cli.workflows.steps.command import CommandStep
 
         with pytest.raises(KeyError, match="already registered"):
             _register_step(CommandStep())
 
     def test_register_step_empty_key_raises(self):
-        from specify_cli.workflows import _register_step
-        from specify_cli.workflows.base import StepBase, StepResult
+        from kite_cli.workflows import _register_step
+        from kite_cli.workflows.base import StepBase, StepResult
 
         class EmptyStep(StepBase):
             type_key = ""
@@ -141,7 +141,7 @@ class TestBaseClasses:
     """Test StepBase, StepContext, StepResult."""
 
     def test_step_context_defaults(self):
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert ctx.inputs == {}
@@ -151,7 +151,7 @@ class TestBaseClasses:
         assert ctx.default_integration is None
 
     def test_step_context_with_data(self):
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(
             inputs={"name": "test"},
@@ -163,7 +163,7 @@ class TestBaseClasses:
         assert ctx.default_model == "sonnet-4"
 
     def test_step_result_defaults(self):
-        from specify_cli.workflows.base import StepResult, StepStatus
+        from kite_cli.workflows.base import StepResult, StepStatus
 
         result = StepResult()
         assert result.status == StepStatus.COMPLETED
@@ -172,7 +172,7 @@ class TestBaseClasses:
         assert result.error is None
 
     def test_step_status_values(self):
-        from specify_cli.workflows.base import StepStatus
+        from kite_cli.workflows.base import StepStatus
 
         assert StepStatus.PENDING == "pending"
         assert StepStatus.RUNNING == "running"
@@ -182,7 +182,7 @@ class TestBaseClasses:
         assert StepStatus.PAUSED == "paused"
 
     def test_run_status_values(self):
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.base import RunStatus
 
         assert RunStatus.CREATED == "created"
         assert RunStatus.RUNNING == "running"
@@ -198,15 +198,15 @@ class TestExpressions:
     """Test sandboxed expression evaluator."""
 
     def test_simple_variable(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"name": "login"})
         assert evaluate_expression("{{ inputs.name }}", ctx) == "login"
 
     def test_step_output_reference(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(
             steps={"specify": {"output": {"file": "spec.md"}}}
@@ -214,24 +214,24 @@ class TestExpressions:
         assert evaluate_expression("{{ steps.specify.output.file }}", ctx) == "spec.md"
 
     def test_string_interpolation(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"name": "login"})
         result = evaluate_expression("Feature: {{ inputs.name }} done", ctx)
         assert result == "Feature: login done"
 
     def test_comparison_equals(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"scope": "full"})
         assert evaluate_expression("{{ inputs.scope == 'full' }}", ctx) is True
         assert evaluate_expression("{{ inputs.scope == 'partial' }}", ctx) is False
 
     def test_comparison_not_equals(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(
             steps={"run-tests": {"output": {"exit_code": 1}}}
@@ -240,8 +240,8 @@ class TestExpressions:
         assert result is True
 
     def test_numeric_comparison(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(
             steps={"plan": {"output": {"task_count": 7}}}
@@ -250,81 +250,81 @@ class TestExpressions:
         assert evaluate_expression("{{ steps.plan.output.task_count < 5 }}", ctx) is False
 
     def test_boolean_and(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"a": True, "b": True})
         assert evaluate_expression("{{ inputs.a and inputs.b }}", ctx) is True
 
     def test_boolean_or(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"a": False, "b": True})
         assert evaluate_expression("{{ inputs.a or inputs.b }}", ctx) is True
 
     def test_filter_default(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert evaluate_expression("{{ inputs.missing | default('fallback') }}", ctx) == "fallback"
 
     def test_filter_join(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"tags": ["a", "b", "c"]})
         assert evaluate_expression("{{ inputs.tags | join(', ') }}", ctx) == "a, b, c"
 
     def test_filter_contains(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"text": "hello world"})
         assert evaluate_expression("{{ inputs.text | contains('world') }}", ctx) is True
 
     def test_condition_evaluation(self):
-        from specify_cli.workflows.expressions import evaluate_condition
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_condition
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(inputs={"ready": True})
         assert evaluate_condition("{{ inputs.ready }}", ctx) is True
         assert evaluate_condition("{{ inputs.missing }}", ctx) is False
 
     def test_non_string_passthrough(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert evaluate_expression(42, ctx) == 42
         assert evaluate_expression(None, ctx) is None
 
     def test_string_literal(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert evaluate_expression("{{ 'hello' }}", ctx) == "hello"
 
     def test_numeric_literal(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert evaluate_expression("{{ 42 }}", ctx) == 42
 
     def test_boolean_literal(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext()
         assert evaluate_expression("{{ true }}", ctx) is True
         assert evaluate_expression("{{ false }}", ctx) is False
 
     def test_list_indexing(self):
-        from specify_cli.workflows.expressions import evaluate_expression
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.expressions import evaluate_expression
+        from kite_cli.workflows.base import StepContext
 
         ctx = StepContext(
             steps={"tasks": {"output": {"task_list": [{"file": "a.md"}, {"file": "b.md"}]}}}
@@ -339,7 +339,7 @@ class TestBuildExecArgs:
     """Test build_exec_args for CLI-based integrations."""
 
     def test_claude_exec_args(self):
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
         impl = ClaudeIntegration()
         args = impl.build_exec_args("do stuff", model="sonnet-4")
         assert args[0] == "claude"
@@ -350,7 +350,7 @@ class TestBuildExecArgs:
         assert "--output-format" in args
 
     def test_gemini_exec_args(self):
-        from specify_cli.integrations.gemini import GeminiIntegration
+        from kite_cli.integrations.gemini import GeminiIntegration
         impl = GeminiIntegration()
         args = impl.build_exec_args("do stuff", model="gemini-2.5-pro")
         assert args[0] == "gemini"
@@ -359,7 +359,7 @@ class TestBuildExecArgs:
         assert "gemini-2.5-pro" in args
 
     def test_codex_exec_args(self):
-        from specify_cli.integrations.codex import CodexIntegration
+        from kite_cli.integrations.codex import CodexIntegration
         impl = CodexIntegration()
         args = impl.build_exec_args("do stuff")
         assert args[0] == "codex"
@@ -368,9 +368,9 @@ class TestBuildExecArgs:
         assert "--json" in args
 
     def test_copilot_exec_args(self, monkeypatch):
-        monkeypatch.delenv("SPECKIT_COPILOT_ALLOW_ALL_TOOLS", raising=False)
-        monkeypatch.delenv("SPECKIT_ALLOW_ALL_TOOLS", raising=False)
-        from specify_cli.integrations.copilot import CopilotIntegration
+        monkeypatch.delenv("KITE_COPILOT_ALLOW_ALL_TOOLS", raising=False)
+        monkeypatch.delenv("KITE_ALLOW_ALL_TOOLS", raising=False)
+        from kite_cli.integrations.copilot import CopilotIntegration
         impl = CopilotIntegration()
         args = impl.build_exec_args("do stuff", model="claude-sonnet-4-20250514")
         assert args[0] == "copilot"
@@ -379,50 +379,50 @@ class TestBuildExecArgs:
         assert "--model" in args
 
     def test_copilot_new_env_var_disables_yolo(self, monkeypatch):
-        monkeypatch.setenv("SPECKIT_COPILOT_ALLOW_ALL_TOOLS", "0")
-        monkeypatch.delenv("SPECKIT_ALLOW_ALL_TOOLS", raising=False)
-        from specify_cli.integrations.copilot import CopilotIntegration
+        monkeypatch.setenv("KITE_COPILOT_ALLOW_ALL_TOOLS", "0")
+        monkeypatch.delenv("KITE_ALLOW_ALL_TOOLS", raising=False)
+        from kite_cli.integrations.copilot import CopilotIntegration
         impl = CopilotIntegration()
         args = impl.build_exec_args("do stuff")
         assert "--yolo" not in args
 
     def test_copilot_deprecated_env_var_still_honoured(self, monkeypatch):
-        monkeypatch.delenv("SPECKIT_COPILOT_ALLOW_ALL_TOOLS", raising=False)
-        monkeypatch.setenv("SPECKIT_ALLOW_ALL_TOOLS", "0")
+        monkeypatch.delenv("KITE_COPILOT_ALLOW_ALL_TOOLS", raising=False)
+        monkeypatch.setenv("KITE_ALLOW_ALL_TOOLS", "0")
         import warnings
-        from specify_cli.integrations.copilot import CopilotIntegration
+        from kite_cli.integrations.copilot import CopilotIntegration
         impl = CopilotIntegration()
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             args = impl.build_exec_args("do stuff")
         assert "--yolo" not in args
         assert any(
-            "SPECKIT_ALLOW_ALL_TOOLS is deprecated" in str(x.message)
+            "KITE_ALLOW_ALL_TOOLS is deprecated" in str(x.message)
             and issubclass(x.category, UserWarning)
             for x in w
         )
 
     def test_copilot_new_env_var_takes_precedence(self, monkeypatch):
-        monkeypatch.setenv("SPECKIT_COPILOT_ALLOW_ALL_TOOLS", "1")
-        monkeypatch.setenv("SPECKIT_ALLOW_ALL_TOOLS", "0")
-        from specify_cli.integrations.copilot import CopilotIntegration
+        monkeypatch.setenv("KITE_COPILOT_ALLOW_ALL_TOOLS", "1")
+        monkeypatch.setenv("KITE_ALLOW_ALL_TOOLS", "0")
+        from kite_cli.integrations.copilot import CopilotIntegration
         impl = CopilotIntegration()
         args = impl.build_exec_args("do stuff")
         assert "--yolo" in args
 
     def test_ide_only_returns_none(self):
-        from specify_cli.integrations.windsurf import WindsurfIntegration
+        from kite_cli.integrations.windsurf import WindsurfIntegration
         impl = WindsurfIntegration()
         assert impl.build_exec_args("test") is None
 
     def test_no_model_omits_flag(self):
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
         impl = ClaudeIntegration()
         args = impl.build_exec_args("do stuff", model=None)
         assert "--model" not in args
 
     def test_no_json_omits_flag(self):
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
         impl = ClaudeIntegration()
         args = impl.build_exec_args("do stuff", output_json=False)
         assert "--output-format" not in args
@@ -435,8 +435,8 @@ class TestCommandStep:
 
     def test_execute_basic(self):
         from unittest.mock import patch
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = CommandStep()
         ctx = StepContext(
@@ -445,32 +445,32 @@ class TestCommandStep:
         )
         config = {
             "id": "test",
-            "command": "speckit.specify",
+            "command": "kite.specify",
             "input": {"args": "{{ inputs.name }}"},
         }
-        with patch("specify_cli.workflows.steps.command.shutil.which", return_value=None):
+        with patch("kite_cli.workflows.steps.command.shutil.which", return_value=None):
             result = step.execute(config, ctx)
         assert result.status == StepStatus.FAILED
-        assert result.output["command"] == "speckit.specify"
+        assert result.output["command"] == "kite.specify"
         assert result.output["integration"] == "claude"
         assert result.output["input"]["args"] == "login"
 
     def test_validate_missing_command(self):
-        from specify_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.steps.command import CommandStep
 
         step = CommandStep()
         errors = step.validate({"id": "test"})
         assert any("missing 'command'" in e for e in errors)
 
     def test_step_override_integration(self):
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext
 
         step = CommandStep()
         ctx = StepContext(default_integration="claude")
         config = {
             "id": "test",
-            "command": "speckit.plan",
+            "command": "kite.plan",
             "integration": "gemini",
             "input": {},
         }
@@ -478,14 +478,14 @@ class TestCommandStep:
         assert result.output["integration"] == "gemini"
 
     def test_step_override_model(self):
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext
 
         step = CommandStep()
         ctx = StepContext(default_model="sonnet-4")
         config = {
             "id": "test",
-            "command": "speckit.implement",
+            "command": "kite.implement",
             "model": "opus-4",
             "input": {},
         }
@@ -493,14 +493,14 @@ class TestCommandStep:
         assert result.output["model"] == "opus-4"
 
     def test_options_merge(self):
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext
 
         step = CommandStep()
         ctx = StepContext(default_options={"max-tokens": 8000})
         config = {
             "id": "test",
-            "command": "speckit.plan",
+            "command": "kite.plan",
             "options": {"thinking-budget": 32768},
             "input": {},
         }
@@ -511,8 +511,8 @@ class TestCommandStep:
     def test_dispatch_not_attempted_without_cli(self):
         """When the CLI tool is not installed, step should fail."""
         from unittest.mock import patch
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = CommandStep()
         ctx = StepContext(
@@ -522,10 +522,10 @@ class TestCommandStep:
         )
         config = {
             "id": "test",
-            "command": "speckit.specify",
+            "command": "kite.specify",
             "input": {"args": "{{ inputs.name }}"},
         }
-        with patch("specify_cli.workflows.steps.command.shutil.which", return_value=None):
+        with patch("kite_cli.workflows.steps.command.shutil.which", return_value=None):
             result = step.execute(config, ctx)
         assert result.status == StepStatus.FAILED
         assert result.output["dispatched"] is False
@@ -534,8 +534,8 @@ class TestCommandStep:
     def test_dispatch_with_mock_cli(self, tmp_path, monkeypatch):
         """When the CLI is installed, dispatch invokes the command by name."""
         from unittest.mock import patch, MagicMock
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = CommandStep()
         ctx = StepContext(
@@ -545,7 +545,7 @@ class TestCommandStep:
         )
         config = {
             "id": "test",
-            "command": "speckit.specify",
+            "command": "kite.specify",
             "input": {"args": "{{ inputs.name }}"},
         }
 
@@ -554,7 +554,7 @@ class TestCommandStep:
         mock_result.stdout = '{"result": "done"}'
         mock_result.stderr = ""
 
-        with patch("specify_cli.workflows.steps.command.shutil.which", return_value="/usr/local/bin/claude"), \
+        with patch("kite_cli.workflows.steps.command.shutil.which", return_value="/usr/local/bin/claude"), \
              patch("subprocess.run", return_value=mock_result) as mock_run:
             result = step.execute(config, ctx)
 
@@ -565,14 +565,14 @@ class TestCommandStep:
         call_args = mock_run.call_args
         assert call_args[0][0][0] == "claude"
         assert call_args[0][0][1] == "-p"
-        # Claude is a SkillsIntegration so uses /speckit-specify
-        assert "/speckit-specify login" in call_args[0][0][2]
+        # Claude is a SkillsIntegration so uses /kite-specify
+        assert "/kite-specify login" in call_args[0][0][2]
 
     def test_dispatch_failure_returns_failed_status(self, tmp_path):
         """When the CLI exits non-zero, the step should fail."""
         from unittest.mock import patch, MagicMock
-        from specify_cli.workflows.steps.command import CommandStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.command import CommandStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = CommandStep()
         ctx = StepContext(
@@ -582,7 +582,7 @@ class TestCommandStep:
         )
         config = {
             "id": "test",
-            "command": "speckit.specify",
+            "command": "kite.specify",
             "input": {"args": "test"},
         }
 
@@ -591,7 +591,7 @@ class TestCommandStep:
         mock_result.stdout = ""
         mock_result.stderr = "API error"
 
-        with patch("specify_cli.workflows.steps.command.shutil.which", return_value="/usr/local/bin/claude"), \
+        with patch("kite_cli.workflows.steps.command.shutil.which", return_value="/usr/local/bin/claude"), \
              patch("subprocess.run", return_value=mock_result):
             result = step.execute(config, ctx)
 
@@ -605,8 +605,8 @@ class TestPromptStep:
 
     def test_execute_basic(self):
         from unittest.mock import patch
-        from specify_cli.workflows.steps.prompt import PromptStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = PromptStep()
         ctx = StepContext(
@@ -618,7 +618,7 @@ class TestPromptStep:
             "type": "prompt",
             "prompt": "Review {{ inputs.file }} for security issues",
         }
-        with patch("specify_cli.workflows.steps.prompt.shutil.which", return_value=None):
+        with patch("kite_cli.workflows.steps.prompt.shutil.which", return_value=None):
             result = step.execute(config, ctx)
         assert result.status == StepStatus.FAILED
         assert result.output["prompt"] == "Review auth.py for security issues"
@@ -626,8 +626,8 @@ class TestPromptStep:
         assert result.output["dispatched"] is False
 
     def test_execute_with_step_integration(self):
-        from specify_cli.workflows.steps.prompt import PromptStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.base import StepContext
 
         step = PromptStep()
         ctx = StepContext(default_integration="claude")
@@ -641,8 +641,8 @@ class TestPromptStep:
         assert result.output["integration"] == "gemini"
 
     def test_execute_with_model(self):
-        from specify_cli.workflows.steps.prompt import PromptStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.base import StepContext
 
         step = PromptStep()
         ctx = StepContext(default_integration="claude", default_model="sonnet-4")
@@ -657,8 +657,8 @@ class TestPromptStep:
 
     def test_dispatch_with_mock_cli(self, tmp_path):
         from unittest.mock import patch, MagicMock
-        from specify_cli.workflows.steps.prompt import PromptStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = PromptStep()
         ctx = StepContext(
@@ -676,7 +676,7 @@ class TestPromptStep:
         mock_result.stdout = "Here is the explanation"
         mock_result.stderr = ""
 
-        with patch("specify_cli.workflows.steps.prompt.shutil.which", return_value="/usr/local/bin/claude"), \
+        with patch("kite_cli.workflows.steps.prompt.shutil.which", return_value="/usr/local/bin/claude"), \
              patch("subprocess.run", return_value=mock_result):
             result = step.execute(config, ctx)
 
@@ -685,14 +685,14 @@ class TestPromptStep:
         assert result.output["exit_code"] == 0
 
     def test_validate_missing_prompt(self):
-        from specify_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.steps.prompt import PromptStep
 
         step = PromptStep()
         errors = step.validate({"id": "test"})
         assert any("missing 'prompt'" in e for e in errors)
 
     def test_validate_valid(self):
-        from specify_cli.workflows.steps.prompt import PromptStep
+        from kite_cli.workflows.steps.prompt import PromptStep
 
         step = PromptStep()
         errors = step.validate({"id": "test", "prompt": "do something"})
@@ -703,8 +703,8 @@ class TestShellStep:
     """Test the shell step type."""
 
     def test_execute_echo(self):
-        from specify_cli.workflows.steps.shell import ShellStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.shell import ShellStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = ShellStep()
         ctx = StepContext()
@@ -715,8 +715,8 @@ class TestShellStep:
         assert "hello" in result.output["stdout"]
 
     def test_execute_failure(self):
-        from specify_cli.workflows.steps.shell import ShellStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.shell import ShellStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = ShellStep()
         ctx = StepContext()
@@ -727,7 +727,7 @@ class TestShellStep:
         assert result.error is not None
 
     def test_validate_missing_run(self):
-        from specify_cli.workflows.steps.shell import ShellStep
+        from kite_cli.workflows.steps.shell import ShellStep
 
         step = ShellStep()
         errors = step.validate({"id": "test"})
@@ -738,8 +738,8 @@ class TestGateStep:
     """Test the gate step type."""
 
     def test_execute_returns_paused(self):
-        from specify_cli.workflows.steps.gate import GateStep
-        from specify_cli.workflows.base import StepContext, StepStatus
+        from kite_cli.workflows.steps.gate import GateStep
+        from kite_cli.workflows.base import StepContext, StepStatus
 
         step = GateStep()
         ctx = StepContext()
@@ -755,14 +755,14 @@ class TestGateStep:
         assert result.output["options"] == ["approve", "reject"]
 
     def test_validate_missing_message(self):
-        from specify_cli.workflows.steps.gate import GateStep
+        from kite_cli.workflows.steps.gate import GateStep
 
         step = GateStep()
         errors = step.validate({"id": "test", "options": ["approve"]})
         assert any("missing 'message'" in e for e in errors)
 
     def test_validate_invalid_on_reject(self):
-        from specify_cli.workflows.steps.gate import GateStep
+        from kite_cli.workflows.steps.gate import GateStep
 
         step = GateStep()
         errors = step.validate({
@@ -777,16 +777,16 @@ class TestIfThenStep:
     """Test the if/then/else step type."""
 
     def test_execute_then_branch(self):
-        from specify_cli.workflows.steps.if_then import IfThenStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.if_then import IfThenStep
+        from kite_cli.workflows.base import StepContext
 
         step = IfThenStep()
         ctx = StepContext(inputs={"scope": "full"})
         config = {
             "id": "check",
             "condition": "{{ inputs.scope == 'full' }}",
-            "then": [{"id": "a", "command": "speckit.tasks"}],
-            "else": [{"id": "b", "command": "speckit.plan"}],
+            "then": [{"id": "a", "command": "kite.tasks"}],
+            "else": [{"id": "b", "command": "kite.plan"}],
         }
         result = step.execute(config, ctx)
         assert result.output["condition_result"] is True
@@ -794,23 +794,23 @@ class TestIfThenStep:
         assert result.next_steps[0]["id"] == "a"
 
     def test_execute_else_branch(self):
-        from specify_cli.workflows.steps.if_then import IfThenStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.if_then import IfThenStep
+        from kite_cli.workflows.base import StepContext
 
         step = IfThenStep()
         ctx = StepContext(inputs={"scope": "backend"})
         config = {
             "id": "check",
             "condition": "{{ inputs.scope == 'full' }}",
-            "then": [{"id": "a", "command": "speckit.tasks"}],
-            "else": [{"id": "b", "command": "speckit.plan"}],
+            "then": [{"id": "a", "command": "kite.tasks"}],
+            "else": [{"id": "b", "command": "kite.plan"}],
         }
         result = step.execute(config, ctx)
         assert result.output["condition_result"] is False
         assert result.next_steps[0]["id"] == "b"
 
     def test_validate_missing_condition(self):
-        from specify_cli.workflows.steps.if_then import IfThenStep
+        from kite_cli.workflows.steps.if_then import IfThenStep
 
         step = IfThenStep()
         errors = step.validate({"id": "test", "then": []})
@@ -821,8 +821,8 @@ class TestSwitchStep:
     """Test the switch step type."""
 
     def test_execute_matches_case(self):
-        from specify_cli.workflows.steps.switch import SwitchStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.switch import SwitchStep
+        from kite_cli.workflows.base import StepContext
 
         step = SwitchStep()
         ctx = StepContext(
@@ -832,7 +832,7 @@ class TestSwitchStep:
             "id": "route",
             "expression": "{{ steps.review.output.choice }}",
             "cases": {
-                "approve": [{"id": "plan", "command": "speckit.plan"}],
+                "approve": [{"id": "plan", "command": "kite.plan"}],
                 "reject": [{"id": "log", "type": "shell", "run": "echo rejected"}],
             },
             "default": [{"id": "abort", "type": "gate", "message": "Unknown"}],
@@ -842,8 +842,8 @@ class TestSwitchStep:
         assert result.next_steps[0]["id"] == "plan"
 
     def test_execute_falls_to_default(self):
-        from specify_cli.workflows.steps.switch import SwitchStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.switch import SwitchStep
+        from kite_cli.workflows.base import StepContext
 
         step = SwitchStep()
         ctx = StepContext(
@@ -853,7 +853,7 @@ class TestSwitchStep:
             "id": "route",
             "expression": "{{ steps.review.output.choice }}",
             "cases": {
-                "approve": [{"id": "plan", "command": "speckit.plan"}],
+                "approve": [{"id": "plan", "command": "kite.plan"}],
             },
             "default": [{"id": "fallback", "type": "gate", "message": "Fallback"}],
         }
@@ -862,8 +862,8 @@ class TestSwitchStep:
         assert result.next_steps[0]["id"] == "fallback"
 
     def test_execute_no_default_no_match(self):
-        from specify_cli.workflows.steps.switch import SwitchStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.switch import SwitchStep
+        from kite_cli.workflows.base import StepContext
 
         step = SwitchStep()
         ctx = StepContext(
@@ -873,7 +873,7 @@ class TestSwitchStep:
             "id": "route",
             "expression": "{{ steps.review.output.choice }}",
             "cases": {
-                "approve": [{"id": "plan", "command": "speckit.plan"}],
+                "approve": [{"id": "plan", "command": "kite.plan"}],
             },
         }
         result = step.execute(config, ctx)
@@ -881,14 +881,14 @@ class TestSwitchStep:
         assert result.next_steps == []
 
     def test_validate_missing_expression(self):
-        from specify_cli.workflows.steps.switch import SwitchStep
+        from kite_cli.workflows.steps.switch import SwitchStep
 
         step = SwitchStep()
         errors = step.validate({"id": "test", "cases": {}})
         assert any("missing 'expression'" in e for e in errors)
 
     def test_validate_invalid_cases_and_default(self):
-        from specify_cli.workflows.steps.switch import SwitchStep
+        from kite_cli.workflows.steps.switch import SwitchStep
 
         step = SwitchStep()
         errors = step.validate({
@@ -905,8 +905,8 @@ class TestWhileStep:
     """Test the while loop step type."""
 
     def test_execute_condition_true(self):
-        from specify_cli.workflows.steps.while_loop import WhileStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.while_loop import WhileStep
+        from kite_cli.workflows.base import StepContext
 
         step = WhileStep()
         ctx = StepContext(
@@ -916,15 +916,15 @@ class TestWhileStep:
             "id": "retry",
             "condition": "{{ steps.run-tests.output.exit_code != 0 }}",
             "max_iterations": 5,
-            "steps": [{"id": "fix", "command": "speckit.implement"}],
+            "steps": [{"id": "fix", "command": "kite.implement"}],
         }
         result = step.execute(config, ctx)
         assert result.output["condition_result"] is True
         assert len(result.next_steps) == 1
 
     def test_execute_condition_false(self):
-        from specify_cli.workflows.steps.while_loop import WhileStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.while_loop import WhileStep
+        from kite_cli.workflows.base import StepContext
 
         step = WhileStep()
         ctx = StepContext(
@@ -934,14 +934,14 @@ class TestWhileStep:
             "id": "retry",
             "condition": "{{ steps.run-tests.output.exit_code != 0 }}",
             "max_iterations": 5,
-            "steps": [{"id": "fix", "command": "speckit.implement"}],
+            "steps": [{"id": "fix", "command": "kite.implement"}],
         }
         result = step.execute(config, ctx)
         assert result.output["condition_result"] is False
         assert result.next_steps == []
 
     def test_validate_missing_fields(self):
-        from specify_cli.workflows.steps.while_loop import WhileStep
+        from kite_cli.workflows.steps.while_loop import WhileStep
 
         step = WhileStep()
         errors = step.validate({"id": "test", "steps": []})
@@ -949,7 +949,7 @@ class TestWhileStep:
         # max_iterations is optional (defaults to 10)
 
     def test_validate_invalid_max_iterations(self):
-        from specify_cli.workflows.steps.while_loop import WhileStep
+        from kite_cli.workflows.steps.while_loop import WhileStep
 
         step = WhileStep()
         errors = step.validate({"id": "test", "condition": "{{ true }}", "max_iterations": 0, "steps": []})
@@ -960,8 +960,8 @@ class TestDoWhileStep:
     """Test the do-while loop step type."""
 
     def test_execute_always_runs_once(self):
-        from specify_cli.workflows.steps.do_while import DoWhileStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.do_while import DoWhileStep
+        from kite_cli.workflows.base import StepContext
 
         step = DoWhileStep()
         ctx = StepContext()
@@ -969,7 +969,7 @@ class TestDoWhileStep:
             "id": "cycle",
             "condition": "{{ false }}",
             "max_iterations": 3,
-            "steps": [{"id": "refine", "command": "speckit.specify"}],
+            "steps": [{"id": "refine", "command": "kite.specify"}],
         }
         result = step.execute(config, ctx)
         assert len(result.next_steps) == 1
@@ -977,8 +977,8 @@ class TestDoWhileStep:
         assert result.output["condition"] == "{{ false }}"
 
     def test_execute_with_true_condition(self):
-        from specify_cli.workflows.steps.do_while import DoWhileStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.do_while import DoWhileStep
+        from kite_cli.workflows.base import StepContext
 
         step = DoWhileStep()
         ctx = StepContext()
@@ -986,7 +986,7 @@ class TestDoWhileStep:
             "id": "cycle",
             "condition": "{{ true }}",
             "max_iterations": 5,
-            "steps": [{"id": "work", "command": "speckit.plan"}],
+            "steps": [{"id": "work", "command": "kite.plan"}],
         }
         result = step.execute(config, ctx)
         # Body always executes on first call regardless of condition
@@ -994,8 +994,8 @@ class TestDoWhileStep:
         assert result.output["max_iterations"] == 5
 
     def test_execute_empty_steps(self):
-        from specify_cli.workflows.steps.do_while import DoWhileStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.do_while import DoWhileStep
+        from kite_cli.workflows.base import StepContext
 
         step = DoWhileStep()
         ctx = StepContext()
@@ -1010,7 +1010,7 @@ class TestDoWhileStep:
         assert result.status.value == "completed"
 
     def test_validate_missing_fields(self):
-        from specify_cli.workflows.steps.do_while import DoWhileStep
+        from kite_cli.workflows.steps.do_while import DoWhileStep
 
         step = DoWhileStep()
         errors = step.validate({"id": "test", "steps": []})
@@ -1018,7 +1018,7 @@ class TestDoWhileStep:
         # max_iterations is optional (defaults to 10)
 
     def test_validate_steps_not_list(self):
-        from specify_cli.workflows.steps.do_while import DoWhileStep
+        from kite_cli.workflows.steps.do_while import DoWhileStep
 
         step = DoWhileStep()
         errors = step.validate({
@@ -1034,8 +1034,8 @@ class TestFanOutStep:
     """Test the fan-out step type."""
 
     def test_execute_with_items(self):
-        from specify_cli.workflows.steps.fan_out import FanOutStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.fan_out import FanOutStep
+        from kite_cli.workflows.base import StepContext
 
         step = FanOutStep()
         ctx = StepContext(
@@ -1048,29 +1048,29 @@ class TestFanOutStep:
             "id": "parallel",
             "items": "{{ steps.tasks.output.task_list }}",
             "max_concurrency": 3,
-            "step": {"id": "impl", "command": "speckit.implement"},
+            "step": {"id": "impl", "command": "kite.implement"},
         }
         result = step.execute(config, ctx)
         assert result.output["item_count"] == 2
         assert result.output["max_concurrency"] == 3
 
     def test_execute_non_list_items_resolves_empty(self):
-        from specify_cli.workflows.steps.fan_out import FanOutStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.fan_out import FanOutStep
+        from kite_cli.workflows.base import StepContext
 
         step = FanOutStep()
         ctx = StepContext()
         config = {
             "id": "parallel",
             "items": "{{ undefined_var }}",
-            "step": {"id": "impl", "command": "speckit.implement"},
+            "step": {"id": "impl", "command": "kite.implement"},
         }
         result = step.execute(config, ctx)
         assert result.output["item_count"] == 0
         assert result.output["items"] == []
 
     def test_validate_missing_fields(self):
-        from specify_cli.workflows.steps.fan_out import FanOutStep
+        from kite_cli.workflows.steps.fan_out import FanOutStep
 
         step = FanOutStep()
         errors = step.validate({"id": "test"})
@@ -1078,7 +1078,7 @@ class TestFanOutStep:
         assert any("missing 'step'" in e for e in errors)
 
     def test_validate_step_not_mapping(self):
-        from specify_cli.workflows.steps.fan_out import FanOutStep
+        from kite_cli.workflows.steps.fan_out import FanOutStep
 
         step = FanOutStep()
         errors = step.validate({
@@ -1093,8 +1093,8 @@ class TestFanInStep:
     """Test the fan-in step type."""
 
     def test_execute_collects_results(self):
-        from specify_cli.workflows.steps.fan_in import FanInStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.fan_in import FanInStep
+        from kite_cli.workflows.base import StepContext
 
         step = FanInStep()
         ctx = StepContext(
@@ -1112,8 +1112,8 @@ class TestFanInStep:
         assert result.output["results"][0]["item_count"] == 2
 
     def test_execute_multiple_wait_for(self):
-        from specify_cli.workflows.steps.fan_in import FanInStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.fan_in import FanInStep
+        from kite_cli.workflows.base import StepContext
 
         step = FanInStep()
         ctx = StepContext(
@@ -1133,8 +1133,8 @@ class TestFanInStep:
         assert result.output["results"][1]["file"] == "b.md"
 
     def test_execute_missing_wait_for_step(self):
-        from specify_cli.workflows.steps.fan_in import FanInStep
-        from specify_cli.workflows.base import StepContext
+        from kite_cli.workflows.steps.fan_in import FanInStep
+        from kite_cli.workflows.base import StepContext
 
         step = FanInStep()
         ctx = StepContext(steps={})
@@ -1147,14 +1147,14 @@ class TestFanInStep:
         assert result.output["results"] == [{}]
 
     def test_validate_empty_wait_for(self):
-        from specify_cli.workflows.steps.fan_in import FanInStep
+        from kite_cli.workflows.steps.fan_in import FanInStep
 
         step = FanInStep()
         errors = step.validate({"id": "test", "wait_for": []})
         assert any("non-empty list" in e for e in errors)
 
     def test_validate_wait_for_not_list(self):
-        from specify_cli.workflows.steps.fan_in import FanInStep
+        from kite_cli.workflows.steps.fan_in import FanInStep
 
         step = FanInStep()
         errors = step.validate({"id": "test", "wait_for": "not-a-list"})
@@ -1167,7 +1167,7 @@ class TestWorkflowDefinition:
     """Test WorkflowDefinition loading and parsing."""
 
     def test_from_yaml(self, sample_workflow_file):
-        from specify_cli.workflows.engine import WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowDefinition
 
         definition = WorkflowDefinition.from_yaml(sample_workflow_file)
         assert definition.id == "test-workflow"
@@ -1176,20 +1176,20 @@ class TestWorkflowDefinition:
         assert len(definition.steps) == 2
 
     def test_from_string(self, sample_workflow_yaml):
-        from specify_cli.workflows.engine import WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowDefinition
 
         definition = WorkflowDefinition.from_string(sample_workflow_yaml)
         assert definition.id == "test-workflow"
         assert len(definition.inputs) == 2
 
     def test_from_string_invalid(self):
-        from specify_cli.workflows.engine import WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowDefinition
 
         with pytest.raises(ValueError, match="must be a mapping"):
             WorkflowDefinition.from_string("- just a list")
 
     def test_inputs_parsed(self, sample_workflow_yaml):
-        from specify_cli.workflows.engine import WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowDefinition
 
         definition = WorkflowDefinition.from_string(sample_workflow_yaml)
         assert "spec" in definition.inputs
@@ -1203,14 +1203,14 @@ class TestWorkflowValidation:
     """Test workflow validation."""
 
     def test_valid_workflow(self, sample_workflow_yaml):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string(sample_workflow_yaml)
         errors = validate_workflow(definition)
         assert errors == []
 
     def test_missing_id(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1218,13 +1218,13 @@ workflow:
   version: "1.0.0"
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
 """)
         errors = validate_workflow(definition)
         assert any("workflow.id" in e for e in errors)
 
     def test_invalid_id_format(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1233,13 +1233,13 @@ workflow:
   version: "1.0.0"
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
 """)
         errors = validate_workflow(definition)
         assert any("lowercase alphanumeric" in e for e in errors)
 
     def test_no_steps(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1252,7 +1252,7 @@ steps: []
         assert any("no steps" in e.lower() for e in errors)
 
     def test_duplicate_step_ids(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1261,15 +1261,15 @@ workflow:
   version: "1.0.0"
 steps:
   - id: same-id
-    command: speckit.specify
+    command: kite.specify
   - id: same-id
-    command: speckit.plan
+    command: kite.plan
 """)
         errors = validate_workflow(definition)
         assert any("Duplicate" in e for e in errors)
 
     def test_invalid_step_type(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1284,7 +1284,7 @@ steps:
         assert any("invalid type" in e.lower() for e in errors)
 
     def test_nested_step_validation(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1297,16 +1297,16 @@ steps:
     condition: "{{ true }}"
     then:
       - id: nested-a
-        command: speckit.specify
+        command: kite.specify
     else:
       - id: nested-b
-        command: speckit.plan
+        command: kite.plan
 """)
         errors = validate_workflow(definition)
         assert errors == []
 
     def test_invalid_input_type(self):
-        from specify_cli.workflows.engine import WorkflowDefinition, validate_workflow
+        from kite_cli.workflows.engine import WorkflowDefinition, validate_workflow
 
         definition = WorkflowDefinition.from_string("""
 workflow:
@@ -1318,7 +1318,7 @@ inputs:
     type: array
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
 """)
         errors = validate_workflow(definition)
         assert any("invalid type" in e.lower() for e in errors)
@@ -1330,21 +1330,21 @@ class TestWorkflowEngine:
     """Test WorkflowEngine execution."""
 
     def test_load_from_file(self, sample_workflow_file, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine
+        from kite_cli.workflows.engine import WorkflowEngine
 
         engine = WorkflowEngine(project_dir)
         definition = engine.load_workflow(str(sample_workflow_file))
         assert definition.id == "test-workflow"
 
     def test_load_from_installed_id(self, sample_workflow_file, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine
+        from kite_cli.workflows.engine import WorkflowEngine
 
         engine = WorkflowEngine(project_dir)
         definition = engine.load_workflow("test-workflow")
         assert definition.id == "test-workflow"
 
     def test_load_not_found(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine
+        from kite_cli.workflows.engine import WorkflowEngine
 
         engine = WorkflowEngine(project_dir)
         with pytest.raises(FileNotFoundError):
@@ -1352,8 +1352,8 @@ class TestWorkflowEngine:
 
     def test_execute_simple_workflow(self, project_dir):
         from unittest.mock import patch
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"
@@ -1368,23 +1368,23 @@ inputs:
     default: "test"
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
     input:
       args: "{{ inputs.name }}"
 """
         definition = WorkflowDefinition.from_string(yaml_str)
         engine = WorkflowEngine(project_dir)
-        with patch("specify_cli.workflows.steps.command.shutil.which", return_value=None):
+        with patch("kite_cli.workflows.steps.command.shutil.which", return_value=None):
             state = engine.execute(definition, {"name": "login"})
 
         assert state.status == RunStatus.FAILED
         assert "step-one" in state.step_results
-        assert state.step_results["step-one"]["output"]["command"] == "speckit.specify"
+        assert state.step_results["step-one"]["output"]["command"] == "kite.specify"
         assert state.step_results["step-one"]["output"]["input"]["args"] == "login"
 
     def test_execute_with_gate_pauses(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"
@@ -1414,8 +1414,8 @@ steps:
         assert state.step_results["gate"]["status"] == "paused"
 
     def test_execute_with_shell_step(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"
@@ -1436,8 +1436,8 @@ steps:
         assert "workflow-output" in state.step_results["echo"]["output"]["stdout"]
 
     def test_execute_with_if_then(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"
@@ -1471,7 +1471,7 @@ steps:
         assert "partial-tasks" not in state.step_results
 
     def test_execute_missing_required_input(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
 
         yaml_str = """
 schema_version: "1.0"
@@ -1485,7 +1485,7 @@ inputs:
     required: true
 steps:
   - id: step-one
-    command: speckit.specify
+    command: kite.specify
     input:
       args: "{{ inputs.name }}"
 """
@@ -1502,8 +1502,8 @@ class TestRunState:
     """Test RunState persistence and loading."""
 
     def test_save_and_load(self, project_dir):
-        from specify_cli.workflows.engine import RunState
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import RunState
+        from kite_cli.workflows.base import RunStatus
 
         state = RunState(
             run_id="test-run",
@@ -1528,13 +1528,13 @@ class TestRunState:
         assert "step-one" in loaded.step_results
 
     def test_load_not_found(self, project_dir):
-        from specify_cli.workflows.engine import RunState
+        from kite_cli.workflows.engine import RunState
 
         with pytest.raises(FileNotFoundError):
             RunState.load("nonexistent", project_dir)
 
     def test_append_log(self, project_dir):
-        from specify_cli.workflows.engine import RunState
+        from kite_cli.workflows.engine import RunState
 
         state = RunState(
             run_id="log-test",
@@ -1555,13 +1555,13 @@ class TestListRuns:
     """Test listing workflow runs."""
 
     def test_list_empty(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine
+        from kite_cli.workflows.engine import WorkflowEngine
 
         engine = WorkflowEngine(project_dir)
         assert engine.list_runs() == []
 
     def test_list_after_execution(self, project_dir):
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
 
         yaml_str = """
 schema_version: "1.0"
@@ -1589,7 +1589,7 @@ class TestWorkflowRegistry:
     """Test WorkflowRegistry operations."""
 
     def test_add_and_get(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowRegistry
+        from kite_cli.workflows.catalog import WorkflowRegistry
 
         registry = WorkflowRegistry(project_dir)
         registry.add("test-wf", {"name": "Test", "version": "1.0.0"})
@@ -1600,7 +1600,7 @@ class TestWorkflowRegistry:
         assert "installed_at" in entry
 
     def test_remove(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowRegistry
+        from kite_cli.workflows.catalog import WorkflowRegistry
 
         registry = WorkflowRegistry(project_dir)
         registry.add("test-wf", {"name": "Test"})
@@ -1610,7 +1610,7 @@ class TestWorkflowRegistry:
         assert not registry.is_installed("test-wf")
 
     def test_list(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowRegistry
+        from kite_cli.workflows.catalog import WorkflowRegistry
 
         registry = WorkflowRegistry(project_dir)
         registry.add("wf-a", {"name": "A"})
@@ -1621,7 +1621,7 @@ class TestWorkflowRegistry:
         assert "wf-b" in installed
 
     def test_is_installed(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowRegistry
+        from kite_cli.workflows.catalog import WorkflowRegistry
 
         registry = WorkflowRegistry(project_dir)
         assert not registry.is_installed("missing")
@@ -1630,7 +1630,7 @@ class TestWorkflowRegistry:
         assert registry.is_installed("exists")
 
     def test_persistence(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowRegistry
+        from kite_cli.workflows.catalog import WorkflowRegistry
 
         registry1 = WorkflowRegistry(project_dir)
         registry1.add("test-wf", {"name": "Test"})
@@ -1646,7 +1646,7 @@ class TestWorkflowCatalog:
     """Test WorkflowCatalog catalog resolution."""
 
     def test_default_catalogs(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
         catalog = WorkflowCatalog(project_dir)
         entries = catalog.get_active_catalogs()
@@ -1655,9 +1655,9 @@ class TestWorkflowCatalog:
         assert entries[1].name == "community"
 
     def test_env_var_override(self, project_dir, monkeypatch):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
-        monkeypatch.setenv("SPECKIT_WORKFLOW_CATALOG_URL", "https://example.com/catalog.json")
+        monkeypatch.setenv("KITE_WORKFLOW_CATALOG_URL", "https://example.com/catalog.json")
         catalog = WorkflowCatalog(project_dir)
         entries = catalog.get_active_catalogs()
         assert len(entries) == 1
@@ -1665,9 +1665,9 @@ class TestWorkflowCatalog:
         assert entries[0].url == "https://example.com/catalog.json"
 
     def test_project_level_config(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
-        config_path = project_dir / ".specify" / "workflow-catalogs.yml"
+        config_path = project_dir / ".kite" / "workflow-catalogs.yml"
         config_path.write_text(yaml.dump({
             "catalogs": [{
                 "name": "custom",
@@ -1683,33 +1683,33 @@ class TestWorkflowCatalog:
         assert entries[0].name == "custom"
 
     def test_validate_url_http_rejected(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
+        from kite_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
 
         catalog = WorkflowCatalog(project_dir)
         with pytest.raises(WorkflowValidationError, match="HTTPS"):
             catalog._validate_catalog_url("http://evil.com/catalog.json")
 
     def test_validate_url_localhost_http_allowed(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
         catalog = WorkflowCatalog(project_dir)
         # Should not raise
         catalog._validate_catalog_url("http://localhost:8080/catalog.json")
 
     def test_add_catalog(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
         catalog = WorkflowCatalog(project_dir)
         catalog.add_catalog("https://example.com/new-catalog.json", "my-catalog")
 
-        config_path = project_dir / ".specify" / "workflow-catalogs.yml"
+        config_path = project_dir / ".kite" / "workflow-catalogs.yml"
         assert config_path.exists()
         data = yaml.safe_load(config_path.read_text())
         assert len(data["catalogs"]) == 1
         assert data["catalogs"][0]["url"] == "https://example.com/new-catalog.json"
 
     def test_add_catalog_duplicate_rejected(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
+        from kite_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
 
         catalog = WorkflowCatalog(project_dir)
         catalog.add_catalog("https://example.com/catalog.json")
@@ -1718,7 +1718,7 @@ class TestWorkflowCatalog:
             catalog.add_catalog("https://example.com/catalog.json")
 
     def test_remove_catalog(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
         catalog = WorkflowCatalog(project_dir)
         catalog.add_catalog("https://example.com/c1.json", "first")
@@ -1727,12 +1727,12 @@ class TestWorkflowCatalog:
         removed = catalog.remove_catalog(0)
         assert removed == "first"
 
-        config_path = project_dir / ".specify" / "workflow-catalogs.yml"
+        config_path = project_dir / ".kite" / "workflow-catalogs.yml"
         data = yaml.safe_load(config_path.read_text())
         assert len(data["catalogs"]) == 1
 
     def test_remove_catalog_invalid_index(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
+        from kite_cli.workflows.catalog import WorkflowCatalog, WorkflowValidationError
 
         catalog = WorkflowCatalog(project_dir)
         catalog.add_catalog("https://example.com/c1.json")
@@ -1741,7 +1741,7 @@ class TestWorkflowCatalog:
             catalog.remove_catalog(5)
 
     def test_get_catalog_configs(self, project_dir):
-        from specify_cli.workflows.catalog import WorkflowCatalog
+        from kite_cli.workflows.catalog import WorkflowCatalog
 
         catalog = WorkflowCatalog(project_dir)
         configs = catalog.get_catalog_configs()
@@ -1757,8 +1757,8 @@ class TestWorkflowIntegration:
 
     def test_full_sequential_workflow(self, project_dir):
         """Execute a multi-step sequential workflow end to end."""
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"
@@ -1774,7 +1774,7 @@ inputs:
 steps:
   - id: specify
     type: shell
-    run: "echo speckit.specify {{ inputs.feature }}"
+    run: "echo kite.specify {{ inputs.feature }}"
 
   - id: check-scope
     type: if
@@ -1790,7 +1790,7 @@ steps:
 
   - id: plan
     type: shell
-    run: "echo speckit.plan"
+    run: "echo kite.plan"
 """
         definition = WorkflowDefinition.from_string(yaml_str)
         engine = WorkflowEngine(project_dir)
@@ -1805,8 +1805,8 @@ steps:
 
     def test_switch_workflow(self, project_dir):
         """Test switch step type in a workflow."""
-        from specify_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
-        from specify_cli.workflows.base import RunStatus
+        from kite_cli.workflows.engine import WorkflowEngine, WorkflowDefinition
+        from kite_cli.workflows.base import RunStatus
 
         yaml_str = """
 schema_version: "1.0"

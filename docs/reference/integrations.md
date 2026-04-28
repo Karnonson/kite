@@ -1,6 +1,6 @@
 # Supported AI Coding Agent Integrations
 
-The Specify CLI supports a wide range of AI coding agents. When you run `specify init`, the CLI sets up the appropriate command files, context rules, and directory structures for your chosen AI coding agent — so you can start using Spec-Driven Development immediately, regardless of which tool you prefer.
+The Kite CLI supports a wide range of AI coding agents. When you run `kite init`, the CLI sets up the appropriate command files, context rules, and directory structures for your chosen AI coding agent — so you can start using Spec-Driven Development immediately, regardless of which tool you prefer.
 
 ## Supported AI Coding Agents
 
@@ -11,7 +11,7 @@ The Specify CLI supports a wide range of AI coding agents. When you run `specify
 | [Auggie CLI](https://docs.augmentcode.com/cli/overview)                              | `auggie`         |                                                                                                                                           |
 | [Claude Code](https://www.anthropic.com/claude-code)                                 | `claude`         | Skills-based integration; installs skills in `.claude/skills`                                                                              |
 | [CodeBuddy CLI](https://www.codebuddy.ai/cli)                                        | `codebuddy`      |                                                                                                                                           |
-| [Codex CLI](https://github.com/openai/codex)                                         | `codex`          | Skills-based integration; installs skills into `.agents/skills` and invokes them as `$speckit-<command>` |
+| [Codex CLI](https://github.com/openai/codex)                                         | `codex`          | Skills-based integration; installs skills into `.agents/skills` and invokes them as `$kite-<command>` |
 | [Cursor](https://cursor.sh/)                                                         | `cursor-agent`   |                                                                                                                                           |
 | [Forge](https://forgecode.dev/)                                                      | `forge`          |                                                                                                                                           |
 | [Gemini CLI](https://github.com/google-gemini/gemini-cli)                            | `gemini`         |                                                                                                                                           |
@@ -38,7 +38,7 @@ The Specify CLI supports a wide range of AI coding agents. When you run `specify
 ## List Available Integrations
 
 ```bash
-specify integration list
+kite integration list
 ```
 
 Shows all available integrations, which one is currently installed, and whether each requires a CLI tool or is IDE-based.
@@ -46,7 +46,7 @@ Shows all available integrations, which one is currently installed, and whether 
 ## Install an Integration
 
 ```bash
-specify integration install <key>
+kite integration install <key>
 ```
 
 | Option                   | Description                                                              |
@@ -56,19 +56,19 @@ specify integration install <key>
 
 Installs the specified integration into the current project. Fails if another integration is already installed — use `switch` instead. If the installation fails partway through, it automatically rolls back to a clean state.
 
-> **Note:** All integration management commands require a project already initialized with `specify init`. To start a new project with a specific agent, use `specify init <project> --integration <key>` instead.
+> **Note:** All integration management commands require a project already initialized with `kite init`. To start a new project with a specific agent, use `kite init <project> --integration <key>` instead.
 
 ## Uninstall an Integration
 
 ```bash
-specify integration uninstall [<key>]
+kite integration uninstall [<key>]
 ```
 
 | Option    | Description                                         |
 | --------- | --------------------------------------------------- |
 | `--force` | Remove files even if they have been modified         |
 
-Uninstalls the current integration (or the specified one). Spec Kit tracks every file created during install along with a SHA-256 hash of the original content:
+Uninstalls the current integration (or the specified one). Kite tracks every file created during install along with a SHA-256 hash of the original content:
 
 - **Unmodified files** are removed automatically.
 - **Modified files** (where you've made manual edits) are preserved so your customizations are not lost.
@@ -77,7 +77,7 @@ Uninstalls the current integration (or the specified one). Spec Kit tracks every
 ## Switch to a Different Integration
 
 ```bash
-specify integration switch <key>
+kite integration switch <key>
 ```
 
 | Option                   | Description                                                              |
@@ -91,7 +91,7 @@ Equivalent to running `uninstall` followed by `install` in a single step.
 ## Upgrade an Integration
 
 ```bash
-specify integration upgrade [<key>]
+kite integration upgrade [<key>]
 ```
 
 | Option                   | Description                                                              |
@@ -100,7 +100,7 @@ specify integration upgrade [<key>]
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                        |
 | `--integration-options`  | Options for the integration                                              |
 
-Reinstalls the current integration with updated templates and commands (e.g., after upgrading Spec Kit). Defaults to the currently installed integration; if a key is provided, it must match the installed one — otherwise the command fails and suggests using `switch` instead. Detects locally modified files and blocks the upgrade unless `--force` is used. Stale files from the previous install that are no longer needed are removed automatically.
+Reinstalls the current integration with updated templates and commands (e.g., after upgrading Kite). Defaults to the currently installed integration; if a key is provided, it must match the installed one — otherwise the command fails and suggests using `switch` instead. Detects locally modified files and blocks the upgrade unless `--force` is used. Stale files from the previous install that are no longer needed are removed automatically.
 
 ## Integration-Specific Options
 
@@ -114,14 +114,14 @@ Some integrations accept additional options via `--integration-options`:
 Example:
 
 ```bash
-specify integration install generic --integration-options="--commands-dir .myagent/cmds"
+kite integration install generic --integration-options="--commands-dir .myagent/cmds"
 ```
 
 ## FAQ
 
 ### Can I use multiple integrations at the same time?
 
-No. Only one AI coding agent integration can be installed per project. Use `specify integration switch <key>` to change to a different AI coding agent.
+No. Only one AI coding agent integration can be installed per project. Use `kite integration switch <key>` to change to a different AI coding agent.
 
 ### What happens to my changes when I uninstall or switch?
 
@@ -129,12 +129,12 @@ Files you've modified are preserved automatically. Only unmodified files (matchi
 
 ### How do I know which key to use?
 
-Run `specify integration list` to see all available integrations with their keys, or check the [Supported AI Coding Agents](#supported-ai-coding-agents) table above.
+Run `kite integration list` to see all available integrations with their keys, or check the [Supported AI Coding Agents](#supported-ai-coding-agents) table above.
 
 ### Do I need the AI coding agent installed to use an integration?
 
-CLI-based integrations (like Claude Code, Gemini CLI) require the tool to be installed. IDE-based integrations (like Windsurf, Cursor) work through the IDE itself. Some agents like GitHub Copilot support both IDE and CLI usage. `specify integration list` shows which type each integration is.
+CLI-based integrations (like Claude Code, Gemini CLI) require the tool to be installed. IDE-based integrations (like Windsurf, Cursor) work through the IDE itself. Some agents like GitHub Copilot support both IDE and CLI usage. `kite integration list` shows which type each integration is.
 
 ### When should I use `upgrade` vs `switch`?
 
-Use `upgrade` when you've upgraded Spec Kit and want to refresh the same integration's templates. Use `switch` when you want to change to a different AI coding agent.
+Use `upgrade` when you've upgraded Kite and want to refresh the same integration's templates. Use `switch` when you want to change to a different AI coding agent.

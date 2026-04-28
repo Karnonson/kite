@@ -1,6 +1,6 @@
 # Git Branching Workflow Extension
 
-Git repository initialization, feature branch creation, numbering (sequential/timestamp), validation, remote detection, and auto-commit for Spec Kit.
+Git repository initialization, feature branch creation, numbering (sequential/timestamp), validation, remote detection, and auto-commit for Kite.
 
 ## Overview
 
@@ -16,45 +16,45 @@ This extension provides Git operations as an optional, self-contained module. It
 
 | Command | Description |
 |---------|-------------|
-| `speckit.git.initialize` | Initialize a Git repository with a configurable commit message |
-| `speckit.git.feature` | Create a feature branch with sequential or timestamp numbering |
-| `speckit.git.validate` | Validate current branch follows feature branch naming conventions |
-| `speckit.git.remote` | Detect Git remote URL for GitHub integration |
-| `speckit.git.commit` | Auto-commit changes (configurable per-command enable/disable and messages) |
+| `kite.git.initialize` | Initialize a Git repository with a configurable commit message |
+| `kite.git.feature` | Create a feature branch with sequential or timestamp numbering |
+| `kite.git.validate` | Validate current branch follows feature branch naming conventions |
+| `kite.git.remote` | Detect Git remote URL for GitHub integration |
+| `kite.git.commit` | Auto-commit changes (configurable per-command enable/disable and messages) |
 
 ## Hooks
 
 | Event | Command | Optional | Description |
 |-------|---------|----------|-------------|
-| `before_constitution` | `speckit.git.initialize` | No | Init git repo before constitution |
-| `before_specify` | `speckit.git.feature` | No | Create feature branch before specification |
-| `before_clarify` | `speckit.git.commit` | Yes | Commit outstanding changes before clarification |
-| `before_plan` | `speckit.git.commit` | Yes | Commit outstanding changes before planning |
-| `before_tasks` | `speckit.git.commit` | Yes | Commit outstanding changes before task generation |
-| `before_implement` | `speckit.git.commit` | Yes | Commit outstanding changes before implementation |
-| `before_checklist` | `speckit.git.commit` | Yes | Commit outstanding changes before checklist |
-| `before_analyze` | `speckit.git.commit` | Yes | Commit outstanding changes before analysis |
-| `before_taskstoissues` | `speckit.git.commit` | Yes | Commit outstanding changes before issue sync |
-| `after_constitution` | `speckit.git.commit` | Yes | Auto-commit after constitution update |
-| `after_specify` | `speckit.git.commit` | Yes | Auto-commit after specification |
-| `after_clarify` | `speckit.git.commit` | Yes | Auto-commit after clarification |
-| `after_plan` | `speckit.git.commit` | Yes | Auto-commit after planning |
-| `after_tasks` | `speckit.git.commit` | Yes | Auto-commit after task generation |
-| `after_implement` | `speckit.git.commit` | Yes | Auto-commit after implementation |
-| `after_checklist` | `speckit.git.commit` | Yes | Auto-commit after checklist |
-| `after_analyze` | `speckit.git.commit` | Yes | Auto-commit after analysis |
-| `after_taskstoissues` | `speckit.git.commit` | Yes | Auto-commit after issue sync |
+| `before_constitution` | `kite.git.initialize` | No | Init git repo before constitution |
+| `before_specify` | `kite.git.feature` | No | Create feature branch before specification |
+| `before_clarify` | `kite.git.commit` | Yes | Commit outstanding changes before clarification |
+| `before_plan` | `kite.git.commit` | Yes | Commit outstanding changes before planning |
+| `before_tasks` | `kite.git.commit` | Yes | Commit outstanding changes before task generation |
+| `before_implement` | `kite.git.commit` | Yes | Commit outstanding changes before implementation |
+| `before_checklist` | `kite.git.commit` | Yes | Commit outstanding changes before checklist |
+| `before_analyze` | `kite.git.commit` | Yes | Commit outstanding changes before analysis |
+| `before_taskstoissues` | `kite.git.commit` | Yes | Commit outstanding changes before issue sync |
+| `after_constitution` | `kite.git.commit` | Yes | Auto-commit after constitution update |
+| `after_specify` | `kite.git.commit` | Yes | Auto-commit after specification |
+| `after_clarify` | `kite.git.commit` | Yes | Auto-commit after clarification |
+| `after_plan` | `kite.git.commit` | Yes | Auto-commit after planning |
+| `after_tasks` | `kite.git.commit` | Yes | Auto-commit after task generation |
+| `after_implement` | `kite.git.commit` | Yes | Auto-commit after implementation |
+| `after_checklist` | `kite.git.commit` | Yes | Auto-commit after checklist |
+| `after_analyze` | `kite.git.commit` | Yes | Auto-commit after analysis |
+| `after_taskstoissues` | `kite.git.commit` | Yes | Auto-commit after issue sync |
 
 ## Configuration
 
-Configuration is stored in `.specify/extensions/git/git-config.yml`:
+Configuration is stored in `.kite/extensions/git/git-config.yml`:
 
 ```yaml
 # Branch numbering strategy: "sequential" or "timestamp"
 branch_numbering: sequential
 
 # Custom commit message for git init
-init_commit_message: "[Spec Kit] Initial commit"
+init_commit_message: "[Kite] Initial commit"
 
 # Auto-commit per command (all disabled by default)
 # Example: enable auto-commit after specify
@@ -62,24 +62,24 @@ auto_commit:
   default: false
   after_specify:
     enabled: true
-    message: "[Spec Kit] Add specification"
+    message: "[Kite] Add specification"
 ```
 
 ## Installation
 
 ```bash
 # Install the bundled git extension (no network required)
-specify extension add git
+kite extension add git
 ```
 
 ## Disabling
 
 ```bash
 # Disable the git extension (spec creation continues without branching)
-specify extension disable git
+kite extension disable git
 
 # Re-enable it
-specify extension enable git
+kite extension enable git
 ```
 
 ## Graceful Degradation

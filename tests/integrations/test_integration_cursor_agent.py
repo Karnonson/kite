@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from specify_cli.integrations import get_integration
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import get_integration
+from kite_cli.integrations.manifest import IntegrationManifest
 
 from .test_integration_base_skills import SkillsIntegrationTests
 
@@ -57,7 +57,7 @@ class TestCursorMdcFrontmatter:
         content = ctx_path.read_text(encoding="utf-8")
         assert "alwaysApply: true" in content
         assert "customKey: hello" in content
-        assert "<!-- SPECKIT START -->" in content
+        assert "<!-- KITE START -->" in content
 
     def test_existing_mdc_wrong_alwaysapply_fixed(self, tmp_path):
         """An .mdc with alwaysApply: false gets corrected."""
@@ -82,7 +82,7 @@ class TestCursorMdcFrontmatter:
         assert content.count("alwaysApply") == 1
 
     def test_remove_deletes_mdc_with_only_frontmatter(self, tmp_path):
-        """Removing the section from a Speckit-only .mdc deletes the file."""
+        """Removing the section from a Kite-only .mdc deletes the file."""
         i, m = self._setup(tmp_path)
         i.upsert_context_section(tmp_path)
         ctx_path = tmp_path / i.context_file
@@ -97,12 +97,12 @@ class TestCursorAgentAutoPromote:
     def test_ai_cursor_agent_without_ai_skills_auto_promotes(self, tmp_path):
         """--ai cursor-agent should work the same as --integration cursor-agent."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         target = tmp_path / "test-proj"
         result = runner.invoke(app, ["init", str(target), "--ai", "cursor-agent", "--no-git", "--ignore-agent-tools", "--script", "sh"])
 
         assert result.exit_code == 0, f"init --ai cursor-agent failed: {result.output}"
-        assert (target / ".cursor" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert (target / ".cursor" / "skills" / "kite-plan" / "SKILL.md").exists()
 

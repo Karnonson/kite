@@ -10,7 +10,7 @@
 
 ## Installation
 
-> **Important:** The only official, maintained packages for Spec Kit come from the [github/spec-kit](https://github.com/github/spec-kit) GitHub repository. Any packages with the same name available on PyPI (e.g. `specify-cli` on pypi.org) are **not** affiliated with this project and are not maintained by the Spec Kit maintainers. For normal installs, use the GitHub-based commands shown below. For offline or air-gapped environments, locally built wheels created from this repository are also valid.
+> **Important:** The only official, maintained packages for Kite come from the [github/spec-kit](https://github.com/github/spec-kit) GitHub repository. Any packages with the same name available on PyPI (e.g. `specify-cli` on pypi.org) are **not** affiliated with this project and are not maintained by the Kite maintainers. For normal installs, use the GitHub-based commands shown below. For offline or air-gapped environments, locally built wheels created from this repository are also valid.
 
 ### Initialize a New Project
 
@@ -18,10 +18,10 @@ The easiest way to get started is to initialize a new project. Pin a specific re
 
 ```bash
 # Install from a specific stable release (recommended — replace vX.Y.Z with the latest tag)
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <PROJECT_NAME>
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <PROJECT_NAME>
 
 # Or install latest from main (may include unreleased changes)
-uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME>
+uvx --from git+https://github.com/github/spec-kit.git kite init <PROJECT_NAME>
 ```
 
 > [!NOTE]
@@ -34,9 +34,9 @@ uvx --from git+https://github.com/github/spec-kit.git specify init <PROJECT_NAME
 Or initialize in the current directory:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init .
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init .
 # or use the --here flag
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init --here
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here
 ```
 
 ### Specify Integration
@@ -44,11 +44,11 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init --here
 You can proactively specify your coding agent integration during initialization:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration claude
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration gemini
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration copilot
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration codebuddy
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration pi
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration claude
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration gemini
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration copilot
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration codebuddy
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration pi
 ```
 
 ### Specify Script Type (Shell vs PowerShell)
@@ -64,8 +64,8 @@ Auto behavior:
 Force a specific script type:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --script sh
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --script ps
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --script sh
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --script ps
 ```
 
 ### Ignore Agent Tools Check
@@ -73,7 +73,7 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <proje
 If you prefer to get the templates without checking for the right tools:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init <project_name> --integration claude --ignore-agent-tools
+uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <project_name> --integration claude --ignore-agent-tools
 ```
 
 ## Verification
@@ -84,15 +84,15 @@ After installation, run the following command to confirm the correct version is 
 specify version
 ```
 
-This helps verify you are running the official Spec Kit build from GitHub, not an unrelated package with the same name.
+This helps verify you are running the official Kite build from GitHub, not an unrelated package with the same name.
 
 After initialization, you should see the following commands available in your coding agent:
 
-- `/speckit.specify` - Create specifications
-- `/speckit.plan` - Generate implementation plans  
-- `/speckit.tasks` - Break down into actionable tasks
+- `/kite.specify` - Create specifications
+- `/kite.plan` - Generate implementation plans  
+- `/kite.tasks` - Break down into actionable tasks
 
-The `.specify/scripts` directory will contain both `.sh` and `.ps1` scripts.
+The `.kite/scripts` directory will contain both `.sh` and `.ps1` scripts.
 
 ## Troubleshooting
 
@@ -112,7 +112,7 @@ pip install build
 python -m build --wheel --outdir dist/
 
 # Download the wheel and all its runtime dependencies
-pip download -d dist/ dist/specify_cli-*.whl
+pip download -d dist/ dist/kite_cli-*.whl
 ```
 
 > **Important:** `pip download` resolves platform-specific wheels (e.g., PyYAML includes native extensions). You must run this step on a machine with the **same OS and Python version** as the air-gapped target. If you need to support multiple platforms, repeat this step on each target OS (Linux, macOS, Windows) and Python version.
@@ -131,7 +131,7 @@ pip install --no-index --find-links=./dist specify-cli
 
 ```bash
 # Initialize a project — no GitHub access needed
-specify init my-project --integration claude
+kite init my-project --integration claude
 ```
 
 Bundled assets are used by default — no network access is required.

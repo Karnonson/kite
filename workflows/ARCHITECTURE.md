@@ -6,11 +6,11 @@ For usage instructions, see [README.md](README.md).
 
 ## Execution Model
 
-When `specify workflow run` is invoked, the engine loads a YAML definition, resolves inputs, and dispatches steps sequentially through the step registry:
+When `kite workflow run` is invoked, the engine loads a YAML definition, resolves inputs, and dispatches steps sequentially through the step registry:
 
 ```mermaid
 flowchart TD
-    A["specify workflow run my-workflow"] --> B["WorkflowEngine.load_workflow()"]
+    A["kite workflow run my-workflow"] --> B["WorkflowEngine.load_workflow()"]
     B --> C["WorkflowDefinition.from_yaml()"]
     C --> D["_resolve_inputs()"]
     D --> E["validate_workflow()"]
@@ -68,7 +68,7 @@ flowchart LR
     E -- "resume()" --> B
 ```
 
-When a `gate` step pauses execution, the engine persists `current_step_index` and all accumulated `step_results`. On `specify workflow resume <run_id>`, the engine restores the context and continues from the paused step.
+When a `gate` step pauses execution, the engine persists `current_step_index` and all accumulated `step_results`. On `kite workflow resume <run_id>`, the engine restores the context and continues from the paused step.
 
 > **Note:** Resume tracking is at the top-level step index only. If a
 > nested step (inside `if`/`switch`/`while`) pauses, resume re-runs
@@ -77,11 +77,11 @@ When a `gate` step pauses execution, the engine persists `current_step_index` an
 
 ## Step Types
 
-The engine ships with 10 built-in step types, each in its own subpackage under `src/specify_cli/workflows/steps/`:
+The engine ships with 10 built-in step types, each in its own subpackage under `src/kite_cli/workflows/steps/`:
 
 | Type Key | Class | Purpose | Returns `next_steps`? |
 |----------|-------|---------|-----------------------|
-| `command` | `CommandStep` | Invoke an installed Spec Kit command via integration CLI | No |
+| `command` | `CommandStep` | Invoke an installed Kite command via integration CLI | No |
 | `prompt` | `PromptStep` | Send an arbitrary inline prompt to integration CLI | No |
 | `shell` | `ShellStep` | Run a shell command, capture output | No |
 | `gate` | `GateStep` | Interactive human review/approval | No (pauses in CI) |
@@ -94,7 +94,7 @@ The engine ships with 10 built-in step types, each in its own subpackage under `
 
 ## Step Registry
 
-All step types register into `STEP_REGISTRY` via `_register_builtin_steps()` in `src/specify_cli/workflows/__init__.py`. The registry maps `type_key` strings to step instances:
+All step types register into `STEP_REGISTRY` via `_register_builtin_steps()` in `src/kite_cli/workflows/__init__.py`. The registry maps `type_key` strings to step instances:
 
 ```python
 STEP_REGISTRY: dict[str, StepBase]  # e.g., {"command": CommandStep(), "gate": GateStep(), ...}
@@ -104,7 +104,7 @@ Registration is explicit — each step class is imported and instantiated. New s
 
 ## Expression Engine
 
-Workflow definitions use Jinja2-like `{{ expression }}` syntax for dynamic values. The expression engine in `src/specify_cli/workflows/expressions.py` supports:
+Workflow definitions use Jinja2-like `{{ expression }}` syntax for dynamic values. The expression engine in `src/kite_cli/workflows/expressions.py` supports:
 
 | Feature | Syntax | Example |
 |---------|--------|---------|
@@ -149,12 +149,12 @@ Missing required inputs raise `ValueError`. Inputs with `default` values use the
 
 ```mermaid
 flowchart TD
-    A["specify workflow search"] --> B["WorkflowCatalog.get_active_catalogs()"]
-    B --> C{SPECKIT_WORKFLOW_CATALOG_URL set?}
+    A["kite workflow search"] --> B["WorkflowCatalog.get_active_catalogs()"]
+    B --> C{KITE_WORKFLOW_CATALOG_URL set?}
     C -- Yes --> D["Single custom catalog"]
-    C -- No --> E{.specify/workflow-catalogs.yml exists?}
+    C -- No --> E{.kite/workflow-catalogs.yml exists?}
     E -- Yes --> F["Project-level catalog stack"]
-    E -- No --> G{"~/.specify/workflow-catalogs.yml exists?"}
+    E -- No --> G{"~/.kite/workflow-catalogs.yml exists?"}
     G -- Yes --> H["User-level catalog stack"]
     G -- No --> I["Built-in defaults"]
     I --> J["default (install allowed)"]
@@ -167,27 +167,27 @@ flowchart TD
     style K fill:#9e9e9e,color:#fff
 ```
 
-Catalogs are fetched with a 1-hour cache (per-URL, SHA256-hashed cache files in `.specify/workflows/.cache/`). Each catalog entry has a `priority` (for merge ordering) and `install_allowed` flag.
+Catalogs are fetched with a 1-hour cache (per-URL, SHA256-hashed cache files in `.kite/workflows/.cache/`). Each catalog entry has a `priority` (for merge ordering) and `install_allowed` flag.
 
-When `specify workflow add <id>` installs from catalog, it downloads the workflow YAML from the catalog entry's `url` field into `.specify/workflows/<id>/workflow.yml`.
+When `kite workflow add <id>` installs from catalog, it downloads the workflow YAML from the catalog entry's `url` field into `.kite/workflows/<id>/workflow.yml`.
 
 ## State and Configuration Locations
 
 | Component | Location | Format | Purpose |
 |-----------|----------|--------|---------|
-| Workflow definitions | `.specify/workflows/{id}/workflow.yml` | YAML | Installed workflow definitions |
-| Workflow registry | `.specify/workflows/workflow-registry.json` | JSON | Installed workflows metadata |
-| Run state | `.specify/workflows/runs/{run_id}/state.json` | JSON | Persisted execution state |
-| Run inputs | `.specify/workflows/runs/{run_id}/inputs.json` | JSON | Resolved input values |
-| Run log | `.specify/workflows/runs/{run_id}/log.jsonl` | JSONL | Append-only event log |
-| Catalog cache | `.specify/workflows/.cache/*.json` | JSON | Cached catalog entries (1hr TTL) |
-| Project catalogs | `.specify/workflow-catalogs.yml` | YAML | Project-level catalog sources |
-| User catalogs | `~/.specify/workflow-catalogs.yml` | YAML | User-level catalog sources |
+| Workflow definitions | `.kite/workflows/{id}/workflow.yml` | YAML | Installed workflow definitions |
+| Workflow registry | `.kite/workflows/workflow-registry.json` | JSON | Installed workflows metadata |
+| Run state | `.kite/workflows/runs/{run_id}/state.json` | JSON | Persisted execution state |
+| Run inputs | `.kite/workflows/runs/{run_id}/inputs.json` | JSON | Resolved input values |
+| Run log | `.kite/workflows/runs/{run_id}/log.jsonl` | JSONL | Append-only event log |
+| Catalog cache | `.kite/workflows/.cache/*.json` | JSON | Cached catalog entries (1hr TTL) |
+| Project catalogs | `.kite/workflow-catalogs.yml` | YAML | Project-level catalog sources |
+| User catalogs | `~/.kite/workflow-catalogs.yml` | YAML | User-level catalog sources |
 
 ## Module Structure
 
 ```
-src/specify_cli/
+src/kite_cli/
 ├── workflows/
 │   ├── __init__.py          # STEP_REGISTRY + _register_builtin_steps()
 │   ├── base.py              # StepBase, StepContext, StepResult, StepStatus, RunStatus
@@ -205,7 +205,7 @@ src/specify_cli/
 │       ├── do_while/        # Do-while loop
 │       ├── fan_out/         # Sequential per-item dispatch
 │       └── fan_in/          # Result aggregation
-└── __init__.py              # CLI commands: specify workflow run/resume/status/
+└── __init__.py              # CLI commands: kite workflow run/resume/status/
                              #   list/add/remove/search/info,
-                             #   specify workflow catalog list/add/remove
+                             #   kite workflow catalog list/add/remove
 ```

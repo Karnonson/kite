@@ -25,7 +25,7 @@ preset:
 # Requirements for this preset
 requires:
   # CUSTOMIZE: Minimum spec-kit version required
-  speckit_version: ">=0.1.0"
+  kite_version: ">=0.1.0"
 
 # Templates provided by this preset
 provides:
@@ -68,7 +68,7 @@ provides:
     #
     # Wrap a command with preamble/sign-off:
     # - type: "command"
-    #   name: "speckit.specify"
+    #   name: "kite.specify"
     #   file: "commands/specify-wrapper.md"
     #   description: "Wrap specify command with compliance checks"
     #   strategy: "wrap"
@@ -94,17 +94,17 @@ provides:
 
     # Override a core command:
     - type: "command"
-      name: "speckit.specify"
-      file: "commands/speckit.specify.md"
+      name: "kite.specify"
+      file: "commands/kite.specify.md"
       description: "Custom specification command"
-      replaces: "speckit.specify"
+      replaces: "kite.specify"
 
     # Override an extension command (e.g. from the "myext" extension):
     - type: "command"
-      name: "speckit.myext.myextcmd"
-      file: "commands/speckit.myext.myextcmd.md"
+      name: "kite.myext.myextcmd"
+      file: "commands/kite.myext.myextcmd.md"
       description: "Override myext's myextcmd command with custom workflow"
-      replaces: "speckit.myext.myextcmd"
+      replaces: "kite.myext.myextcmd"
 
     # Script templates (reserved for future use)
     # - type: "script"

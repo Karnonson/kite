@@ -1,4 +1,4 @@
-"""Shared test helpers for the Spec Kit test suite."""
+"""Shared test helpers for the Kite test suite."""
 
 import os
 import re
@@ -25,9 +25,9 @@ def _has_working_bash() -> bool:
     filesystem and cannot handle native Windows paths used by the
     test fixtures.
 
-    Set SPECKIT_TEST_BASH=1 to force-enable bash tests regardless.
+    Set KITE_TEST_BASH=1 to force-enable bash tests regardless.
     """
-    if os.environ.get("SPECKIT_TEST_BASH") == "1":
+    if os.environ.get("KITE_TEST_BASH") == "1":
         return True
     if shutil.which("bash") is None:
         return False

@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 import yaml
 
-from specify_cli.integrations import INTEGRATION_REGISTRY, get_integration
-from specify_cli.integrations.base import IntegrationBase
-from specify_cli.integrations.claude import ARGUMENT_HINTS
-from specify_cli.integrations.manifest import IntegrationManifest
+from kite_cli.integrations import INTEGRATION_REGISTRY, get_integration
+from kite_cli.integrations.base import IntegrationBase
+from kite_cli.integrations.claude import ARGUMENT_HINTS
+from kite_cli.integrations.manifest import IntegrationManifest
 
 
 class TestClaudeIntegration:
@@ -48,19 +48,19 @@ class TestClaudeIntegration:
         skills_dir = tmp_path / ".claude" / "skills"
         assert skills_dir.is_dir()
 
-        plan_skill = skills_dir / "speckit-plan" / "SKILL.md"
+        plan_skill = skills_dir / "kite-plan" / "SKILL.md"
         assert plan_skill.exists()
 
         content = plan_skill.read_text(encoding="utf-8")
         assert "{SCRIPT}" not in content
         assert "{ARGS}" not in content
         assert "__AGENT__" not in content
-        assert "__SPECKIT_COMMAND_" not in content, "unprocessed __SPECKIT_COMMAND_*__"
-        assert "/speckit." not in content, "skills agent must use /speckit-<name> not /speckit.<name>"
+        assert "__KITE_COMMAND_" not in content, "unprocessed __KITE_COMMAND_*__"
+        assert "/kite." not in content, "skills agent must use /kite-<name> not /kite.<name>"
 
         parts = content.split("---", 2)
         parsed = yaml.safe_load(parts[1])
-        assert parsed["name"] == "speckit-plan"
+        assert parsed["name"] == "kite-plan"
         assert parsed["user-invocable"] is True
         assert parsed["disable-model-invocation"] is False
         assert parsed["metadata"]["source"] == "templates/commands/plan.md"
@@ -73,8 +73,8 @@ class TestClaudeIntegration:
         ctx_path = tmp_path / integration.context_file
         assert ctx_path.exists()
         content = ctx_path.read_text(encoding="utf-8")
-        assert "<!-- SPECKIT START -->" in content
-        assert "<!-- SPECKIT END -->" in content
+        assert "<!-- KITE START -->" in content
+        assert "<!-- KITE END -->" in content
         assert "read the current plan" in content
 
     def test_upsert_context_section_strips_bom(self, tmp_path):
@@ -91,7 +91,7 @@ class TestClaudeIntegration:
         result = ctx_path.read_bytes()
         assert not result.startswith(bom), "BOM must be stripped after upsert"
         content = result.decode("utf-8")
-        assert "<!-- SPECKIT START -->" in content
+        assert "<!-- KITE START -->" in content
         assert "Some existing content." in content
 
     def test_remove_context_section_strips_bom(self, tmp_path):
@@ -101,10 +101,10 @@ class TestClaudeIntegration:
 
         marker_content = (
             "# CLAUDE.md\n\n"
-            "<!-- SPECKIT START -->\n"
+            "<!-- KITE START -->\n"
             "For additional context about technologies to be used, project structure,\n"
             "shell commands, and other important information, read the current plan\n"
-            "<!-- SPECKIT END -->\n"
+            "<!-- KITE END -->\n"
         )
         ctx_path.write_bytes(codecs.BOM_UTF8 + marker_content.encode("utf-8"))
 
@@ -114,12 +114,12 @@ class TestClaudeIntegration:
         assert ctx_path.exists(), "File should exist (non-empty content remains)"
         remaining = ctx_path.read_bytes()
         assert not remaining.startswith(codecs.BOM_UTF8), "BOM must be stripped after remove"
-        assert b"<!-- SPECKIT" not in remaining
+        assert b"<!-- KITE" not in remaining
         assert b"# CLAUDE.md" in remaining
 
     def test_ai_flag_auto_promotes_and_enables_skills(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "claude-promote"
         project.mkdir()
@@ -145,11 +145,11 @@ class TestClaudeIntegration:
             os.chdir(old_cwd)
 
         assert result.exit_code == 0, result.output
-        assert (project / ".claude" / "skills" / "speckit-plan" / "SKILL.md").exists()
+        assert (project / ".claude" / "skills" / "kite-plan" / "SKILL.md").exists()
         assert not (project / ".claude" / "commands").exists()
 
         init_options = json.loads(
-            (project / ".specify" / "init-options.json").read_text(encoding="utf-8")
+            (project / ".kite" / "init-options.json").read_text(encoding="utf-8")
         )
         assert init_options["ai"] == "claude"
         assert init_options["ai_skills"] is True
@@ -157,7 +157,7 @@ class TestClaudeIntegration:
 
     def test_integration_flag_creates_skill_files(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "claude-integration"
         project.mkdir()
@@ -183,12 +183,12 @@ class TestClaudeIntegration:
             os.chdir(old_cwd)
 
         assert result.exit_code == 0, result.output
-        assert (project / ".claude" / "skills" / "speckit-specify" / "SKILL.md").exists()
-        assert (project / ".specify" / "integrations" / "claude.manifest.json").exists()
+        assert (project / ".claude" / "skills" / "kite-specify" / "SKILL.md").exists()
+        assert (project / ".kite" / "integrations" / "claude.manifest.json").exists()
 
     def test_interactive_claude_selection_uses_integration_path(self, tmp_path):
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         project = tmp_path / "claude-interactive"
         project.mkdir()
@@ -196,7 +196,7 @@ class TestClaudeIntegration:
         try:
             os.chdir(project)
             runner = CliRunner()
-            with patch("specify_cli.select_with_arrows", return_value="claude"):
+            with patch("kite_cli.select_with_arrows", return_value="claude"):
                 result = runner.invoke(
                     app,
                     [
@@ -213,17 +213,17 @@ class TestClaudeIntegration:
             os.chdir(old_cwd)
 
         assert result.exit_code == 0, result.output
-        assert (project / ".specify" / "integration.json").exists()
-        assert (project / ".specify" / "integrations" / "claude.manifest.json").exists()
+        assert (project / ".kite" / "integration.json").exists()
+        assert (project / ".kite" / "integrations" / "claude.manifest.json").exists()
 
-        skill_file = project / ".claude" / "skills" / "speckit-plan" / "SKILL.md"
+        skill_file = project / ".claude" / "skills" / "kite-plan" / "SKILL.md"
         assert skill_file.exists()
         skill_content = skill_file.read_text(encoding="utf-8")
         assert "user-invocable: true" in skill_content
         assert "disable-model-invocation: false" in skill_content
 
         init_options = json.loads(
-            (project / ".specify" / "init-options.json").read_text(encoding="utf-8")
+            (project / ".kite" / "init-options.json").read_text(encoding="utf-8")
         )
         assert init_options["ai"] == "claude"
         assert init_options["ai_skills"] is True
@@ -232,7 +232,7 @@ class TestClaudeIntegration:
     def test_claude_init_remains_usable_when_converter_fails(self, tmp_path):
         """Claude init should succeed even without install_ai_skills."""
         from typer.testing import CliRunner
-        from specify_cli import app
+        from kite_cli import app
 
         runner = CliRunner()
         target = tmp_path / "fail-proj"
@@ -243,14 +243,14 @@ class TestClaudeIntegration:
         )
 
         assert result.exit_code == 0
-        assert (target / ".claude" / "skills" / "speckit-specify" / "SKILL.md").exists()
+        assert (target / ".claude" / "skills" / "kite-specify" / "SKILL.md").exists()
 
     def test_claude_hooks_render_skill_invocation(self, tmp_path):
-        from specify_cli.extensions import HookExecutor
+        from kite_cli.extensions import HookExecutor
 
         project = tmp_path / "claude-hooks"
         project.mkdir()
-        init_options = project / ".specify" / "init-options.json"
+        init_options = project / ".kite" / "init-options.json"
         init_options.parent.mkdir(parents=True, exist_ok=True)
         init_options.write_text(json.dumps({"ai": "claude", "ai_skills": True}))
 
@@ -260,19 +260,19 @@ class TestClaudeIntegration:
             [
                 {
                     "extension": "test-ext",
-                    "command": "speckit.plan",
+                    "command": "kite.plan",
                     "optional": False,
                 }
             ],
         )
 
-        assert "Executing: `/speckit-plan`" in message
-        assert "EXECUTE_COMMAND: speckit.plan" in message
-        assert "EXECUTE_COMMAND_INVOCATION: /speckit-plan" in message
+        assert "Executing: `/kite-plan`" in message
+        assert "EXECUTE_COMMAND: kite.plan" in message
+        assert "EXECUTE_COMMAND_INVOCATION: /kite-plan" in message
 
     def test_claude_preset_creates_new_skill_without_commands_dir(self, tmp_path):
-        from specify_cli import save_init_options
-        from specify_cli.presets import PresetManager
+        from kite_cli import save_init_options
+        from kite_cli.presets import PresetManager
 
         project = tmp_path / "claude-preset-skill"
         project.mkdir()
@@ -284,7 +284,7 @@ class TestClaudeIntegration:
         preset_dir = tmp_path / "claude-skill-command"
         preset_dir.mkdir()
         (preset_dir / "commands").mkdir()
-        (preset_dir / "commands" / "speckit.research.md").write_text(
+        (preset_dir / "commands" / "kite.research.md").write_text(
             "---\n"
             "description: Research workflow\n"
             "---\n\n"
@@ -298,13 +298,13 @@ class TestClaudeIntegration:
                 "version": "1.0.0",
                 "description": "Test",
             },
-            "requires": {"speckit_version": ">=0.1.0"},
+            "requires": {"kite_version": ">=0.1.0"},
             "provides": {
                 "templates": [
                     {
                         "type": "command",
-                        "name": "speckit.research",
-                        "file": "commands/speckit.research.md",
+                        "name": "kite.research",
+                        "file": "commands/kite.research.md",
                     }
                 ]
             },
@@ -315,16 +315,16 @@ class TestClaudeIntegration:
         manager = PresetManager(project)
         manager.install_from_directory(preset_dir, "0.1.5")
 
-        skill_file = skills_dir / "speckit-research" / "SKILL.md"
+        skill_file = skills_dir / "kite-research" / "SKILL.md"
         assert skill_file.exists()
         content = skill_file.read_text(encoding="utf-8")
         assert "preset:claude-skill-command" in content
-        assert "name: speckit-research" in content
+        assert "name: kite-research" in content
         assert "user-invocable: true" in content
         assert "disable-model-invocation: false" in content
 
         metadata = manager.registry.get("claude-skill-command")
-        assert "speckit-research" in metadata.get("registered_skills", [])
+        assert "kite-research" in metadata.get("registered_skills", [])
 
 
 class TestClaudeArgumentHints:
@@ -350,10 +350,10 @@ class TestClaudeArgumentHints:
         created = i.setup(tmp_path, m, script_type="sh")
         skill_files = [f for f in created if f.name == "SKILL.md"]
         for f in skill_files:
-            # Extract stem: speckit-plan -> plan
+            # Extract stem: kite-plan -> plan
             stem = f.parent.name
-            if stem.startswith("speckit-"):
-                stem = stem[len("speckit-"):]
+            if stem.startswith("kite-"):
+                stem = stem[len("kite-"):]
             expected_hint = ARGUMENT_HINTS.get(stem)
             assert expected_hint is not None, (
                 f"No expected hint defined for skill '{stem}'"
@@ -408,7 +408,7 @@ class TestClaudeArgumentHints:
 
     def test_inject_argument_hint_only_in_frontmatter(self):
         """inject_argument_hint must not modify description: lines in the body."""
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
 
         content = (
             "---\n"
@@ -426,7 +426,7 @@ class TestClaudeArgumentHints:
 
     def test_inject_argument_hint_skips_if_already_present(self):
         """inject_argument_hint must not duplicate if argument-hint already exists."""
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
 
         content = (
             "---\n"
@@ -476,10 +476,10 @@ class TestClaudeDisableModelInvocation:
 
     def test_non_claude_agents_lack_disable_model_invocation(self, tmp_path):
         """Non-Claude skill agents should not get disable-model-invocation."""
-        from specify_cli.agents import CommandRegistrar
+        from kite_cli.agents import CommandRegistrar
 
         fm = CommandRegistrar.build_skill_frontmatter(
-            "codex", "speckit-plan", "desc", "templates/commands/plan.md"
+            "codex", "kite-plan", "desc", "templates/commands/plan.md"
         )
         assert "disable-model-invocation" not in fm
         assert "user-invocable" not in fm
@@ -501,17 +501,17 @@ class TestClaudeHookCommandNote:
         i = get_integration("claude")
         m = IntegrationManifest("claude", tmp_path)
         created = i.setup(tmp_path, m, script_type="sh")
-        specify_skill = tmp_path / ".claude/skills/speckit-specify/SKILL.md"
+        specify_skill = tmp_path / ".claude/skills/kite-specify/SKILL.md"
         assert specify_skill.exists()
         content = specify_skill.read_text(encoding="utf-8")
         # specify.md has hook sections
         assert "replace dots" in content, (
-            "speckit-specify should have dot-to-hyphen hook note"
+            "kite-specify should have dot-to-hyphen hook note"
         )
 
     def test_hook_note_not_in_skills_without_hooks(self, tmp_path):
         """Skills without hook sections should not get the note."""
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
 
         content = "---\nname: test\ndescription: test\n---\n\nNo hooks here.\n"
         result = ClaudeIntegration._inject_hook_command_note(content)
@@ -519,7 +519,7 @@ class TestClaudeHookCommandNote:
 
     def test_hook_note_idempotent(self, tmp_path):
         """Injecting the note twice should not duplicate it."""
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
 
         content = (
             "---\nname: test\n---\n\n"
@@ -531,7 +531,7 @@ class TestClaudeHookCommandNote:
 
     def test_hook_note_preserves_indentation(self, tmp_path):
         """The injected note should match the indentation of the target line."""
-        from specify_cli.integrations.claude import ClaudeIntegration
+        from kite_cli.integrations.claude import ClaudeIntegration
 
         content = (
             "---\nname: test\n---\n\n"
