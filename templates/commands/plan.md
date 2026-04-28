@@ -146,6 +146,24 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 **Output**: data-model.md, /contracts/*, quickstart.md, updated agent context file
 
+## Plain-English summary block (REQUIRED)
+
+Before you finish writing the plan file, you **MUST** insert a section
+titled `## What this means in plain English` immediately after the
+document title. The block follows these rules:
+
+- 3 to 5 short bullets, written for a non-technical founder.
+- No jargon. Forbidden words: *epic, story, Gherkin, schema, endpoint,
+  payload, non-functional, KPI, OKR, RFC, MVP, scope creep*.
+- Each bullet answers one of: **What are we building first?**,
+  **What pieces does it have?**, **What do we need to figure out before
+  we start?**, **What is deliberately left for later?**, **How long until
+  we can test something real?**
+- If you cannot fill a bullet honestly from the plan, drop the bullet
+  rather than inventing content.
+
+A plan without this block is incomplete and must be rewritten.
+
 ## Key rules
 
 - Use absolute paths for filesystem operations; use project-relative paths for references in documentation and agent context files

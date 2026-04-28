@@ -325,3 +325,20 @@ Success criteria must be:
 - "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
 - "React components render efficiently" (framework-specific)
 - "Redis cache hit rate above 80%" (technology-specific)
+
+## Plain-English summary block (REQUIRED)
+
+Before you finish writing `spec.md`, you **MUST** insert a section titled
+`## What this means in plain English` immediately after the document title.
+The block follows these rules:
+
+- 3 to 5 short bullets, written for a non-technical founder.
+- No jargon. Forbidden words: *epic, story, Gherkin, schema, endpoint,
+  payload, non-functional, KPI, OKR, RFC, MVP, scope creep*.
+- Each bullet answers one of: **Who is this for?**, **What will they do?**,
+  **Why does it matter?**, **What's out of scope for now?**, **How will we
+  know it worked?**
+- If you cannot fill a bullet honestly from the spec, drop the bullet
+  rather than inventing content.
+
+A spec without this block is incomplete and must be rewritten.

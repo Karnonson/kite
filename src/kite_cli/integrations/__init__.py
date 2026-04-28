@@ -16,6 +16,21 @@ if TYPE_CHECKING:
 INTEGRATION_REGISTRY: dict[str, IntegrationBase] = {}
 
 
+# Day-one supported integrations for Kite MVP. Every other integration is
+# considered experimental: it ships and is tested, but Kite makes no
+# stability promises about persona-command output or context-file format
+# while the founder-first MVP is iterated on.
+KITE_DAY_ONE_INTEGRATIONS: frozenset[str] = frozenset({"copilot", "claude", "codex"})
+
+
+def is_experimental(key: str) -> bool:
+    """Return True if *key* is NOT a day-one Kite integration.
+
+    Unknown keys are treated as experimental.
+    """
+    return key not in KITE_DAY_ONE_INTEGRATIONS
+
+
 def _register(integration: IntegrationBase) -> None:
     """Register an integration instance in the global registry.
 

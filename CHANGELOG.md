@@ -2,6 +2,55 @@
 
 <!-- insert new changelog below this comment -->
 
+## [0.7.2] - Forked → Kite (MVP)
+
+This release marks the fork of GitHub Spec Kit into **Kite** — an SDLC
+toolkit for non-technical founders and junior engineers. The methodology
+remains Spec-Driven Development; the workflow now spans the full software
+lifecycle through dedicated persona agents.
+
+### Added
+
+- New persona commands: `/kite.discover`, `/kite.design`, `/kite.backend`,
+  `/kite.frontend`, `/kite.qa`. Each uses ≤6 plain-English questions and
+  refuses jargon (`epic`, `Gherkin`, `non-functional`, `KPI`, …).
+- Orchestrator command `/kite.start` and bundled workflow `kite` that run
+  the full lifecycle (discover → specify → design → plan → tasks →
+  backend → contract gate → frontend → qa) with human-review gates
+  between stages and an `auto_approve` short-circuit for trusted runs.
+- **Backend contract gate**: orchestrator and dedicated test verify that
+  `specs/<latest>/contract.md` exists and is free of `TODO` /
+  `<placeholder>` markers before the frontend persona is allowed to start.
+- `kite init --persona founder|junior` writes `kite.config.yml` so every
+  persona invocation can adapt its plain-English level.
+- `kite resume` — auto-resumes the most recent paused/failed workflow run.
+- `kite doctor` — plain-language project health check; tells the user
+  exactly which `/kite.*` command to run next.
+- `## What this means in plain English` summary block now required at the
+  top of generated `spec.md`, `plan.md`, and `tasks.md`.
+- `[backend|frontend|qa]` persona tags on every generated task.
+
+### Changed
+
+- **Hard rebrand** from Spec Kit / `specify` to Kite / `kite`:
+  Python package `kite_cli`, CLI binary `kite`, marker directory `.kite/`,
+  command prefix `/kite.*`, magic envelope `__KITE_COMMAND_*`, manifest
+  key `kite_version`. One short attribution paragraph remains.
+- Day-one supported integrations: **Copilot, Claude, Codex**. Every other
+  integration is now marked `experimental` (see
+  [docs/reference/integrations.md](docs/reference/integrations.md)) —
+  they continue to ship and are tested but Kite makes no stability
+  promises while the founder-first MVP is iterated on.
+- `tasks.md` task line format: `[ID] [P?] [Story] [Persona] Description`.
+
+### Compatibility
+
+- `/speckit.*` aliases are available for one release behind the
+  `KITE_SPECKIT_ALIASES=1` opt-in flag and emit a stderr deprecation
+  warning. They will be removed in the next release.
+
+<!-- previous Spec Kit history retained below -->
+
 ## [0.8.1] - 2026-04-24
 
 ### Changed

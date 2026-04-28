@@ -949,9 +949,15 @@ def _get_skills_dir(project_path: Path, selected_ai: str) -> Path:
 # Constants kept for backward compatibility with presets and extensions.
 DEFAULT_SKILLS_DIR = ".agents/skills"
 SKILL_DESCRIPTIONS = {
+    "discover": "Turn a one-line idea into a structured discovery brief in plain English. The first stop in the Kite SDLC.",
     "specify": "Create or update feature specifications from natural language descriptions.",
     "plan": "Generate technical implementation plans from feature specifications.",
+    "design": "Produce a plain-English design system + page layout brief from the discovery and specification. Text-only.",
     "tasks": "Break down implementation plans into actionable task lists.",
+    "backend": "Implement [backend]-tagged tasks and publish a frontend contract before any UI work begins.",
+    "frontend": "Implement [frontend]-tagged tasks, consuming the design brief and the backend contract.",
+    "qa": "Implement and run [qa]-tagged tasks, then append a plain-English QA report to tasks.md.",
+    "start": "Run the full Kite SDLC end-to-end with optional review gates. The orchestrator entrypoint.",
     "implement": "Execute all tasks from the task breakdown to build the feature.",
     "analyze": "Perform cross-artifact consistency analysis across spec.md, plan.md, and tasks.md.",
     "clarify": "Structured clarification workflow for underspecified requirements.",
@@ -980,9 +986,10 @@ def init(
     branch_numbering: str = typer.Option(None, "--branch-numbering", help="Branch numbering strategy: 'sequential' (001, 002, …, 1000, … — expands past 999 automatically) or 'timestamp' (YYYYMMDD-HHMMSS)"),
     integration: str = typer.Option(None, "--integration", help="Use the new integration system (e.g. --integration copilot). Mutually exclusive with --ai."),
     integration_options: str = typer.Option(None, "--integration-options", help='Options for the integration (e.g. --integration-options="--commands-dir .myagent/cmds")'),
+    persona: str = typer.Option("founder", "--persona", help="Default persona for this project: 'founder' (non-technical) or 'junior' (junior engineer). Written to kite.config.yml."),
 ):
     """
-    Initialize a new Specify project.
+    Initialize a new Kite project.
 
     By default, project files are downloaded from the latest GitHub release.
     Use --offline to scaffold from assets bundled inside the kite-cli
@@ -1291,7 +1298,7 @@ def init(
                 if extra:
                     integration_parsed_options.update(extra)
 
-            resolved_integration.setup(
+            resolved_integration.install(
                 project_path, manifest,
                 parsed_options=integration_parsed_options or None,
                 script_type=selected_script,
@@ -1470,6 +1477,21 @@ def init(
                 except Exception as preset_err:
                     console.print(f"[yellow]Warning:[/yellow] Failed to install preset: {preset_err}")
 
+            # Write kite.config.yml with the chosen persona (T402).
+            # Don't overwrite an existing one — the user may have customised it.
+            if persona not in ("founder", "junior"):
+                console.print(
+                    f"[yellow]Warning:[/yellow] Unknown persona '{persona}'. "
+                    "Falling back to 'founder'. Valid values: founder, junior."
+                )
+                persona = "founder"
+            kite_config_path = project_path / "kite.config.yml"
+            if not kite_config_path.exists():
+                kite_config_path.write_text(
+                    f"# Kite project configuration. Edit freely.\npersona: {persona}\n",
+                    encoding="utf-8",
+                )
+
             tracker.complete("final", "project ready")
         except (typer.Exit, SystemExit):
             raise
@@ -1566,11 +1588,18 @@ def init(
 
     steps_lines.append(f"{step_num}. Start using {usage_label} with your coding agent:")
 
-    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
-    steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('kite.specify')}[/] - Create baseline specification")
-    steps_lines.append(f"   {step_num}.3 [cyan]{_display_cmd('plan')}[/] - Create implementation plan")
-    steps_lines.append(f"   {step_num}.4 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks")
-    steps_lines.append(f"   {step_num}.5 [cyan]{_display_cmd('implement')}[/] - Execute implementation")
+    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Discover → Specify → Design → Plan → Tasks → Backend → Frontend → QA")
+    steps_lines.append("")
+    steps_lines.append(f"   Or run each persona stage manually:")
+    steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
+    steps_lines.append(f"   {step_num}.3 [cyan]{_display_cmd('discover')}[/] - Turn an idea into a discovery brief")
+    steps_lines.append(f"   {step_num}.4 [cyan]{_display_cmd('specify')}[/] - Create baseline specification")
+    steps_lines.append(f"   {step_num}.5 [cyan]{_display_cmd('design')}[/] - Define design system + page layouts")
+    steps_lines.append(f"   {step_num}.6 [cyan]{_display_cmd('plan')}[/] - Create implementation plan")
+    steps_lines.append(f"   {step_num}.7 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks (tagged backend/frontend/qa)")
+    steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement each layer")
+    steps_lines.append("")
+    steps_lines.append(f"   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
 
     steps_panel = Panel("\n".join(steps_lines), title="Next Steps", border_style="cyan", padding=(1,2))
     console.print()
@@ -2106,7 +2135,7 @@ def integration_install(
     )
 
     try:
-        integration.setup(
+        integration.install(
             project_root, manifest,
             parsed_options=parsed_options,
             script_type=selected_script,
@@ -2394,7 +2423,7 @@ def integration_switch(
     )
 
     try:
-        target_integration.setup(
+        target_integration.install(
             project_root, manifest,
             parsed_options=parsed_options,
             script_type=selected_script,
@@ -2503,7 +2532,7 @@ def integration_upgrade(
     new_manifest = IntegrationManifest(key, project_root, version=get_kite_version())
 
     try:
-        integration.setup(
+        integration.install(
             project_root,
             new_manifest,
             parsed_options=parsed_options,
@@ -5319,6 +5348,177 @@ def workflow_catalog_remove(
         raise typer.Exit(1)
 
     console.print(f"[green]✓[/green] Catalog source '{removed_name}' removed")
+
+
+# ---------------------------------------------------------------------------
+# Top-level convenience commands for non-technical users (Phase 4 polish).
+# ---------------------------------------------------------------------------
+
+@app.command()
+def resume():
+    """Resume the most recent paused or failed Kite workflow run.
+
+    A friendlier wrapper around `kite workflow resume <run_id>` for
+    non-technical users — finds the latest paused/failed run automatically.
+    Use `kite workflow resume <run_id>` if you need to pick a specific run.
+    """
+    from .workflows.engine import WorkflowEngine
+
+    project_root = Path.cwd()
+    if not (project_root / ".kite").exists():
+        console.print("[red]Error:[/red] Not a Kite project (no .kite/ directory).")
+        console.print("[yellow]Hint:[/yellow] run [cyan]kite init[/cyan] first.")
+        raise typer.Exit(1)
+
+    engine = WorkflowEngine(project_root)
+    runs = engine.list_runs()
+    resumable = [r for r in runs if r.get("status") in ("paused", "failed")]
+    if not resumable:
+        console.print("[yellow]No paused or failed runs to resume.[/yellow]")
+        console.print("Run [cyan]kite workflow status[/cyan] to see all runs.")
+        raise typer.Exit(0)
+
+    resumable.sort(key=lambda r: r.get("updated_at", ""), reverse=True)
+    target = resumable[0]
+    run_id = target["run_id"]
+    console.print(
+        f"Resuming run [cyan]{run_id}[/cyan] "
+        f"(workflow: {target.get('workflow_id', '?')}, "
+        f"status: {target.get('status', '?')})."
+    )
+
+    engine.on_step_start = lambda sid, label: console.print(f"  ▸ [{sid}] {label} …")
+    try:
+        state = engine.resume(run_id)
+    except FileNotFoundError:
+        console.print(f"[red]Error:[/red] Run not found: {run_id}")
+        raise typer.Exit(1)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(1)
+    except Exception as exc:
+        console.print(f"[red]Resume failed:[/red] {exc}")
+        raise typer.Exit(1)
+
+    status_colors = {
+        "completed": "green",
+        "paused": "yellow",
+        "failed": "red",
+        "aborted": "red",
+    }
+    color = status_colors.get(state.status.value, "white")
+    console.print(f"\n[{color}]Status: {state.status.value}[/{color}]")
+
+
+@app.command()
+def doctor():
+    """Plain-language health check for a Kite project.
+
+    Scans the project for missing or incomplete artifacts (spec, design,
+    plan, tasks, contract) and tells you exactly which command to run
+    next. Designed for founders and junior engineers — no jargon.
+    """
+    project_root = Path.cwd()
+    if not (project_root / ".kite").exists():
+        console.print("[red]✗[/red] This is not a Kite project (no [cyan].kite/[/cyan] folder).")
+        console.print("  Run [cyan]kite init[/cyan] to set one up.")
+        raise typer.Exit(1)
+
+    console.print("[bold cyan]Kite project health check[/bold cyan]\n")
+
+    issues: list[tuple[str, str]] = []  # (severity, message)
+    suggestions: list[str] = []
+
+    # 1. Project config
+    config_path = project_root / "kite.config.yml"
+    if not config_path.exists():
+        issues.append(("warn", "No [cyan]kite.config.yml[/cyan] found."))
+        suggestions.append(
+            "Create one with [cyan]persona: founder[/cyan] or run "
+            "[cyan]kite init --persona founder --here[/cyan]."
+        )
+    else:
+        console.print("[green]✓[/green] kite.config.yml present.")
+
+    # 2. Discovery brief
+    discovery_paths = list(project_root.glob("specs/*/discovery.md"))
+    if (project_root / "discovery.md").exists():
+        discovery_paths.append(project_root / "discovery.md")
+    if not discovery_paths:
+        issues.append(("warn", "No [cyan]discovery.md[/cyan] yet — you haven't framed the problem."))
+        suggestions.append("Run [cyan]/kite.discover \"<your idea>\"[/cyan] in your AI agent.")
+    else:
+        console.print(f"[green]✓[/green] Discovery brief found ({len(discovery_paths)}).")
+
+    # 3. Latest spec dir checks
+    specs_root = project_root / "specs"
+    spec_dirs = sorted(p for p in specs_root.glob("*/") if p.is_dir()) if specs_root.exists() else []
+
+    if not spec_dirs:
+        issues.append(("error", "No [cyan]specs/[/cyan] feature directories — nothing has been specified."))
+        suggestions.append("Run [cyan]/kite.specify[/cyan] to write your first spec.")
+    else:
+        latest = spec_dirs[-1]
+        console.print(f"[green]✓[/green] Latest feature: [dim]{latest.name}[/dim]")
+
+        for fname, cmd, label in [
+            ("spec.md", "/kite.specify", "the feature spec"),
+            ("design.md", "/kite.design", "the design brief"),
+            ("plan.md", "/kite.plan", "the implementation plan"),
+            ("tasks.md", "/kite.tasks", "the task list"),
+        ]:
+            fpath = latest / fname
+            if not fpath.exists():
+                issues.append(("warn", f"Missing {label} ([cyan]{fname}[/cyan])."))
+                suggestions.append(f"Run [cyan]{cmd}[/cyan] in your AI agent.")
+            else:
+                console.print(f"[green]✓[/green] {label} present.")
+
+        # Contract gate (hard rule for frontend handoff)
+        contract = latest / "contract.md"
+        if not contract.exists():
+            issues.append(("warn", "Missing [cyan]contract.md[/cyan] — frontend cannot start without it."))
+            suggestions.append("Run [cyan]/kite.backend[/cyan] until it produces a contract.")
+        else:
+            text = contract.read_text(encoding="utf-8", errors="replace")
+            import re as _re
+            if "TODO" in text:
+                issues.append(("error", "[cyan]contract.md[/cyan] still contains [red]TODO[/red] markers."))
+                suggestions.append("Re-run [cyan]/kite.backend[/cyan] to finish the contract.")
+            elif _re.search(r"<[a-zA-Z][^>]*>", text):
+                issues.append(("warn", "[cyan]contract.md[/cyan] has angle-bracket placeholders."))
+                suggestions.append("Fill in the placeholders (re-run [cyan]/kite.backend[/cyan]).")
+            else:
+                console.print("[green]✓[/green] Backend contract complete.")
+
+    # Summary
+    console.print()
+    if not issues:
+        console.print("[bold green]All good![/bold green] Your project is in great shape.")
+        return
+
+    error_count = sum(1 for sev, _ in issues if sev == "error")
+    warn_count = sum(1 for sev, _ in issues if sev == "warn")
+    summary_color = "red" if error_count else "yellow"
+    console.print(
+        f"[bold {summary_color}]Found {error_count} blocker(s) and "
+        f"{warn_count} warning(s).[/bold {summary_color}]\n"
+    )
+    for sev, msg in issues:
+        marker = "[red]✗[/red]" if sev == "error" else "[yellow]![/yellow]"
+        console.print(f"  {marker} {msg}")
+
+    if suggestions:
+        console.print("\n[bold]What to do next:[/bold]")
+        seen: set[str] = set()
+        for s in suggestions:
+            if s in seen:
+                continue
+            seen.add(s)
+            console.print(f"  • {s}")
+
+    if error_count:
+        raise typer.Exit(1)
 
 
 def main():

@@ -2,6 +2,52 @@
 
 This guide will help you get started with Spec-Driven Development using Kite.
 
+## 5 commands, no jargon (for founders)
+
+If you're a founder or junior builder and just want to ship something,
+these are the only commands you need. Run them in order in your AI
+coding assistant (Copilot, Claude, or Codex).
+
+1. **Set up the project (in a terminal, once):**
+
+    ```bash
+    uvx --from git+https://github.com/github/spec-kit.git kite init my-app --integration copilot
+    cd my-app
+    ```
+
+2. **In your AI assistant**, run the orchestrator:
+
+    ```
+    /kite.start "Build a tool that does <one sentence about your idea>."
+    ```
+
+    Kite will walk you through one stage at a time — Discover → Specify →
+    Design → Plan → Tasks → Backend → Contract check → Frontend → QA —
+    and ask "approve and continue?" between each stage. You only ever
+    answer plain-English yes/no questions.
+
+3. **If anything pauses or breaks, run** `kite resume` (in the terminal)
+   to pick up exactly where you left off.
+
+4. **If you're not sure what's missing**, run `kite doctor` for a
+   plain-language report — it tells you which `/kite.*` command to run
+   next.
+
+That's it. The five commands you'll actually type are:
+
+| When | What you type | Where |
+| --- | --- | --- |
+| Once, to set up | `kite init my-app --integration copilot` | Terminal |
+| Every new feature | `/kite.start "<idea>"` | AI assistant |
+| If a step stalls | `kite resume` | Terminal |
+| If you're lost | `kite doctor` | Terminal |
+| To pick up later | `/kite.start` (no idea) | AI assistant — auto-resumes |
+
+Everything else in this document is optional context and power-user
+controls.
+
+---
+
 > [!NOTE]
 > All automation scripts now provide both Bash (`.sh`) and PowerShell (`.ps1`) variants. The `specify` CLI auto-selects based on OS unless you pass `--script sh|ps`.
 

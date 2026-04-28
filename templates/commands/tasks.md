@@ -201,3 +201,22 @@ Every task MUST strictly follow this format:
   - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
   - Each phase should be a complete, independently testable increment
 - **Final Phase**: Polish & Cross-Cutting Concerns
+
+## Plain-English summary block (REQUIRED)
+
+Before you finish writing `tasks.md`, you **MUST** insert a section
+titled `## What this means in plain English` immediately after the
+document title. The block follows these rules:
+
+- 3 to 5 short bullets, written for a non-technical founder.
+- No jargon. Forbidden words: *epic, story, Gherkin, schema, endpoint,
+  payload, non-functional, KPI, OKR, RFC, MVP, scope creep*.
+- Each bullet answers one of: **What's the first visible thing we'll
+  build?**, **Roughly how many tasks does each persona own?** (count
+  `[backend]`, `[frontend]`, `[qa]` tags), **What can run in parallel?**,
+  **What blocks everything else?**, **What's the smallest end-to-end
+  slice we can demo?**
+- If you cannot fill a bullet honestly from the task list, drop the
+  bullet rather than inventing content.
+
+A `tasks.md` without this block is incomplete and must be rewritten.

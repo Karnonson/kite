@@ -363,12 +363,18 @@ class YamlIntegrationTests:
 
     COMMAND_STEMS = [
         "analyze",
+        "backend",
         "checklist",
         "clarify",
         "constitution",
+        "design",
+        "discover",
+        "frontend",
         "implement",
         "plan",
+        "qa",
         "specify",
+        "start",
         "tasks",
         "taskstoissues",
     ]
@@ -388,6 +394,7 @@ class YamlIntegrationTests:
         files.append(".kite/init-options.json")
         files.append(f".kite/integrations/{self.KEY}.manifest.json")
         files.append(".kite/integrations/kite.manifest.json")
+        files.append("kite.config.yml")
 
         if script_variant == "sh":
             for name in [

@@ -125,10 +125,10 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 9
+        assert len(agent_files) == 15
         expected_commands = {
-            "analyze", "checklist", "clarify", "constitution",
-            "implement", "plan", "specify", "tasks", "taskstoissues",
+            "analyze", "backend", "checklist", "clarify", "constitution", "design",
+            "discover", "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
         }
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
@@ -179,21 +179,33 @@ class TestCopilotIntegration:
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
             ".github/agents/kite.analyze.agent.md",
+            ".github/agents/kite.backend.agent.md",
             ".github/agents/kite.checklist.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
+            ".github/agents/kite.design.agent.md",
+            ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.frontend.agent.md",
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
+            ".github/agents/kite.qa.agent.md",
             ".github/agents/kite.specify.agent.md",
+            ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
             ".github/agents/kite.taskstoissues.agent.md",
             ".github/prompts/kite.analyze.prompt.md",
+            ".github/prompts/kite.backend.prompt.md",
             ".github/prompts/kite.checklist.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
+            ".github/prompts/kite.design.prompt.md",
+            ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.frontend.prompt.md",
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
+            ".github/prompts/kite.qa.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
+            ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
             ".github/prompts/kite.taskstoissues.prompt.md",
             ".vscode/settings.json",
@@ -202,6 +214,7 @@ class TestCopilotIntegration:
             ".kite/init-options.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            "kite.config.yml",
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",
             ".kite/scripts/bash/create-new-feature.sh",
@@ -238,21 +251,33 @@ class TestCopilotIntegration:
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
             ".github/agents/kite.analyze.agent.md",
+            ".github/agents/kite.backend.agent.md",
             ".github/agents/kite.checklist.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
+            ".github/agents/kite.design.agent.md",
+            ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.frontend.agent.md",
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
+            ".github/agents/kite.qa.agent.md",
             ".github/agents/kite.specify.agent.md",
+            ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
             ".github/agents/kite.taskstoissues.agent.md",
             ".github/prompts/kite.analyze.prompt.md",
+            ".github/prompts/kite.backend.prompt.md",
             ".github/prompts/kite.checklist.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
+            ".github/prompts/kite.design.prompt.md",
+            ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.frontend.prompt.md",
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
+            ".github/prompts/kite.qa.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
+            ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
             ".github/prompts/kite.taskstoissues.prompt.md",
             ".vscode/settings.json",
@@ -261,6 +286,7 @@ class TestCopilotIntegration:
             ".kite/init-options.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            "kite.config.yml",
             ".kite/scripts/powershell/check-prerequisites.ps1",
             ".kite/scripts/powershell/common.ps1",
             ".kite/scripts/powershell/create-new-feature.ps1",
@@ -284,8 +310,8 @@ class TestCopilotSkillsMode:
     """Tests for Copilot integration in --skills mode."""
 
     _SKILL_COMMANDS = [
-        "analyze", "checklist", "clarify", "constitution",
-        "implement", "plan", "specify", "tasks", "taskstoissues",
+        "analyze", "backend", "checklist", "clarify", "constitution", "design",
+        "discover", "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _make_copilot(self):
@@ -609,6 +635,7 @@ class TestCopilotSkillsMode:
             ".kite/integration.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            "kite.config.yml",
             # Scripts (sh)
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",

@@ -2,6 +2,19 @@
 
 The Kite CLI supports a wide range of AI coding agents. When you run `kite init`, the CLI sets up the appropriate command files, context rules, and directory structures for your chosen AI coding agent — so you can start using Spec-Driven Development immediately, regardless of which tool you prefer.
 
+## Day-one (supported) vs. experimental
+
+Kite's MVP focuses on three day-one integrations: **Copilot**, **Claude**, and
+**Codex**. These are the integrations the persona commands (`/kite.discover`,
+`/kite.design`, `/kite.backend`, `/kite.frontend`, `/kite.qa`, `/kite.start`)
+were authored against and are exercised by dedicated tests.
+
+Every other integration listed below is **experimental**: it ships and is
+covered by the generic inventory tests, but Kite makes no stability
+promises about persona output formatting, contract-gate wording, or
+context-file layout while the founder-first workflow is iterated on. Use
+them at your own risk; expect rough edges.
+
 ## Supported AI Coding Agents
 
 | Agent                                                                                | Key              | Notes                                                                                                                                     |

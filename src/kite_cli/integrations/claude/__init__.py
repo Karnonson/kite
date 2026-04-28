@@ -23,9 +23,15 @@ _HOOK_COMMAND_NOTE = (
 # Mapping of command template stem → argument-hint text shown inline
 # when a user invokes the slash command in Claude Code.
 ARGUMENT_HINTS: dict[str, str] = {
+    "discover": "A one-line product idea in plain English",
     "specify": "Describe the feature you want to specify",
+    "design": "Optional vibe / brand guidance for the design phase",
     "plan": "Optional guidance for the planning phase",
     "tasks": "Optional task generation constraints",
+    "backend": "Optional stack hints or task filter for backend work",
+    "frontend": "Optional stack hints or task filter for frontend work",
+    "qa": "Optional test runner or task filter for QA",
+    "start": "One-line idea, or persona/auto_approve flags, or both",
     "implement": "Optional implementation guidance or task filter",
     "analyze": "Optional focus areas for analysis",
     "clarify": "Optional areas to clarify in the spec",

@@ -13,8 +13,15 @@ Provides:
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
+
+
+def _truthy_env(name: str) -> bool:
+    """Return True if env var *name* is set to a non-empty, non-falsey value."""
+    val = os.environ.get(name, "").strip().lower()
+    return val not in ("", "0", "false", "no", "off")
 from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
@@ -800,8 +807,57 @@ class IntegrationBase(ABC):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        """High-level install — calls ``setup()`` and returns created files."""
-        return self.setup(project_root, manifest, parsed_options=parsed_options, **opts)
+        """High-level install — calls ``setup()`` and returns created files.
+
+        After the standard install, optionally writes ``speckit.*`` alias
+        shims for every ``kite.*`` command file so users migrating from
+        upstream Spec Kit can keep typing ``/speckit.<cmd>``. Aliases are
+        opt-in: set ``KITE_SPECKIT_ALIASES=1`` (or any truthy value) in
+        the environment to enable. This shim layer is scheduled for
+        removal one release after Kite 0.1.0.
+        """
+        created = self.setup(project_root, manifest, parsed_options=parsed_options, **opts)
+        if not _truthy_env("KITE_SPECKIT_ALIASES"):
+            return created
+        aliases = self._write_speckit_aliases(created, project_root, manifest)
+        return created + aliases
+
+    def _write_speckit_aliases(
+        self,
+        created: list[Path],
+        project_root: Path,
+        manifest: IntegrationManifest,
+    ) -> list[Path]:
+        """Emit ``speckit.<cmd>.<ext>`` shims that mirror ``kite.<cmd>.<ext>``.
+
+        Each shim prepends a one-line deprecation banner to the original
+        command body so the agent both works *and* nudges users toward
+        the new prefix.
+        """
+        aliases: list[Path] = []
+        banner = (
+            "<!-- DEPRECATED: /speckit.* is an alias for /kite.* and will be "
+            "removed in the next Kite release. Please use /kite.{name} instead. -->\n\n"
+        )
+        for dst_file in created:
+            name = dst_file.name
+            # Only mirror files whose basename starts with the canonical kite. prefix.
+            for marker in ("kite.", "kite-"):
+                if name.startswith(marker):
+                    alias_name = "speckit" + name[len("kite") :]
+                    break
+            else:
+                continue
+            alias_path = dst_file.with_name(alias_name)
+            try:
+                body = dst_file.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                # Binary or unreadable command file — skip aliasing.
+                continue
+            alias_path.write_text(banner + body, encoding="utf-8")
+            self.record_file_in_manifest(alias_path, project_root, manifest)
+            aliases.append(alias_path)
+        return aliases
 
     def uninstall(
         self,

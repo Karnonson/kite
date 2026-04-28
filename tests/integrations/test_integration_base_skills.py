@@ -100,8 +100,8 @@ class SkillsIntegrationTests:
         skill_files = [f for f in created if "scripts" not in f.parts]
 
         expected_commands = {
-            "analyze", "checklist", "clarify", "constitution",
-            "implement", "plan", "specify", "tasks", "taskstoissues",
+            "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
+            "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
         }
 
         # Derive command names from the skill directory names
@@ -359,8 +359,8 @@ class SkillsIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     _SKILL_COMMANDS = [
-        "analyze", "checklist", "clarify", "constitution",
-        "implement", "plan", "specify", "tasks", "taskstoissues",
+        "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
+        "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -379,6 +379,7 @@ class SkillsIntegrationTests:
             f".kite/integrations/{self.KEY}.manifest.json",
             ".kite/integrations/kite.manifest.json",
             ".kite/memory/constitution.md",
+            "kite.config.yml",
         ]
         # Script variant
         if script_variant == "sh":

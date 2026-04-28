@@ -252,8 +252,8 @@ class MarkdownIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     COMMAND_STEMS = [
-        "analyze", "checklist", "clarify", "constitution",
-        "implement", "plan", "specify", "tasks", "taskstoissues",
+        "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
+        "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -271,6 +271,8 @@ class MarkdownIntegrationTests:
         files.append(f".kite/init-options.json")
         files.append(f".kite/integrations/{self.KEY}.manifest.json")
         files.append(f".kite/integrations/kite.manifest.json")
+        # Project config (Phase 4 T402: persona default written by kite init)
+        files.append("kite.config.yml")
 
         if script_variant == "sh":
             for name in ["check-prerequisites.sh", "common.sh", "create-new-feature.sh",

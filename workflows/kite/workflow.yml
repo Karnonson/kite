@@ -1,63 +1,153 @@
 schema_version: "1.0"
 workflow:
   id: "kite"
-  name: "Full SDD Cycle"
-  version: "1.0.0"
-  author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  name: "Kite Full SDLC"
+  version: "0.2.0"
+  author: "Kite"
+  description: "Full guided SDLC: discover → specify → design → plan → tasks → backend → (contract gate) → frontend → qa."
 
 requires:
   kite_version: ">=0.7.2"
   integrations:
-    any: ["copilot", "claude", "gemini"]
+    any: ["copilot", "claude", "codex"]
 
 inputs:
-  spec:
+  idea:
     type: string
     required: true
-    prompt: "Describe what you want to build"
+    prompt: "What do you want to build? (one line is enough)"
   integration:
     type: string
     default: "copilot"
-    prompt: "Integration to use (e.g. claude, copilot, gemini)"
-  scope:
+    prompt: "Integration to use (e.g. copilot, claude, codex)"
+  persona:
     type: string
-    default: "full"
-    enum: ["full", "backend-only", "frontend-only"]
+    default: "founder"
+    enum: ["founder", "junior"]
+    prompt: "Are you the founder (non-technical) or a junior engineer?"
+  auto_approve:
+    type: boolean
+    default: false
+    prompt: "Auto-approve gates between stages? (skip the human review prompts)"
 
 steps:
+  # 1. Discovery -----------------------------------------------------
+  - id: discover
+    command: kite.discover
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.idea }}"
+
+  - id: skip-or-gate-discover
+    type: if
+    condition: "{{ not inputs.auto_approve }}"
+    then:
+      - id: gate-discover
+        type: gate
+        message: "Approve the discovery brief? (specs/<latest>/discovery.md or ./discovery.md)"
+        options: [approve, reject]
+        on_reject: abort
+
+  # 2. Specification -------------------------------------------------
   - id: specify
     command: kite.specify
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.spec }}"
+      args: "{{ inputs.idea }}"
 
-  - id: review-spec
-    type: gate
-    message: "Review the generated spec before planning."
-    options: [approve, reject]
-    on_reject: abort
+  - id: skip-or-gate-specify
+    type: if
+    condition: "{{ not inputs.auto_approve }}"
+    then:
+      - id: gate-specify
+        type: gate
+        message: "Approve the specification before design?"
+        options: [approve, reject]
+        on_reject: abort
 
+  # 3. Design --------------------------------------------------------
+  - id: design
+    command: kite.design
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "persona={{ inputs.persona }}"
+
+  - id: skip-or-gate-design
+    type: if
+    condition: "{{ not inputs.auto_approve }}"
+    then:
+      - id: gate-design
+        type: gate
+        message: "Approve the design brief before planning?"
+        options: [approve, reject]
+        on_reject: abort
+
+  # 4. Plan ----------------------------------------------------------
   - id: plan
     command: kite.plan
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.spec }}"
+      args: "persona={{ inputs.persona }}"
 
-  - id: review-plan
-    type: gate
-    message: "Review the plan before generating tasks."
-    options: [approve, reject]
-    on_reject: abort
+  - id: skip-or-gate-plan
+    type: if
+    condition: "{{ not inputs.auto_approve }}"
+    then:
+      - id: gate-plan
+        type: gate
+        message: "Approve the implementation plan before generating tasks?"
+        options: [approve, reject]
+        on_reject: abort
 
+  # 5. Tasks ---------------------------------------------------------
   - id: tasks
     command: kite.tasks
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.spec }}"
+      args: "persona={{ inputs.persona }}"
 
-  - id: implement
-    command: kite.implement
+  # 6. Backend implementation ---------------------------------------
+  - id: backend
+    command: kite.backend
     integration: "{{ inputs.integration }}"
     input:
-      args: "{{ inputs.spec }}"
+      args: "persona={{ inputs.persona }}"
+
+  # 7. Contract gate (hard gate, not skippable by auto_approve) -----
+  # Fails the workflow if contract.md is missing or still contains
+  # placeholder strings. The frontend persona refuses to run without
+  # a complete contract; this gate enforces the same rule at the
+  # orchestrator level so we never ship a broken handoff.
+  - id: contract-gate
+    type: shell
+    run: |
+      set -e
+      latest_spec_dir="$(ls -1d specs/*/ 2>/dev/null | sort | tail -1)"
+      if [ -z "$latest_spec_dir" ]; then
+        echo "contract gate: no specs/<feature>/ directory found." >&2
+        exit 1
+      fi
+      contract="${latest_spec_dir}contract.md"
+      if [ ! -f "$contract" ]; then
+        echo "contract gate: $contract is missing. Run kite.backend until it produces a contract." >&2
+        exit 1
+      fi
+      if grep -qE 'TODO|<[a-zA-Z][^>]*>' "$contract"; then
+        echo "contract gate: $contract still contains TODO or placeholder markers. Finish kite.backend before frontend." >&2
+        exit 1
+      fi
+      echo "contract gate: OK ($contract)"
+
+  # 8. Frontend implementation --------------------------------------
+  - id: frontend
+    command: kite.frontend
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "persona={{ inputs.persona }}"
+
+  # 9. QA ------------------------------------------------------------
+  - id: qa
+    command: kite.qa
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "persona={{ inputs.persona }}"

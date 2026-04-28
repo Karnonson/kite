@@ -1,11 +1,15 @@
 <div align="center">
     <img src="./media/logo_large.webp" alt="Kite Logo" width="200" height="200"/>
     <h1>🌱 Kite</h1>
-    <h3><em>Build high-quality software faster.</em></h3>
+    <h3><em>SDLC for non-technical builders.</em></h3>
 </div>
 
 <p align="center">
-    <strong>An open source toolkit that allows you to focus on product scenarios and predictable outcomes instead of vibe coding every piece from scratch.</strong>
+    <strong>Kite is an open-source toolkit that walks you from "I have an idea" to "the app is live" in plain English. You bring the idea; the persona agents (Discover, Design, Backend, Frontend, QA) handle every step of the software lifecycle inside your favourite AI coding assistant.</strong>
+</p>
+
+<p align="center">
+    <em>Forked from <a href="https://github.com/github/spec-kit">GitHub Spec Kit</a>. The Spec-Driven Development methodology lives on; Kite extends it across the full lifecycle and rewrites every prompt so a founder or junior engineer can drive it without engineering jargon.</em>
 </p>
 
 <p align="center">
@@ -58,10 +62,10 @@ Install once and use everywhere. Pin a specific release tag for stability (check
 
 ```bash
 # Install a specific stable release (recommended — replace vX.Y.Z with the latest tag)
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+uv tool install kite-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
 
 # Or install latest from main (may include unreleased changes)
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+uv tool install kite-cli --from git+https://github.com/github/spec-kit.git
 
 # Alternative: using pipx (also works)
 pipx install git+https://github.com/github/spec-kit.git@vX.Y.Z
@@ -71,7 +75,7 @@ pipx install git+https://github.com/github/spec-kit.git
 Then verify the correct version is installed:
 
 ```bash
-specify version
+kite version
 ```
 
 And use the tool directly:
@@ -89,10 +93,10 @@ kite init --here --integration copilot
 kite check
 ```
 
-To upgrade Specify, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
+To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
 
 ```bash
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+uv tool install kite-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z
 # pipx users: pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z
 ```
 
@@ -121,9 +125,21 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here --
 
 If your environment blocks access to PyPI or GitHub, see the [Enterprise / Air-Gapped Installation](./docs/installation.md#enterprise--air-gapped-installation) guide for step-by-step instructions on using `pip download` to create portable, OS-specific wheel bundles on a connected machine.
 
-### 2. Establish project principles
+### 2. Founder fast path (recommended)
 
-Launch your coding agent in the project directory. Most agents expose spec-kit as `/kite.*` slash commands; Codex CLI in skills mode uses `$kite-*` instead.
+Launch your coding agent in the project directory. Most agents expose Kite as `/kite.*` slash commands; Codex CLI in skills mode uses `$kite-*` instead.
+
+If you just want Kite to walk you through the whole lifecycle in plain English, run:
+
+```bash
+/kite.start "Build a tool that <one-sentence description of your idea>."
+```
+
+`/kite.start` chains Discover → Specify → Design → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval between each stage. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, or `kite doctor` for a plain-language status report.
+
+Prefer to drive each stage manually? The classic step-by-step flow is below.
+
+### 3. Establish project principles (manual flow)
 
 Use the **`/kite.constitution`** command to create your project's governing principles and development guidelines that will guide all subsequent development.
 
