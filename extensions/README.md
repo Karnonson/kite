@@ -1,6 +1,6 @@
 # Kite Extensions
 
-Extension system for [Kite](https://github.com/github/spec-kit) - add new functionality without bloating the core framework.
+Extension system for [Kite](https://github.com/Karnonson/kite) - add new functionality without bloating the core framework.
 
 ## Extension Catalogs
 

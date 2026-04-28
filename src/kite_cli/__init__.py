@@ -57,7 +57,7 @@ from typer.core import TyperGroup
 # For cross-platform keyboard input
 import readchar
 
-GITHUB_API_LATEST = "https://api.github.com/repos/github/spec-kit/releases/latest"
+GITHUB_API_LATEST = "https://api.github.com/repos/Karnonson/kite/releases/latest"
 
 def _build_agent_config() -> dict[str, dict[str, Any]]:
     """Derive AGENT_CONFIG from INTEGRATION_REGISTRY."""
@@ -145,7 +145,7 @@ BANNER = """
 ╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝
 """
 
-TAGLINE = "GitHub Kite - Spec-Driven Development Toolkit"
+TAGLINE = "Kite - Spec-Driven Development Toolkit"
 class StepTracker:
     """Track and render hierarchical steps without emojis, similar to Claude Code tree output.
     Supports live auto-refresh via an attached refresh callback.
@@ -1590,7 +1590,7 @@ def init(
 
     steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Discover → Specify → Design → Plan → Tasks → Backend → Frontend → QA")
     steps_lines.append("")
-    steps_lines.append(f"   Or run each persona stage manually:")
+    steps_lines.append("   Or run each persona stage manually:")
     steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
     steps_lines.append(f"   {step_num}.3 [cyan]{_display_cmd('discover')}[/] - Turn an idea into a discovery brief")
     steps_lines.append(f"   {step_num}.4 [cyan]{_display_cmd('specify')}[/] - Create baseline specification")
@@ -1599,10 +1599,10 @@ def init(
     steps_lines.append(f"   {step_num}.7 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks (tagged backend/frontend/qa)")
     steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement each layer")
     steps_lines.append("")
-    steps_lines.append(f"   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
+    steps_lines.append("   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
     steps_lines.append("")
-    steps_lines.append(f"   [bright_black]Tip: if [cyan]kite[/cyan] is not on your PATH (e.g. you used [cyan]uvx[/cyan] for a one-shot init), install it persistently with:[/bright_black]")
-    steps_lines.append(f"   [cyan]uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git[/cyan]")
+    steps_lines.append("   [bright_black]Tip: if [cyan]kite[/cyan] is not on your PATH (e.g. you used [cyan]uvx[/cyan] for a one-shot init), install it persistently with:[/bright_black]")
+    steps_lines.append("   [cyan]uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git[/cyan]")
 
     steps_panel = Panel("\n".join(steps_lines), title="Next Steps", border_style="cyan", padding=(1,2))
     console.print()
@@ -1823,14 +1823,14 @@ def self_check() -> None:
         console.print(f"Latest release: {latest_normalized}")
         console.print("\nTo reinstall:")
         console.print("  uv tool install kite-cli --force \\")
-        console.print(f"    --from git+https://github.com/github/spec-kit.git@{tag}")
+        console.print(f"    --from git+https://github.com/Karnonson/kite.git@{tag}")
         return
 
     if _is_newer(latest_normalized, installed):
         console.print(f"[green]Update available:[/green] {installed} → {latest_normalized}")
         console.print("\nTo upgrade:")
         console.print("  uv tool install kite-cli --force \\")
-        console.print(f"    --from git+https://github.com/github/spec-kit.git@{tag}")
+        console.print(f"    --from git+https://github.com/Karnonson/kite.git@{tag}")
         return
 
     # Installed is parseable AND is >= latest → "up to date" (FR-006).

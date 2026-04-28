@@ -16,16 +16,17 @@ from __future__ import annotations
 import os
 import re
 import shutil
+from abc import ABC
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 
 def _truthy_env(name: str) -> bool:
     """Return True if env var *name* is set to a non-empty, non-falsey value."""
     val = os.environ.get(name, "").strip().lower()
     return val not in ("", "0", "false", "no", "off")
-from abc import ABC
-from dataclasses import dataclass
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
     from .manifest import IntegrationManifest

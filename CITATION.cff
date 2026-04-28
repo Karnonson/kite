@@ -1,24 +1,32 @@
 cff-version: 1.2.0
 message: >-
-  If you use Spec Kit in your research or reference it in a paper,
+  If you use Kite in your research or reference it in a paper,
   please cite it using the metadata below.
 type: software
-title: "Spec Kit"
+title: "Kite"
 abstract: >-
-  Spec Kit is an open source toolkit for Spec-Driven Development (SDD) —
-  a methodology that helps software teams build high-quality software faster
-  by focusing on product scenarios and predictable outcomes. It provides the
-  Specify CLI, slash-command templates, extensions, presets, workflows, and
-  integrations for popular AI coding agents.
+  Kite is an open-source toolkit that walks non-technical founders and junior
+  engineers through the full software development lifecycle in plain English,
+  using persona agents (Discover, Design, Backend, Frontend, QA) inside their
+  AI coding assistant. Kite is inspired by GitHub Spec Kit and extends the
+  Spec-Driven Development methodology across the full SDLC.
 authors:
-  - given-names: Den
-    family-names: Delimarsky
-    alias: localden
-  - given-names: Manfred
-    family-names: Riem
-    alias: mnriem
-repository-code: "https://github.com/github/spec-kit"
-url: "https://github.github.io/spec-kit/"
+  - alias: Karnonson
+references:
+  - type: software
+    title: "Spec Kit"
+    abstract: >-
+      The original Spec-Driven Development toolkit by GitHub that inspired Kite.
+    repository-code: "https://github.com/github/spec-kit"
+    authors:
+      - given-names: Den
+        family-names: Delimarsky
+        alias: localden
+      - given-names: Manfred
+        family-names: Riem
+        alias: mnriem
+repository-code: "https://github.com/Karnonson/kite"
+url: "https://Karnonson.github.io/kite/"
 license: MIT
 version: "0.7.3"
 date-released: "2026-04-17"

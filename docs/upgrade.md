@@ -8,8 +8,8 @@
 
 | What to Upgrade | Command | When to Use |
 |----------------|---------|-------------|
-| **CLI Tool Only** | `uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z` | Get latest CLI features without touching project files |
-| **CLI Tool Only (pipx)** | `pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
+| **CLI Tool Only** | `uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Get latest CLI features without touching project files |
+| **CLI Tool Only (pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
 | **Project Files** | `kite init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
 | **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
 
@@ -21,10 +21,10 @@ The CLI tool (`specify`) is separate from your project files. Upgrade it to get 
 
 ### If you installed with `uv tool install`
 
-Upgrade to a specific release (check [Releases](https://github.com/github/spec-kit/releases) for the latest tag):
+Upgrade to a specific release (check [Releases](https://github.com/Karnonson/kite/releases) for the latest tag):
 
 ```bash
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
 ```
 
 ### If you use one-shot `uvx` commands
@@ -32,7 +32,7 @@ uv tool install specify-cli --force --from git+https://github.com/github/spec-ki
 Specify the desired release tag:
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here --integration copilot
 ```
 
 ### If you installed with `pipx`
@@ -40,7 +40,7 @@ uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here --
 Upgrade to a specific release:
 
 ```bash
-pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z
+pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z
 ```
 
 ### Verify the upgrade
@@ -179,7 +179,7 @@ Restart your IDE to refresh the command list.
 
 ```bash
 # Upgrade CLI (if using persistent install)
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git
 
 # Update project files to get new commands
 kite init --here --force --integration copilot
@@ -196,7 +196,7 @@ cp .kite/memory/constitution.md /tmp/constitution-backup.md
 cp -r .kite/templates /tmp/templates-backup
 
 # 2. Upgrade CLI
-uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
+uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git
 
 # 3. Update project
 kite init --here --force --integration copilot
@@ -398,7 +398,7 @@ If not found, reinstall:
 
 ```bash
 uv tool uninstall specify-cli
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+uv tool install specify-cli --from git+https://github.com/Karnonson/kite.git
 ```
 
 ### "Do I need to run specify every time I open my project?"
@@ -457,6 +457,6 @@ Kite follows semantic versioning for major releases. The CLI and project files a
 After upgrading:
 
 - **Test new slash commands:** Run `/kite.constitution` or another command to verify everything works
-- **Review release notes:** Check [GitHub Releases](https://github.com/github/spec-kit/releases) for new features and breaking changes
+- **Review release notes:** Check [GitHub Releases](https://github.com/Karnonson/kite/releases) for new features and breaking changes
 - **Update workflows:** If new commands were added, update your team's development workflows
-- **Check documentation:** Visit [github.io/spec-kit](https://github.github.io/spec-kit/) for updated guides
+- **Check documentation:** Visit [github.io/kite](https://Karnonson.github.io/kite/) for updated guides

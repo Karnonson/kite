@@ -3,7 +3,7 @@
 > [!NOTE]
 > Community presets are independently created and maintained by their respective authors. GitHub and the Kite maintainers may review pull requests that add entries to the community catalog for formatting, catalog structure, or policy compliance, but they do **not review, audit, endorse, or support the preset code itself**. Review preset source code before installation and use at your own discretion.
 
-The following community-contributed presets customize how Kite behaves — overriding templates, commands, and terminology without changing any tooling. Presets are available in [`catalog.community.json`](https://github.com/github/spec-kit/blob/main/presets/catalog.community.json):
+The following community-contributed presets customize how Kite behaves — overriding templates, commands, and terminology without changing any tooling. Presets are available in [`catalog.community.json`](https://github.com/Karnonson/kite/blob/main/presets/catalog.community.json):
 
 | Preset | Purpose | Provides | Requires | URL |
 |--------|---------|----------|----------|-----|
@@ -19,4 +19,4 @@ The following community-contributed presets customize how Kite behaves — overr
 | Table of Contents Navigation | Adds a navigable Table of Contents to generated spec.md, plan.md, and tasks.md documents | 3 templates, 3 commands | — | [spec-kit-preset-toc-navigation](https://github.com/Quratulain-bilal/spec-kit-preset-toc-navigation) |
 | VS Code Ask Questions | Enhances the clarify command to use `vscode/askQuestions` for batched interactive questioning. | 1 command | — | [spec-kit-presets](https://github.com/fdcastel/spec-kit-presets) |
 
-To build and publish your own preset, see the [Presets Publishing Guide](https://github.com/github/spec-kit/blob/main/presets/PUBLISHING.md).
+To build and publish your own preset, see the [Presets Publishing Guide](https://github.com/Karnonson/kite/blob/main/presets/PUBLISHING.md).

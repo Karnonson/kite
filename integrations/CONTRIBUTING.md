@@ -30,7 +30,7 @@ Add your integration under the top-level `integrations` key in `integrations/cat
       "version": "1.0.0",
       "description": "Integration for My Agent",
       "author": "spec-kit-core",
-      "repository": "https://github.com/github/spec-kit",
+      "repository": "https://github.com/Karnonson/kite",
       "tags": ["cli"]
     }
   }
@@ -91,7 +91,7 @@ provides:
 
 ### Submitting to the Community Catalog
 
-1. **Fork** the [spec-kit repository](https://github.com/github/spec-kit)
+1. **Fork** the [spec-kit repository](https://github.com/Karnonson/kite)
 2. **Add your entry** under the `integrations` key in `integrations/catalog.community.json`:
 
 ```json

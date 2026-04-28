@@ -2,7 +2,7 @@
 
 ## About Kite and Specify
 
-**GitHub Kite** is a comprehensive toolkit for implementing Spec-Driven Development (SDD) - a methodology that emphasizes creating clear specifications before implementation. The toolkit includes templates, scripts, and workflows that guide development teams through a structured approach to building software.
+**Kite** is a comprehensive toolkit for implementing Spec-Driven Development (SDD) - a methodology that emphasizes creating clear specifications before implementation. The toolkit includes templates, scripts, and workflows that guide development teams through a structured approach to building software.
 
 **Kite CLI** is the command-line interface that bootstraps projects with the Kite framework. It sets up the necessary directory structures, templates, and AI agent integrations to support the Spec-Driven Development workflow.
 

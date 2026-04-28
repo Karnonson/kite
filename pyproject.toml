@@ -1,7 +1,7 @@
 [project]
 name = "kite-cli"
 version = "0.7.2"
-description = "Kite CLI — a guided SDLC workflow for non-technical builders. Forked from GitHub Kite."
+description = "Kite CLI — a guided SDLC workflow for non-technical builders. Inspired by GitHub Spec Kit."
 requires-python = ">=3.11"
 dependencies = [
     "typer>=0.24.0",

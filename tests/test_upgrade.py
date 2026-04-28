@@ -44,7 +44,7 @@ def _mock_urlopen_response(payload: dict) -> MagicMock:
 
 def _http_error(code: int, message: str = "error") -> urllib.error.HTTPError:
     return urllib.error.HTTPError(
-        url="https://api.github.com/repos/github/spec-kit/releases/latest",
+        url="https://api.github.com/repos/Karnonson/kite/releases/latest",
         code=code,
         msg=message,
         hdrs={},  # type: ignore[arg-type]
@@ -147,7 +147,7 @@ class TestUserStory1:
         assert "Update available" in output
         assert "0.7.4" in output
         assert "0.9.0" in output
-        assert "git+https://github.com/github/spec-kit.git@v0.9.0" in output
+        assert "git+https://github.com/Karnonson/kite.git@v0.9.0" in output
 
     def test_up_to_date_prints_current_only(self):
         with patch("kite_cli._get_installed_version", return_value="0.9.0"), patch(
@@ -182,7 +182,7 @@ class TestUserStory1:
         assert result.exit_code == 0
         assert "Current version could not be determined" in output
         assert "0.7.4" in output
-        assert "git+https://github.com/github/spec-kit.git@v0.7.4" in output
+        assert "git+https://github.com/Karnonson/kite.git@v0.7.4" in output
 
     def test_unparseable_tag_routes_to_indeterminate(self):
         with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(

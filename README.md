@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-    <em>Forked from <a href="https://github.com/github/spec-kit">GitHub Spec Kit</a>. The Spec-Driven Development methodology lives on; Kite extends it across the full lifecycle and rewrites every prompt so a founder or junior engineer can drive it without engineering jargon.</em>
+    <em>Inspired by <a href="https://github.com/github/spec-kit">GitHub Spec Kit</a> and the Spec-Driven Development methodology. Kite extends those ideas across the full software lifecycle and rewrites every prompt so a founder or junior engineer can drive it without engineering jargon.</em>
 </p>
 
 <p align="center">
-    <a href="https://github.com/github/spec-kit/releases/latest"><img src="https://img.shields.io/github/v/release/github/spec-kit" alt="Latest Release"/></a>
-    <a href="https://github.com/github/spec-kit/stargazers"><img src="https://img.shields.io/github/stars/github/spec-kit?style=social" alt="GitHub stars"/></a>
-    <a href="https://github.com/github/spec-kit/blob/main/LICENSE"><img src="https://img.shields.io/github/license/github/spec-kit" alt="License"/></a>
-    <a href="https://github.github.io/spec-kit/"><img src="https://img.shields.io/badge/docs-GitHub_Pages-blue" alt="Documentation"/></a>
+    <a href="https://github.com/Karnonson/kite/releases/latest"><img src="https://img.shields.io/github/v/release/Karnonson/kite" alt="Latest Release"/></a>
+    <a href="https://github.com/Karnonson/kite/stargazers"><img src="https://img.shields.io/github/stars/Karnonson/kite?style=social" alt="GitHub stars"/></a>
+    <a href="https://github.com/Karnonson/kite/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Karnonson/kite" alt="License"/></a>
+    <a href="https://Karnonson.github.io/kite/"><img src="https://img.shields.io/badge/docs-GitHub_Pages-blue" alt="Documentation"/></a>
 </p>
 
 ---
@@ -58,7 +58,7 @@ Choose your preferred installation method:
 
 #### Option 1: Persistent Installation (Recommended)
 
-Install once and use everywhere. Pin a specific release tag for stability (check [Releases](https://github.com/github/spec-kit/releases) for the latest):
+Install once and use everywhere. Pin a specific release tag for stability (check [Releases](https://github.com/Karnonson/kite/releases) for the latest):
 
 ```bash
 # Install a specific stable release (recommended — replace vX.Y.Z with the latest tag)
@@ -295,7 +295,7 @@ To submit your own extension, see the [Extension Publishing Guide](extensions/EX
 
 ## 🎨 Community Presets
 
-Community-contributed presets customize how Kite behaves — overriding templates, commands, and terminology without changing any tooling. See the full list on the [Community Presets](https://github.github.io/spec-kit/community/presets.html) page.
+Community-contributed presets customize how Kite behaves — overriding templates, commands, and terminology without changing any tooling. See the full list on the [Community Presets](https://Karnonson.github.io/kite/community/presets.html) page.
 
 > [!NOTE]
 > Community presets are third-party contributions and are not maintained by the Kite team. Review them carefully before use, and see the docs page above for the full disclaimer.
@@ -304,15 +304,15 @@ To submit your own preset, see the [Presets Publishing Guide](presets/PUBLISHING
 
 ## 🚶 Community Walkthroughs
 
-See Spec-Driven Development in action across different scenarios with community-contributed walkthroughs; find the full list on the [Community Walkthroughs](https://github.github.io/spec-kit/community/walkthroughs.html) page.
+See Spec-Driven Development in action across different scenarios with community-contributed walkthroughs; find the full list on the [Community Walkthroughs](https://Karnonson.github.io/kite/community/walkthroughs.html) page.
 
 ## 🛠️ Community Friends
 
-Community projects that extend, visualize, or build on Kite. See the full list on the [Community Friends](https://github.github.io/spec-kit/community/friends.html) page.
+Community projects that extend, visualize, or build on Kite. See the full list on the [Community Friends](https://Karnonson.github.io/kite/community/friends.html) page.
 
 ## 🤖 Supported AI Coding Agent Integrations
 
-Kite works with 30+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](https://github.github.io/spec-kit/reference/integrations.html) guide.
+Kite works with 30+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](https://Karnonson.github.io/kite/reference/integrations.html) guide.
 
 Run `kite integration list` to see all available integrations in your installed version.
 
@@ -345,7 +345,7 @@ Additional commands for enhanced quality and validation:
 
 ## 🔧 Kite CLI Reference
 
-For full command details, options, and examples, see the [CLI Reference](https://github.github.io/spec-kit/reference/overview.html).
+For full command details, options, and examples, see the [CLI Reference](https://Karnonson.github.io/kite/reference/overview.html).
 
 ## 🧩 Making Kite Your Own: Extensions & Presets
 
@@ -378,7 +378,7 @@ kite extension add <extension-name>
 
 For example, extensions could add Jira integration, post-implementation code review, V-Model test traceability, or project health diagnostics.
 
-See the [Extensions reference](https://github.github.io/spec-kit/reference/extensions.html) for the full command guide. Browse the [community extensions](#-community-extensions) above for what's available.
+See the [Extensions reference](https://Karnonson.github.io/kite/reference/extensions.html) for the full command guide. Browse the [community extensions](#-community-extensions) above for what's available.
 
 ### Presets — Customize Existing Workflows
 
@@ -394,7 +394,7 @@ kite preset add <preset-name>
 
 For example, presets could restructure spec templates to require regulatory traceability, adapt the workflow to fit the methodology you use (e.g., Agile, Kanban, Waterfall, jobs-to-be-done, or domain-driven design), add mandatory security review gates to plans, enforce test-first task ordering, or localize the entire workflow to a different language. The [pirate-speak demo](https://github.com/mnriem/spec-kit-pirate-speak-preset-demo) shows just how deep the customization can go. Multiple presets can be stacked with priority ordering.
 
-See the [Presets reference](https://github.github.io/spec-kit/reference/presets.html) for the full command guide, including resolution order and priority stacking.
+See the [Presets reference](https://Karnonson.github.io/kite/reference/presets.html) for the full command guide, including resolution order and priority stacking.
 
 ### When to Use Which
 
@@ -770,7 +770,7 @@ rm gcm-linux_amd64.2.6.1.deb
 
 ## 💬 Support
 
-For support, please open a [GitHub issue](https://github.com/github/spec-kit/issues/new). We welcome bug reports, feature requests, and questions about using Spec-Driven Development.
+For support, please open a [GitHub issue](https://github.com/Karnonson/kite/issues/new). We welcome bug reports, feature requests, and questions about using Spec-Driven Development.
 
 ## 🙏 Acknowledgements
 

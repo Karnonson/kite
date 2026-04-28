@@ -4,7 +4,7 @@
 
 ## [0.7.2] - Forked → Kite (MVP)
 
-This release marks the fork of GitHub Spec Kit into **Kite** — an SDLC
+This release marks the fork of Spec Kit into **Kite** — an SDLC
 toolkit for non-technical founders and junior engineers. The methodology
 remains Spec-Driven Development; the workflow now spans the full software
 lifecycle through dedicated persona agents.

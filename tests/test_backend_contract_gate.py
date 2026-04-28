@@ -9,10 +9,17 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 import yaml
+
+
+pytestmark = pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="contract gate is a bash script; Windows runners may not have bash on PATH",
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

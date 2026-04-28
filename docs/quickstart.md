@@ -230,6 +230,6 @@ Finally, implement the solution:
 
 ## Next Steps
 
-- Read the [complete methodology](https://github.com/github/spec-kit/blob/main/spec-driven.md) for in-depth guidance
-- Check out [more examples](https://github.com/github/spec-kit/tree/main/templates) in the repository
-- Explore the [source code on GitHub](https://github.com/github/spec-kit)
+- Read the [complete methodology](https://github.com/Karnonson/kite/blob/main/spec-driven.md) for in-depth guidance
+- Check out [more examples](https://github.com/Karnonson/kite/tree/main/templates) in the repository
+- Explore the [source code on GitHub](https://github.com/Karnonson/kite)
