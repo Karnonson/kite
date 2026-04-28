@@ -12,8 +12,7 @@
 
 ## AI Disclosure
 
-<!-- Per our Contributing guidelines, AI assistance must be disclosed. -->
-<!-- See: https://github.com/Karnonson/kite/blob/main/CONTRIBUTING.md#ai-contributions-in-kite -->
+<!-- Disclose AI assistance used for this contribution. -->
 
 - [ ] I **did not** use AI assistance for this contribution
 - [ ] I **did** use AI assistance (describe below)

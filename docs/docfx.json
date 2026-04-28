@@ -5,14 +5,12 @@
         "files": [
           "*.md",
           "toc.yml",
-          "community/*.md",
           "reference/*.md"
         ]
       },
       {
         "files": [
           "../README.md",
-          "../CONTRIBUTING.md",
           "../CODE_OF_CONDUCT.md",
           "../SECURITY.md",
           "../SUPPORT.md"

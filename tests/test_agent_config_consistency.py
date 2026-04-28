@@ -47,19 +47,6 @@ class TestAgentConfigConsistency:
             assert alias in AI_ASSISTANT_HELP
             assert target in AI_ASSISTANT_HELP
 
-    def test_devcontainer_kiro_installer_uses_pinned_checksum(self):
-        """Devcontainer installer should always verify Kiro installer via pinned SHA256."""
-        post_create_text = (REPO_ROOT / ".devcontainer" / "post-create.sh").read_text(
-            encoding="utf-8"
-        )
-
-        assert (
-            'KIRO_INSTALLER_SHA256="7487a65cf310b7fb59b357c4b5e6e3f3259d383f4394ecedb39acf70f307cffb"'
-            in post_create_text
-        )
-        assert "sha256sum -c -" in post_create_text
-        assert "KIRO_SKIP_KIRO_INSTALLER_VERIFY" not in post_create_text
-
     # --- Tabnine CLI consistency checks ---
 
     def test_runtime_config_includes_tabnine(self):

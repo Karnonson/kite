@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide will help you get started with Spec-Driven Development using Kite.
+This guide helps you start building with Kite.
 
 ## 5 commands, no jargon (for founders)
 
@@ -8,10 +8,23 @@ If you're a founder or junior builder and just want to ship something,
 these are the only commands you need. Run them in order in your AI
 coding assistant (Copilot, Claude, or Codex).
 
-1. **Set up the project (in a terminal, once):**
+1. **Set up the project (choose one path):**
+
+    Dev container, easiest for new builders:
 
     ```bash
-    uvx --from git+https://github.com/Karnonson/kite.git kite init my-app --integration copilot
+    mkdir my-app
+    cd my-app
+    curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
+    code .
+    ```
+
+    Then run **Dev Containers: Reopen in Container** in VS Code.
+
+    Direct install, if Kite is already installed on your machine:
+
+    ```bash
+    kite init my-app --integration copilot
     cd my-app
     ```
 
@@ -37,7 +50,7 @@ That's it. The five commands you'll actually type are:
 
 | When | What you type | Where |
 | --- | --- | --- |
-| Once, to set up | `kite init my-app --integration copilot` | Terminal |
+| Once, to set up | Dev container script or `kite init my-app --integration copilot` | Terminal |
 | Every new feature | `/kite.start "<idea>"` | AI assistant |
 | If a step stalls | `kite resume` | Terminal |
 | If you're lost | `kite doctor` | Terminal |
@@ -48,17 +61,29 @@ controls.
 
 ---
 
-> [!NOTE]
-> All automation scripts now provide both Bash (`.sh`) and PowerShell (`.ps1`) variants. The `specify` CLI auto-selects based on OS unless you pass `--script sh|ps`.
-
 ## The 6-Step Process
 
 > [!TIP]
 > **Context Awareness**: Kite commands automatically detect the active feature based on your current Git branch (e.g., `001-feature-name`). To switch between different specifications, simply switch Git branches.
 
-### Step 1: Install Specify
+### Step 1: Install Kite
 
-**In your terminal**, run the `specify` CLI command to initialize your project:
+**In your terminal**, either use the dev container or initialize your project
+with the Kite CLI.
+
+Dev container:
+
+```bash
+mkdir <PROJECT_NAME>
+cd <PROJECT_NAME>
+curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
+code .
+```
+
+Then run **Dev Containers: Reopen in Container** in VS Code. Kite installs
+and initializes the workspace automatically.
+
+Direct CLI install:
 
 ```bash
 # Create a new project directory
@@ -73,17 +98,16 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init .
 > ```bash
 > pipx install git+https://github.com/Karnonson/kite.git
 > ```
-> After installing with `pipx`, run `specify` directly instead of `uvx --from ... specify`, for example:
+> After installing with `pipx`, run `kite` directly instead of `uvx --from ... kite`, for example:
 > ```bash
 > kite init <PROJECT_NAME>
 > kite init .
 > ```
 
-Pick script type explicitly (optional):
+Use Bash scripts explicitly if needed:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script ps  # Force PowerShell
-uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script sh  # Force POSIX shell
+uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script sh
 ```
 
 ### Step 2: Define Your Constitution

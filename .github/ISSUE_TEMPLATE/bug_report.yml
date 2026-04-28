@@ -1,118 +1,87 @@
 name: Bug Report
-description: Report a bug or unexpected behavior in Kite CLI or Kite
+description: Report something that is not working in Kite
 title: "[Bug]: "
 labels: ["bug", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug! Please fill out the sections below to help us diagnose and fix the issue.
+        Thanks for reporting a problem. Tell us what you were trying to do and what happened instead.
 
   - type: textarea
-    id: description
+    id: goal
     attributes:
-      label: Bug Description
-      description: A clear and concise description of what the bug is.
-      placeholder: What went wrong?
+      label: What were you trying to do?
+      description: Describe the task in plain English.
+      placeholder: I was trying to create a new app with the dev container and Copilot.
     validations:
       required: true
 
   - type: textarea
-    id: reproduce
+    id: problem
     attributes:
-      label: Steps to Reproduce
-      description: Steps to reproduce the behavior
+      label: What went wrong?
+      description: Include the error message or unexpected behavior.
+      placeholder: Kite stopped at..., or the command printed...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps you took before the problem happened.
       placeholder: |
-        1. Run command '...'
-        2. Execute script '...'
-        3. See error
+        1. Ran ...
+        2. Opened ...
+        3. Saw ...
     validations:
       required: true
 
-  - type: textarea
-    id: expected
+  - type: dropdown
+    id: setup
     attributes:
-      label: Expected Behavior
-      description: What did you expect to happen?
-      placeholder: Describe the expected outcome
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual
-    attributes:
-      label: Actual Behavior
-      description: What actually happened?
-      placeholder: Describe what happened instead
+      label: How did you install or run Kite?
+      options:
+        - Dev container
+        - Direct CLI install with uv
+        - Direct CLI install with pipx
+        - Local checkout
+        - Not sure
     validations:
       required: true
 
   - type: input
     id: version
     attributes:
-      label: Kite CLI Version
-      description: "Run `specify version` or `pip show spec-kit`"
-      placeholder: "e.g., 1.3.0"
-    validations:
-      required: true
+      label: Kite version
+      description: Run `kite version` if you can.
+      placeholder: "e.g., 0.7.2"
 
   - type: dropdown
     id: ai-agent
     attributes:
-      label: AI Agent
-      description: Which AI agent are you using?
+      label: AI assistant
       options:
-        - Claude Code
-        - Gemini CLI
         - GitHub Copilot
-        - Cursor
-        - Qwen Code
-        - opencode
+        - Claude Code
         - Codex CLI
-        - Windsurf
-        - Kilo Code
-        - Auggie CLI
-        - Roo Code
-        - CodeBuddy
-        - Qoder CLI
-        - Kiro CLI
-        - Amp
-        - SHAI
-        - IBM Bob
-        - Antigravity
-        - Not applicable
-    validations:
-      required: true
-
-  - type: input
-    id: os
-    attributes:
-      label: Operating System
-      description: Your operating system and version
-      placeholder: "e.g., macOS 14.2, Ubuntu 22.04, Windows 11"
-    validations:
-      required: true
-
-  - type: input
-    id: python
-    attributes:
-      label: Python Version
-      description: "Run `python --version` or `python3 --version`"
-      placeholder: "e.g., Python 3.11.5"
+        - Gemini CLI
+        - Cursor
+        - Other
+        - Not sure
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: Error Logs
-      description: Please paste any relevant error messages or logs
+      label: Error output or screenshots
+      description: Paste terminal output, logs, or screenshots that help explain the problem.
       render: shell
-      placeholder: Paste error output here
 
   - type: textarea
     id: context
     attributes:
-      label: Additional Context
-      description: Add any other context about the problem
-      placeholder: Screenshots, related issues, workarounds attempted, etc.
+      label: Anything else?
+      description: Add any detail that might help us understand the issue.

@@ -1,8 +1,7 @@
 # Kite Dev Container Template
 
 These files are scaffolded into a user's project by `install-devcontainer.sh`.
-They are **not** the dev container used to develop Kite itself — that lives at
-the repo-root `.devcontainer/`.
+They are the user-facing dev container template for new Kite projects.
 
 ## Files
 

@@ -8,7 +8,7 @@
 
 | What to Upgrade | Command | When to Use |
 |----------------|---------|-------------|
-| **CLI Tool Only** | `uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Get latest CLI features without touching project files |
+| **CLI Tool Only** | `uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Get latest CLI features without touching project files |
 | **CLI Tool Only (pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
 | **Project Files** | `kite init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
 | **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
@@ -17,14 +17,14 @@
 
 ## Part 1: Upgrade the CLI Tool
 
-The CLI tool (`specify`) is separate from your project files. Upgrade it to get the latest features and bug fixes.
+The Kite CLI is separate from your project files. Upgrade it to get the latest features and bug fixes.
 
 ### If you installed with `uv tool install`
 
 Upgrade to a specific release (check [Releases](https://github.com/Karnonson/kite/releases) for the latest tag):
 
 ```bash
-uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
+uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
 ```
 
 ### If you use one-shot `uvx` commands
@@ -179,7 +179,7 @@ Restart your IDE to refresh the command list.
 
 ```bash
 # Upgrade CLI (if using persistent install)
-uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git
+uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git
 
 # Update project files to get new commands
 kite init --here --force --integration copilot
@@ -196,7 +196,7 @@ cp .kite/memory/constitution.md /tmp/constitution-backup.md
 cp -r .kite/templates /tmp/templates-backup
 
 # 2. Upgrade CLI
-uv tool install specify-cli --force --from git+https://github.com/Karnonson/kite.git
+uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git
 
 # 3. Update project
 kite init --here --force --integration copilot
@@ -386,10 +386,10 @@ Verify the installation:
 # Check installed tools
 uv tool list
 
-# Should show specify-cli
+# Should show kite-cli
 
 # Verify path
-which specify
+which kite
 
 # Should point to the uv tool installation directory
 ```
@@ -397,23 +397,23 @@ which specify
 If not found, reinstall:
 
 ```bash
-uv tool uninstall specify-cli
-uv tool install specify-cli --from git+https://github.com/Karnonson/kite.git
+uv tool uninstall kite-cli
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
 ```
 
-### "Do I need to run specify every time I open my project?"
+### "Do I need to run Kite every time I open my project?"
 
 **Short answer:** No, you only run `kite init` once per project (or when upgrading).
 
 **Explanation:**
 
-The `specify` CLI tool is used for:
+The Kite CLI tool is used for:
 
 - **Initial setup:** `kite init` to bootstrap Kite in your project
 - **Upgrades:** `kite init --here --force` to update templates and commands
 - **Diagnostics:** `kite check` to verify tool installation
 
-Once you've run `kite init`, the slash commands (like `/kite.specify`, `/kite.plan`, etc.) are **permanently installed** in your project's agent folder (`.claude/`, `.github/prompts/`, `.pi/prompts/`, etc.). Your AI coding agent reads these command files directly—no need to run `specify` again.
+Once you've run `kite init`, the slash commands (like `/kite.specify`, `/kite.plan`, etc.) are **permanently installed** in your project's agent folder (`.claude/`, `.github/prompts/`, `.pi/prompts/`, etc.). Your AI coding agent reads these command files directly, so you do not need to run Kite again until you want diagnostics, resume, or an upgrade.
 
 **If your agent isn't recognizing slash commands:**
 
@@ -436,7 +436,7 @@ Once you've run `kite init`, the slash commands (like `/kite.specify`, `/kite.pl
 
 4. **For some agents**, you may need to reload the workspace or clear cache
 
-**Related issue:** If Copilot can't open local files or uses PowerShell commands unexpectedly, this is typically an IDE context issue, not related to `specify`. Try:
+**Related issue:** If Copilot can't open local files or uses unexpected shell commands, this is typically an IDE context issue, not a Kite issue. Try:
 
 - Restarting VS Code
 - Checking file permissions

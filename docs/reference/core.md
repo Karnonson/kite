@@ -17,7 +17,6 @@ kite init [<project_name>]
 | `--force`                | Force merge/overwrite when initializing in an existing directory         |
 | `--no-git`               | Skip git repository initialization                                       |
 | `--ignore-agent-tools`   | Skip checks for AI coding agent CLI tools                                |
-| `--preset <id>`          | Install a preset during initialization                                   |
 | `--branch-numbering`     | Branch numbering strategy: `sequential` (default) or `timestamp`         |
 
 Creates a new Kite project with the necessary directory structure, templates, scripts, and AI coding agent integration files.
@@ -36,14 +35,8 @@ kite init --here --integration copilot
 # Force merge into a non-empty directory
 kite init --here --force --integration copilot
 
-# Use PowerShell scripts (Windows/cross-platform)
-kite init my-project --integration copilot --script ps
-
 # Skip git initialization
 kite init my-project --integration copilot --no-git
-
-# Install a preset during initialization
-kite init my-project --integration copilot --preset compliance
 
 # Use timestamp-based branch numbering (useful for distributed teams)
 kite init my-project --integration copilot --branch-numbering timestamp

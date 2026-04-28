@@ -1,18 +1,62 @@
 # Installation Guide
 
-## Prerequisites
+## Choose an Install Path
 
-- **Linux/macOS** (or Windows; PowerShell scripts now supported without WSL)
+For most non-technical builders, use the dev container. It installs Kite
+inside a ready VS Code workspace and avoids manual Python, Node, and Docker
+setup on your computer.
+
+If you are comfortable with command-line tools, install Kite directly with
+`uv` or `pipx` instead.
+
+## Option 1: Install the Dev Container
+
+### What you need first
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or a
+  compatible Docker engine
+- [Visual Studio Code](https://code.visualstudio.com/)
+- The [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Create the container files
+
+Open a terminal in the folder where you want to build your app, then run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
+```
+
+Then:
+
+1. Open the folder in VS Code.
+2. Run **Dev Containers: Reopen in Container** from the Command Palette.
+3. Wait for the build to finish.
+
+Kite installs automatically and initializes the workspace with the default
+`copilot` integration. When the container is ready, open Copilot Chat and
+run:
+
+```text
+/kite.start "Build a tool that helps me <describe your idea>."
+```
+
+For more details, see the [Dev Container Guide](devcontainer.md).
+
+## Option 2: Install Kite Directly
+
+### Prerequisites
+
+- **Linux**
 - AI coding agent: [Claude Code](https://www.anthropic.com/claude-code), [GitHub Copilot](https://code.visualstudio.com/), [Codebuddy CLI](https://www.codebuddy.ai/cli), [Gemini CLI](https://github.com/google-gemini/gemini-cli), or [Pi Coding Agent](https://pi.dev)
 - [uv](https://docs.astral.sh/uv/) for package management (recommended) or [pipx](https://pypa.github.io/pipx/) for persistent installation
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Git](https://git-scm.com/downloads)
 
-## Installation
+### Installation
 
-> **Important:** The only official, maintained packages for Kite come from the [Karnonson/kite](https://github.com/Karnonson/kite) GitHub repository. Any packages with the same name available on PyPI (e.g. `specify-cli` on pypi.org) are **not** affiliated with this project and are not maintained by the Kite maintainers. For normal installs, use the GitHub-based commands shown below. For offline or air-gapped environments, locally built wheels created from this repository are also valid.
+> **Important:** The only official, maintained Kite builds come from the [Karnonson/kite](https://github.com/Karnonson/kite) GitHub repository. Similar or legacy package names on PyPI are **not** affiliated with this project and are not maintained by the Kite maintainers. For normal installs, use the GitHub-based commands shown below. For offline or air-gapped environments, locally built wheels created from this repository are also valid.
 
-### Initialize a New Project
+#### Initialize a New Project
 
 The recommended path is to install `kite` persistently so the CLI is available in every directory after `kite init` (including the new project folder for `kite doctor` / `kite resume`):
 
@@ -43,7 +87,7 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init .
 uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here
 ```
 
-### Specify Integration
+#### Specify Integration
 
 You can proactively specify your coding agent integration during initialization:
 
@@ -55,24 +99,15 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_n
 uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration pi
 ```
 
-### Specify Script Type (Shell vs PowerShell)
+#### Specify Script Type
 
-All automation scripts now have both Bash (`.sh`) and PowerShell (`.ps1`) variants.
-
-Auto behavior:
-
-- Windows default: `ps`
-- Other OS default: `sh`
-- Interactive mode: you'll be prompted unless you pass `--script`
-
-Force a specific script type:
+Use Bash scripts for the currently supported Linux setup:
 
 ```bash
 uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --script sh
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --script ps
 ```
 
-### Ignore Agent Tools Check
+#### Ignore Agent Tools Check
 
 If you prefer to get the templates without checking for the right tools:
 
@@ -109,7 +144,7 @@ If your environment blocks access to PyPI (you see 403 errors when running `uv t
 ```bash
 # Clone the repository
 git clone https://github.com/Karnonson/kite.git
-cd spec-kit
+cd kite
 
 # Build the wheel
 pip install build
@@ -119,16 +154,16 @@ python -m build --wheel --outdir dist/
 pip download -d dist/ dist/kite_cli-*.whl
 ```
 
-> **Important:** `pip download` resolves platform-specific wheels (e.g., PyYAML includes native extensions). You must run this step on a machine with the **same OS and Python version** as the air-gapped target. If you need to support multiple platforms, repeat this step on each target OS (Linux, macOS, Windows) and Python version.
+> **Important:** `pip download` resolves platform-specific wheels (e.g., PyYAML includes native extensions). You must run this step on a Linux machine with the **same Python version** as the air-gapped target.
 
 **Step 2: Transfer the `dist/` directory to the air-gapped machine**
 
-Copy the entire `dist/` directory (which contains the `specify-cli` wheel and all dependency wheels) to the target machine via USB, network share, or other approved transfer method.
+Copy the entire `dist/` directory (which contains the `kite-cli` wheel and all dependency wheels) to the target machine via USB, network share, or other approved transfer method.
 
 **Step 3: Install on the air-gapped machine**
 
 ```bash
-pip install --no-index --find-links=./dist specify-cli
+pip install --no-index --find-links=./dist kite-cli
 ```
 
 **Step 4: Initialize a project (no network required)**
@@ -141,8 +176,6 @@ kite init my-project --integration claude
 Bundled assets are used by default — no network access is required.
 
 > **Note:** Python 3.11+ is required.
-
-> **Windows note:** Offline scaffolding requires PowerShell 7+ (`pwsh`), not Windows PowerShell 5.x (`powershell.exe`). Install from https://aka.ms/powershell.
 
 ### Git Credential Manager on Linux
 

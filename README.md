@@ -8,31 +8,14 @@
     <strong>Kite is an open-source toolkit that walks you from "I have an idea" to "the app is live" in plain English. You bring the idea; the persona agents (Discover, Design, Backend, Frontend, QA) handle every step of the software lifecycle inside your favourite AI coding assistant.</strong>
 </p>
 
-<p align="center">
-    <em>Inspired by <a href="https://github.com/github/spec-kit">GitHub Spec Kit</a> and the Spec-Driven Development methodology. Kite extends those ideas across the full software lifecycle and rewrites every prompt so a founder or junior engineer can drive it without engineering jargon.</em>
-</p>
-
-<p align="center">
-    <a href="https://github.com/Karnonson/kite/releases/latest"><img src="https://img.shields.io/github/v/release/Karnonson/kite" alt="Latest Release"/></a>
-    <a href="https://github.com/Karnonson/kite/stargazers"><img src="https://img.shields.io/github/stars/Karnonson/kite?style=social" alt="GitHub stars"/></a>
-    <a href="https://github.com/Karnonson/kite/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Karnonson/kite" alt="License"/></a>
-    <a href="https://Karnonson.github.io/kite/"><img src="https://img.shields.io/badge/docs-GitHub_Pages-blue" alt="Documentation"/></a>
-</p>
-
 ---
 
 ## Table of Contents
 
 - [🤔 What is Spec-Driven Development?](#-what-is-spec-driven-development)
 - [⚡ Get Started](#-get-started)
-- [📽️ Video Overview](#️-video-overview)
-- [🧩 Community Extensions](#-community-extensions)
-- [🎨 Community Presets](#-community-presets)
-- [🚶 Community Walkthroughs](#-community-walkthroughs)
-- [🛠️ Community Friends](#️-community-friends)
 - [🤖 Supported AI Coding Agent Integrations](#-supported-ai-coding-agent-integrations)
-- [🔧 Kite CLI Reference](#-specify-cli-reference)
-- [🧩 Making Kite Your Own: Extensions & Presets](#-making-spec-kit-your-own-extensions--presets)
+- [🔧 Kite CLI Reference](#-kite-cli-reference)
 - [📚 Core Philosophy](#-core-philosophy)
 - [🌟 Development Phases](#-development-phases)
 - [🎯 Experimental Goals](#-experimental-goals)
@@ -50,13 +33,37 @@ Spec-Driven Development **flips the script** on traditional software development
 
 ## ⚡ Get Started
 
-### 1. Install Kite CLI
+### 1. Start with Kite
 
-Choose your preferred installation method:
+Choose your preferred setup path:
 
-> **Important:** The only official, maintained packages for Kite are published from this GitHub repository. Any packages with the same name on PyPI are **not** affiliated with this project and are not maintained by the Kite maintainers. Always install directly from GitHub as shown below.
+> **Important:** Install Kite from your approved internal source or from a local checkout of this repository. Any packages with the same name on PyPI are **not** affiliated with this customized version.
 
-#### Option 1: Persistent Installation (Recommended)
+#### Option 1: Dev Container (Recommended for New Builders)
+
+Use this when you want a ready VS Code workspace and do not want to install
+Python, Node, Docker tooling, and Kite by hand.
+
+```bash
+mkdir my-app
+cd my-app
+curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
+code .
+```
+
+In VS Code, run **Dev Containers: Reopen in Container** from the Command
+Palette. Kite installs automatically and initializes the workspace with the
+default `copilot` integration.
+
+When the container is ready, open Copilot Chat and run:
+
+```text
+/kite.start "Build a tool that helps me <describe your idea>."
+```
+
+See the [Dev Container Guide](./docs/devcontainer.md) for details.
+
+#### Option 2: Persistent CLI Installation
 
 Install once and use everywhere. Pin a specific release tag for stability (check [Releases](https://github.com/Karnonson/kite/releases) for the latest):
 
@@ -81,13 +88,11 @@ kite version
 And use the tool directly:
 
 ```bash
-# Create new project
-kite init <PROJECT_NAME>
+# Initialize the current directory
+kite init --integration copilot
 
-# Or initialize in existing project
-kite init . --integration copilot
-# or
-kite init --here --integration copilot
+# Or create a new project directory explicitly
+kite init <PROJECT_NAME> --integration copilot
 
 # Check installed tools
 kite check
@@ -100,20 +105,6 @@ uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.gi
 # pipx users: pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z
 ```
 
-#### Option 2: One-time Usage
-
-Run directly without installing:
-
-```bash
-# Create new project (pinned to a stable release — replace vX.Y.Z with the latest tag)
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <PROJECT_NAME>
-
-# Or initialize in existing project
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init . --integration copilot
-# or
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here --integration copilot
-```
-
 **Benefits of persistent installation:**
 
 - Tool stays installed and available in PATH
@@ -121,7 +112,19 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here --i
 - Better tool management with `uv tool list`, `uv tool upgrade`, `uv tool uninstall`
 - Cleaner shell configuration
 
-#### Option 3: Enterprise / Air-Gapped Installation
+#### Option 3: One-time Usage
+
+Run directly without installing:
+
+```bash
+# Initialize the current directory
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --integration copilot
+
+# Or create a new project directory explicitly
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <PROJECT_NAME> --integration copilot
+```
+
+#### Option 4: Enterprise / Air-Gapped Installation
 
 If your environment blocks access to PyPI or GitHub, see the [Enterprise / Air-Gapped Installation](./docs/installation.md#enterprise--air-gapped-installation) guide for step-by-step instructions on using `pip download` to create portable, OS-specific wheel bundles on a connected machine.
 
@@ -147,7 +150,7 @@ Use the **`/kite.constitution`** command to create your project's governing prin
 /kite.constitution Create principles focused on code quality, testing standards, user experience consistency, and performance requirements
 ```
 
-### 3. Create the spec
+### 4. Create the spec
 
 Use the **`/kite.specify`** command to describe what you want to build. Focus on the **what** and **why**, not the tech stack.
 
@@ -155,7 +158,7 @@ Use the **`/kite.specify`** command to describe what you want to build. Focus on
 /kite.specify Build an application that can help me organize my photos in separate photo albums. Albums are grouped by date and can be re-organized by dragging and dropping on the main page. Albums are never in other nested albums. Within each album, photos are previewed in a tile-like interface.
 ```
 
-### 4. Create a technical implementation plan
+### 5. Create a technical implementation plan
 
 Use the **`/kite.plan`** command to provide your tech stack and architecture choices.
 
@@ -163,7 +166,7 @@ Use the **`/kite.plan`** command to provide your tech stack and architecture cho
 /kite.plan The application uses Vite with minimal number of libraries. Use vanilla HTML, CSS, and JavaScript as much as possible. Images are not uploaded anywhere and metadata is stored in a local SQLite database.
 ```
 
-### 5. Break down into tasks
+### 6. Break down into tasks
 
 Use **`/kite.tasks`** to create an actionable task list from your implementation plan.
 
@@ -171,7 +174,7 @@ Use **`/kite.tasks`** to create an actionable task list from your implementation
 /kite.tasks
 ```
 
-### 6. Execute implementation
+### 7. Execute implementation
 
 Use **`/kite.implement`** to execute all tasks and build your feature according to the plan.
 
@@ -181,138 +184,9 @@ Use **`/kite.implement`** to execute all tasks and build your feature according 
 
 For detailed step-by-step instructions, see our [comprehensive guide](./spec-driven.md).
 
-## 📽️ Video Overview
-
-Want to see Kite in action? Watch our [video overview](https://www.youtube.com/watch?v=a9eR1xsfvHg&pp=0gcJCckJAYcqIYzv)!
-
-[![Kite video header](/media/spec-kit-video-header.jpg)](https://www.youtube.com/watch?v=a9eR1xsfvHg&pp=0gcJCckJAYcqIYzv)
-
-## 🧩 Community Extensions
-
-> [!NOTE]
-> Community extensions are independently created and maintained by their respective authors. GitHub and the Kite maintainers may review pull requests that add entries to the community catalog for formatting, catalog structure, or policy compliance, but they do **not review, audit, endorse, or support the extension code itself**. The Community Extensions website is also a third-party resource. Review extension source code before installation and use at your own discretion.
-
-🔍 **Browse and search community extensions on the [Community Extensions website](https://kite-community.github.io/extensions/).**
-
-The following community-contributed extensions are available in [`catalog.community.json`](extensions/catalog.community.json):
-
-**Categories:**
-
-- `docs` — reads, validates, or generates spec artifacts
-- `code` — reviews, validates, or modifies source code
-- `process` — orchestrates workflow across phases
-- `integration` — syncs with external platforms
-- `visibility` — reports on project health or progress
-
-**Effect:**
-
-- `Read-only` — produces reports without modifying files
-- `Read+Write` — modifies files, creates artifacts, or updates specs
-
-| Extension | Purpose | Category | Effect | URL |
-|-----------|---------|----------|--------|-----|
-| Agent Assign | Assign specialized Claude Code agents to spec-kit tasks for targeted execution | `process` | Read+Write | [spec-kit-agent-assign](https://github.com/xymelon/spec-kit-agent-assign) |
-| AI-Driven Engineering (AIDE) | A structured 7-step workflow for building new projects from scratch with AI assistants — from vision through implementation | `process` | Read+Write | [aide](https://github.com/mnriem/spec-kit-extensions/tree/main/aide) |
-| Architect Impact Previewer | Predicts architectural impact, complexity, and risks of proposed changes before implementation. | `visibility` | Read-only | [spec-kit-architect-preview](https://github.com/UmmeHabiba1312/spec-kit-architect-preview) |
-| Archive Extension | Archive merged features into main project memory. | `docs` | Read+Write | [spec-kit-archive](https://github.com/stn1slv/spec-kit-archive) |
-| Azure DevOps Integration | Sync user stories and tasks to Azure DevOps work items using OAuth authentication | `integration` | Read+Write | [spec-kit-azure-devops](https://github.com/pragya247/spec-kit-azure-devops) |
-| Blueprint | Stay code-literate in AI-driven development: review a complete code blueprint for every task from spec artifacts before /kite.implement runs | `docs` | Read+Write | [spec-kit-blueprint](https://github.com/chordpli/spec-kit-blueprint) |
-| Branch Convention | Configurable branch and folder naming conventions for /specify with presets and custom patterns | `process` | Read+Write | [spec-kit-branch-convention](https://github.com/Quratulain-bilal/spec-kit-branch-convention) |
-| Brownfield Bootstrap | Bootstrap spec-kit for existing codebases — auto-discover architecture and adopt SDD incrementally | `process` | Read+Write | [spec-kit-brownfield](https://github.com/Quratulain-bilal/spec-kit-brownfield) |
-| Bugfix Workflow | Structured bugfix workflow — capture bugs, trace to spec artifacts, and patch specs surgically | `process` | Read+Write | [spec-kit-bugfix](https://github.com/Quratulain-bilal/spec-kit-bugfix) |
-| Canon | Adds canon-driven (baseline-driven) workflows: spec-first, code-first, spec-drift. Requires Canon Core preset installation. | `process` | Read+Write | [spec-kit-canon](https://github.com/maximiliamus/spec-kit-canon/tree/master/extension) |
-| Catalog CI | Automated validation for spec-kit community catalog entries — structure, URLs, diffs, and linting | `process` | Read-only | [spec-kit-catalog-ci](https://github.com/Quratulain-bilal/spec-kit-catalog-ci) |
-| CI Guard | Spec compliance gates for CI/CD — verify specs exist, check drift, and block merges on gaps | `process` | Read-only | [spec-kit-ci-guard](https://github.com/Quratulain-bilal/spec-kit-ci-guard) |
-| Checkpoint Extension | Commit the changes made during the middle of the implementation, so you don't end up with just one very large commit at the end | `code` | Read+Write | [spec-kit-checkpoint](https://github.com/aaronrsun/spec-kit-checkpoint) |
-| Cleanup Extension | Post-implementation quality gate that reviews changes, fixes small issues (scout rule), creates tasks for medium issues, and generates analysis for large issues | `code` | Read+Write | [spec-kit-cleanup](https://github.com/dsrednicki/spec-kit-cleanup) |
-| Conduct Extension | Orchestrates spec-kit phases via sub-agent delegation to reduce context pollution. | `process` | Read+Write | [spec-kit-conduct-ext](https://github.com/twbrandon7/spec-kit-conduct-ext) |
-| Confluence Extension | Create a doc in Confluence summarizing the specifications and planning files | `integration` | Read+Write | [spec-kit-confluence](https://github.com/aaronrsun/spec-kit-confluence) |
-| DocGuard — CDD Enforcement | Canonical-Driven Development enforcement. Validates, scores, and traces project documentation with automated checks, AI-driven workflows, and spec-kit hooks. Zero NPM runtime dependencies. | `docs` | Read+Write | [spec-kit-docguard](https://github.com/raccioly/docguard) |
-| Extensify | Create and validate extensions and extension catalogs | `process` | Read+Write | [extensify](https://github.com/mnriem/spec-kit-extensions/tree/main/extensify) |
-| Fix Findings | Automated analyze-fix-reanalyze loop that resolves spec findings until clean | `code` | Read+Write | [spec-kit-fix-findings](https://github.com/Quratulain-bilal/spec-kit-fix-findings) |
-| FixIt Extension | Spec-aware bug fixing — maps bugs to spec artifacts, proposes a plan, applies minimal changes | `code` | Read+Write | [spec-kit-fixit](https://github.com/kite-community/spec-kit-fixit) |
-| Fleet Orchestrator | Orchestrate a full feature lifecycle with human-in-the-loop gates across all SpecKit phases | `process` | Read+Write | [spec-kit-fleet](https://github.com/sharathsatish/spec-kit-fleet) |
-| GitHub Issues Integration 1 | Generate spec artifacts from GitHub Issues - import issues, sync updates, and maintain bidirectional traceability | `integration` | Read+Write | [spec-kit-github-issues](https://github.com/Fatima367/spec-kit-github-issues) |
-| GitHub Issues Integration 2 | Creates and syncs local specs from an existing GitHub issue | `integration` | Read+Write | [spec-kit-issue](https://github.com/aaronrsun/spec-kit-issue) |
-| Iterate | Iterate on spec documents with a two-phase define-and-apply workflow — refine specs mid-implementation and go straight back to building | `docs` | Read+Write | [spec-kit-iterate](https://github.com/imviancagrace/spec-kit-iterate) |
-| Jira Integration | Create Jira Epics, Stories, and Issues from spec-kit specifications and task breakdowns with configurable hierarchy and custom field support | `integration` | Read+Write | [spec-kit-jira](https://github.com/mbachorik/spec-kit-jira) |
-| Learning Extension | Generate educational guides from implementations and enhance clarifications with mentoring context | `docs` | Read+Write | [spec-kit-learn](https://github.com/imviancagrace/spec-kit-learn) |
-| MAQA — Multi-Agent & Quality Assurance | Coordinator → feature → QA agent workflow with parallel worktree-based implementation. Language-agnostic. Auto-detects installed board plugins. Optional CI gate. | `process` | Read+Write | [spec-kit-maqa-ext](https://github.com/GenieRobot/spec-kit-maqa-ext) |
-| MAQA Azure DevOps Integration | Azure DevOps Boards integration for MAQA — syncs User Stories and Task children as features progress | `integration` | Read+Write | [spec-kit-maqa-azure-devops](https://github.com/GenieRobot/spec-kit-maqa-azure-devops) |
-| MAQA CI/CD Gate | Auto-detects GitHub Actions, CircleCI, GitLab CI, and Bitbucket Pipelines. Blocks QA handoff until pipeline is green. | `process` | Read+Write | [spec-kit-maqa-ci](https://github.com/GenieRobot/spec-kit-maqa-ci) |
-| MAQA GitHub Projects Integration | GitHub Projects v2 integration for MAQA — syncs draft issues and Status columns as features progress | `integration` | Read+Write | [spec-kit-maqa-github-projects](https://github.com/GenieRobot/spec-kit-maqa-github-projects) |
-| MAQA Jira Integration | Jira integration for MAQA — syncs Stories and Subtasks as features progress through the board | `integration` | Read+Write | [spec-kit-maqa-jira](https://github.com/GenieRobot/spec-kit-maqa-jira) |
-| MAQA Linear Integration | Linear integration for MAQA — syncs issues and sub-issues across workflow states as features progress | `integration` | Read+Write | [spec-kit-maqa-linear](https://github.com/GenieRobot/spec-kit-maqa-linear) |
-| MAQA Trello Integration | Trello board integration for MAQA — populates board from specs, moves cards, real-time checklist ticking | `integration` | Read+Write | [spec-kit-maqa-trello](https://github.com/GenieRobot/spec-kit-maqa-trello) |
-| Memory Loader | Loads .kite/memory/ files before lifecycle commands so LLM agents have project governance context | `docs` | Read-only | [spec-kit-memory-loader](https://github.com/KevinBrown5280/spec-kit-memory-loader) |
-| Memory MD | Repository-native durable memory for Kite projects | `docs` | Read+Write | [spec-kit-memory-hub](https://github.com/DyanGalih/spec-kit-memory-hub) |
-| MemoryLint | Agent memory governance tool: Automatically audits and fixes boundary conflicts between AGENTS.md and the constitution. | `process` | Read+Write | [memorylint](https://github.com/RbBtSn0w/spec-kit-extensions/tree/main/memorylint) |
-| Onboard | Contextual onboarding and progressive growth for developers new to spec-kit projects. Explains specs, maps dependencies, validates understanding, and guides the next step | `process` | Read+Write | [spec-kit-onboard](https://github.com/dmux/spec-kit-onboard) |
-| Optimize | Audit and optimize AI governance for context efficiency — token budgets, rule health, interpretability, compression, coherence, and echo detection | `process` | Read+Write | [spec-kit-optimize](https://github.com/sakitA/spec-kit-optimize) |
-| Plan Review Gate | Require spec.md and plan.md to be merged via MR/PR before allowing task generation | `process` | Read-only | [spec-kit-plan-review-gate](https://github.com/luno/spec-kit-plan-review-gate) |
-| PR Bridge | Auto-generate pull request descriptions, checklists, and summaries from spec artifacts | `process` | Read-only | [spec-kit-pr-bridge-](https://github.com/Quratulain-bilal/spec-kit-pr-bridge-) |
-| Presetify | Create and validate presets and preset catalogs | `process` | Read+Write | [presetify](https://github.com/mnriem/spec-kit-extensions/tree/main/presetify) |
-| Product Forge | Full product lifecycle from research to release — portfolio, lite mode, monorepo, optional V-Model | `process` | Read+Write | [kite-product-forge](https://github.com/VaiYav/kite-product-forge) |
-| Project Health Check | Diagnose a Kite project and report health issues across structure, agents, features, scripts, extensions, and git | `visibility` | Read-only | [spec-kit-doctor](https://github.com/KhawarHabibKhan/spec-kit-doctor) |
-| Project Status | Show current SDD workflow progress — active feature, artifact status, task completion, workflow phase, and extensions summary | `visibility` | Read-only | [spec-kit-status](https://github.com/KhawarHabibKhan/spec-kit-status) |
-| QA Testing Extension | Systematic QA testing with browser-driven or CLI-based validation of acceptance criteria from spec | `code` | Read-only | [spec-kit-qa](https://github.com/arunt14/spec-kit-qa) |
-| Ralph Loop | Autonomous implementation loop using AI agent CLI | `code` | Read+Write | [spec-kit-ralph](https://github.com/Rubiss/spec-kit-ralph) |
-| Reconcile Extension | Reconcile implementation drift by surgically updating feature artifacts. | `docs` | Read+Write | [spec-kit-reconcile](https://github.com/stn1slv/spec-kit-reconcile) |
-| Red Team | Adversarial review of specs before /kite.plan — parallel lens agents surface risks that clarify/analyze structurally can't (prompt injection, integrity gaps, cross-spec drift, silent failures). Produces a structured findings report; no auto-edits to specs. | `docs` | Read+Write | [spec-kit-red-team](https://github.com/ashbrener/spec-kit-red-team) |
-| Repository Index | Generate index for existing repo for overview, architecture and module level. | `docs` | Read-only | [spec-kit-repoindex](https://github.com/liuyiyu/spec-kit-repoindex) |
-| Retro Extension | Sprint retrospective analysis with metrics, spec accuracy assessment, and improvement suggestions | `process` | Read+Write | [spec-kit-retro](https://github.com/arunt14/spec-kit-retro) |
-| Retrospective Extension | Post-implementation retrospective with spec adherence scoring, drift analysis, and human-gated spec updates | `docs` | Read+Write | [spec-kit-retrospective](https://github.com/emi-dm/spec-kit-retrospective) |
-| Review Extension | Post-implementation comprehensive code review with specialized agents for code quality, comments, tests, error handling, type design, and simplification | `code` | Read-only | [spec-kit-review](https://github.com/ismaelJimenez/spec-kit-review) |
-| Ripple | Detect side effects that tests can't catch after implementation — delta-anchored analysis across 9 domain-agnostic categories | `code` | Read+Write | [spec-kit-ripple](https://github.com/chordpli/spec-kit-ripple) |
-| SDD Utilities | Resume interrupted workflows, validate project health, and verify spec-to-task traceability | `process` | Read+Write | [kite-utils](https://github.com/mvanhorn/kite-utils) |
-| Security Review | Comprehensive security audit of codebases using AI-powered DevSecOps analysis | `code` | Read-only | [spec-kit-security-review](https://github.com/DyanGalih/spec-kit-security-review) |
-| SFKite | Enterprise Salesforce SDLC with 18 commands for the full SDD lifecycle. | `process` | Read+Write | [spec-kit-sf](https://github.com/ysumanth06/spec-kit-sf) |
-| Ship Release Extension | Automates release pipeline: pre-flight checks, branch sync, changelog generation, CI verification, and PR creation | `process` | Read+Write | [spec-kit-ship](https://github.com/arunt14/spec-kit-ship) |
-| Spec Reference Loader | Reads the ## References section from the feature spec and loads only the listed docs into context | `docs` | Read-only | [spec-kit-spec-reference-loader](https://github.com/KevinBrown5280/spec-kit-spec-reference-loader) |
-| Spec Critique Extension | Dual-lens critical review of spec and plan from product strategy and engineering risk perspectives | `docs` | Read-only | [spec-kit-critique](https://github.com/arunt14/spec-kit-critique) |
-| Spec Diagram | Auto-generate Mermaid diagrams of SDD workflow state, feature progress, and task dependencies | `visibility` | Read-only | [spec-kit-diagram-](https://github.com/Quratulain-bilal/spec-kit-diagram-) |
-| Spec Orchestrator | Cross-feature orchestration — track state, select tasks, and detect conflicts across parallel specs | `process` | Read-only | [spec-kit-orchestrator](https://github.com/Quratulain-bilal/spec-kit-orchestrator) |
-| Spec Refine | Update specs in-place, propagate changes to plan and tasks, and diff impact across artifacts | `process` | Read+Write | [spec-kit-refine](https://github.com/Quratulain-bilal/spec-kit-refine) |
-| Spec Scope | Effort estimation and scope tracking — estimate work, detect creep, and budget time per phase | `process` | Read-only | [spec-kit-scope-](https://github.com/Quratulain-bilal/spec-kit-scope-) |
-| Spec Sync | Detect and resolve drift between specs and implementation. AI-assisted resolution with human approval | `docs` | Read+Write | [spec-kit-sync](https://github.com/bgervin/spec-kit-sync) |
-| Spec Validate | Comprehension validation, review gating, and approval state for spec-kit artifacts — staged quizzes, peer review SLA, and a hard gate before /kite.implement | `process` | Read+Write | [spec-kit-spec-validate](https://github.com/aeltayeb/spec-kit-spec-validate) |
-| SpecTest | Auto-generate test scaffolds from spec criteria, map coverage, and find untested requirements | `code` | Read+Write | [spec-kit-spectest](https://github.com/Quratulain-bilal/spec-kit-spectest) |
-| Staff Review Extension | Staff-engineer-level code review that validates implementation against spec, checks security, performance, and test coverage | `code` | Read-only | [spec-kit-staff-review](https://github.com/arunt14/spec-kit-staff-review) |
-| Status Report | Project status, feature progress, and next-action recommendations for spec-driven workflows | `visibility` | Read-only | [Open-Agent-Tools/spec-kit-status](https://github.com/Open-Agent-Tools/spec-kit-status) |
-| Superpowers Bridge | Orchestrates obra/superpowers skills within the spec-kit SDD workflow across the full lifecycle (clarification, TDD, review, verification, critique, debugging, branch completion) | `process` | Read+Write | [superpowers-bridge](https://github.com/RbBtSn0w/spec-kit-extensions/tree/main/superpowers-bridge) |
-| Superpowers Bridge (WangX0111) | Bridges spec-kit with obra/superpowers (brainstorming, TDD, subagent, code-review) into a unified, resumable workflow with graceful degradation and session progress tracking | `process` | Read+Write | [superspec](https://github.com/WangX0111/superspec) |
-| TinySpec | Lightweight single-file workflow for small tasks — skip the heavy multi-step SDD process | `process` | Read+Write | [spec-kit-tinyspec](https://github.com/Quratulain-bilal/spec-kit-tinyspec) |
-| V-Model Extension Pack | Enforces V-Model paired generation of development specs and test specs with full traceability | `docs` | Read+Write | [spec-kit-v-model](https://github.com/leocamello/spec-kit-v-model) |
-| Verify Extension | Post-implementation quality gate that validates implemented code against specification artifacts | `code` | Read-only | [spec-kit-verify](https://github.com/ismaelJimenez/spec-kit-verify) |
-| Verify Tasks Extension | Detect phantom completions: tasks marked [X] in tasks.md with no real implementation | `code` | Read-only | [spec-kit-verify-tasks](https://github.com/datastone-inc/spec-kit-verify-tasks) |
-| Version Guard | Verify tech stack versions against live npm registries before planning and implementation | `process` | Read-only | [spec-kit-version-guard](https://github.com/KevinBrown5280/spec-kit-version-guard) |
-| What-if Analysis | Preview the downstream impact (complexity, effort, tasks, risks) of requirement changes before committing to them | `visibility` | Read-only | [spec-kit-whatif](https://github.com/DevAbdullah90/spec-kit-whatif) |
-| Wireframe Visual Feedback Loop | SVG wireframe generation, review, and sign-off for spec-driven development. Approved wireframes become spec constraints honored by /kite.plan, /kite.tasks, and /kite.implement | `visibility` | Read+Write | [spec-kit-extension-wireframe](https://github.com/TortoiseWolfe/spec-kit-extension-wireframe) |
-| Worktree Isolation | Spawn isolated git worktrees for parallel feature development without checkout switching | `process` | Read+Write | [spec-kit-worktree](https://github.com/Quratulain-bilal/spec-kit-worktree) |
-| Worktrees | Default-on worktree isolation for parallel agents — sibling or nested layout | `process` | Read+Write | [spec-kit-worktree-parallel](https://github.com/dango85/spec-kit-worktree-parallel) |
-
-To submit your own extension, see the [Extension Publishing Guide](extensions/EXTENSION-PUBLISHING-GUIDE.md).
-
-## 🎨 Community Presets
-
-Community-contributed presets customize how Kite behaves — overriding templates, commands, and terminology without changing any tooling. See the full list on the [Community Presets](https://Karnonson.github.io/kite/community/presets.html) page.
-
-> [!NOTE]
-> Community presets are third-party contributions and are not maintained by the Kite team. Review them carefully before use, and see the docs page above for the full disclaimer.
-
-To submit your own preset, see the [Presets Publishing Guide](presets/PUBLISHING.md).
-
-## 🚶 Community Walkthroughs
-
-See Spec-Driven Development in action across different scenarios with community-contributed walkthroughs; find the full list on the [Community Walkthroughs](https://Karnonson.github.io/kite/community/walkthroughs.html) page.
-
-## 🛠️ Community Friends
-
-Community projects that extend, visualize, or build on Kite. See the full list on the [Community Friends](https://Karnonson.github.io/kite/community/friends.html) page.
-
 ## 🤖 Supported AI Coding Agent Integrations
 
-Kite works with 30+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](https://Karnonson.github.io/kite/reference/integrations.html) guide.
+Kite works with 30+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](docs/reference/integrations.md) guide.
 
 Run `kite integration list` to see all available integrations in your installed version.
 
@@ -320,7 +194,7 @@ Run `kite integration list` to see all available integrations in your installed 
 
 After running `kite init`, your AI coding agent will have access to these slash commands for structured development. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
 
-#### Core Commands
+### Core Commands
 
 Essential commands for the Spec-Driven Development workflow:
 
@@ -333,7 +207,7 @@ Essential commands for the Spec-Driven Development workflow:
 | `/kite.taskstoissues` | `kite-taskstoissues`| Convert generated task lists into GitHub issues for tracking and execution |
 | `/kite.implement`     | `kite-implement`    | Execute all tasks to build the feature according to the plan               |
 
-#### Optional Commands
+### Optional Commands
 
 Additional commands for enhanced quality and validation:
 
@@ -345,66 +219,7 @@ Additional commands for enhanced quality and validation:
 
 ## 🔧 Kite CLI Reference
 
-For full command details, options, and examples, see the [CLI Reference](https://Karnonson.github.io/kite/reference/overview.html).
-
-## 🧩 Making Kite Your Own: Extensions & Presets
-
-Kite can be tailored to your needs through two complementary systems — **extensions** and **presets** — plus project-local overrides for one-off adjustments:
-
-| Priority | Component Type                                    | Location                         |
-| -------: | ------------------------------------------------- | -------------------------------- |
-|      ⬆ 1 | Project-Local Overrides                           | `.kite/templates/overrides/`  |
-|        2 | Presets — Customize core & extensions             | `.kite/presets/templates/`    |
-|        3 | Extensions — Add new capabilities                 | `.kite/extensions/templates/` |
-|      ⬇ 4 | Kite Core — Built-in SDD commands & templates | `.kite/templates/`            |
-
-- **Templates** are resolved at **runtime** — Kite walks the stack top-down and uses the first match.
-- Project-local overrides (`.kite/templates/overrides/`) let you make one-off adjustments for a single project without creating a full preset.
-- **Extension/preset commands** are applied at **install time** — when you run `kite extension add` or `kite preset add`, command files are written into agent directories (e.g., `.claude/commands/`).
-- If multiple presets or extensions provide the same command, the highest-priority version wins. On removal, the next-highest-priority version is restored automatically.
-- If no overrides or customizations exist, Kite uses its core defaults.
-
-### Extensions — Add New Capabilities
-
-Use **extensions** when you need functionality that goes beyond Kite's core. Extensions introduce new commands and templates — for example, adding domain-specific workflows that are not covered by the built-in SDD commands, integrating with external tools, or adding entirely new development phases. They expand *what Kite can do*.
-
-```bash
-# Search available extensions
-kite extension search
-
-# Install an extension
-kite extension add <extension-name>
-```
-
-For example, extensions could add Jira integration, post-implementation code review, V-Model test traceability, or project health diagnostics.
-
-See the [Extensions reference](https://Karnonson.github.io/kite/reference/extensions.html) for the full command guide. Browse the [community extensions](#-community-extensions) above for what's available.
-
-### Presets — Customize Existing Workflows
-
-Use **presets** when you want to change *how* Kite works without adding new capabilities. Presets override the templates and commands that ship with the core *and* with installed extensions — for example, enforcing a compliance-oriented spec format, using domain-specific terminology, or applying organizational standards to plans and tasks. They customize the artifacts and instructions that Kite and its extensions produce.
-
-```bash
-# Search available presets
-kite preset search
-
-# Install a preset
-kite preset add <preset-name>
-```
-
-For example, presets could restructure spec templates to require regulatory traceability, adapt the workflow to fit the methodology you use (e.g., Agile, Kanban, Waterfall, jobs-to-be-done, or domain-driven design), add mandatory security review gates to plans, enforce test-first task ordering, or localize the entire workflow to a different language. The [pirate-speak demo](https://github.com/mnriem/spec-kit-pirate-speak-preset-demo) shows just how deep the customization can go. Multiple presets can be stacked with priority ordering.
-
-See the [Presets reference](https://Karnonson.github.io/kite/reference/presets.html) for the full command guide, including resolution order and priority stacking.
-
-### When to Use Which
-
-| Goal | Use |
-| --- | --- |
-| Add a brand-new command or workflow | Extension |
-| Customize the format of specs, plans, or tasks | Preset |
-| Integrate an external tool or service | Extension |
-| Enforce organizational or regulatory standards | Preset |
-| Ship reusable domain-specific templates | Either — presets for template overrides, extensions for templates bundled with new commands |
+For full command details, options, and examples, see the [CLI Reference](docs/reference/overview.md).
 
 ## 📚 Core Philosophy
 
@@ -451,7 +266,7 @@ Our research and experimentation focus on:
 
 ## 🔧 Prerequisites
 
-- **Linux/macOS/Windows**
+- **Linux**
 - [Supported](#-supported-ai-coding-agent-integrations) AI coding agent.
 - [uv](https://docs.astral.sh/uv/) for package management (recommended) or [pipx](https://pypa.github.io/pipx/) for persistent installation
 - [Python 3.11+](https://www.python.org/downloads/)
@@ -471,22 +286,19 @@ If you encounter issues with an agent, please open an issue so we can refine the
 <details>
 <summary>Click to expand the detailed step-by-step walkthrough</summary>
 
-You can use the Kite CLI to bootstrap your project, which will bring in the required artifacts in your environment. Run:
+You can use the Kite CLI to bootstrap your project, which will bring in the required artifacts in your environment. From the project directory, run:
+
+```bash
+kite init
+```
+
+To create a new project directory explicitly, pass a name:
 
 ```bash
 kite init <project_name>
-```
 
-Or initialize in the current directory:
-
-```bash
-kite init .
-# or use the --here flag
-kite init --here
-# Skip confirmation when the directory already has files
-kite init . --force
-# or
-kite init --here --force
+# Skip confirmation when the current directory already has files
+kite init --force
 ```
 
 ![Kite CLI bootstrapping a new project in the terminal](./media/kite_cli.gif)
@@ -494,29 +306,22 @@ kite init --here --force
 You will be prompted to select the coding agent integration you are using. You can also proactively specify it directly in the terminal:
 
 ```bash
+kite init --integration copilot
+kite init --integration gemini
+kite init --integration codex
+
+# Or create a new directory explicitly:
 kite init <project_name> --integration copilot
-kite init <project_name> --integration gemini
-kite init <project_name> --integration codex
-
-# Or in current directory:
-kite init . --integration copilot
-kite init . --integration codex --integration-options="--skills"
-
-# or use --here flag
-kite init --here --integration copilot
-kite init --here --integration codex --integration-options="--skills"
+kite init <project_name> --integration codex --integration-options="--skills"
 
 # Force merge into a non-empty current directory
-kite init . --force --integration copilot
-
-# or
-kite init --here --force --integration copilot
+kite init --force --integration copilot
 ```
 
 The CLI will check if you have Claude Code, Gemini CLI, Cursor CLI, Qwen CLI, opencode, Codex CLI, Qoder CLI, Tabnine CLI, Kiro CLI, Pi, Forge, Goose, or Mistral Vibe installed. If you do not, or you prefer to get the templates without checking for the right tools, use `--ignore-agent-tools` with your command:
 
 ```bash
-kite init <project_name> --integration copilot --ignore-agent-tools
+kite init --integration copilot --ignore-agent-tools
 ```
 
 ### **STEP 1:** Establish project principles

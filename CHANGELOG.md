@@ -101,7 +101,6 @@ lifecycle through dedicated persona agents.
 ### Changed
 
 - fix(copilot): use --yolo to grant all permissions in non-interactive mode (#2298)
-- feat: add CITATION.cff and .zenodo.json for academic citation support (#2291)
 - Add spec-validate to community catalog (#2274)
 - feat: register Ripple in community catalog (#2272)
 - Add version-guard to community catalog (#2286)

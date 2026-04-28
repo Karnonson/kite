@@ -1,8 +1,8 @@
 # Kite
 
-*Build high-quality software faster.*
+*Build software with AI agents, even if you are not a developer.*
 
-**An effort to allow organizations to focus on product scenarios rather than writing undifferentiated code with the help of Spec-Driven Development.**
+Kite helps non-technical builders turn an idea into working software by guiding an AI coding agent through discovery, design, backend, frontend, and QA steps.
 
 ## What is Spec-Driven Development?
 
@@ -11,9 +11,9 @@ Spec-Driven Development **flips the script** on traditional software development
 ## Getting Started
 
 - [Installation Guide](installation.md)
+- [Dev Container Guide](devcontainer.md)
 - [Quick Start Guide](quickstart.md)
 - [Upgrade Guide](upgrade.md)
-- [Local Development](local-development.md)
 
 ## Core Philosophy
 
@@ -31,36 +31,6 @@ Spec-Driven Development is a structured process that emphasizes:
 | **0-to-1 Development** ("Greenfield") | Generate from scratch | <ul><li>Start with high-level requirements</li><li>Generate specifications</li><li>Plan implementation steps</li><li>Build production-ready applications</li></ul> |
 | **Creative Exploration** | Parallel implementations | <ul><li>Explore diverse solutions</li><li>Support multiple technology stacks & architectures</li><li>Experiment with UX patterns</li></ul> |
 | **Iterative Enhancement** ("Brownfield") | Brownfield modernization | <ul><li>Add features iteratively</li><li>Modernize legacy systems</li><li>Adapt processes</li></ul> |
-
-## Experimental Goals
-
-Our research and experimentation focus on:
-
-### Technology Independence
-
-- Create applications using diverse technology stacks
-- Validate the hypothesis that Spec-Driven Development is a process not tied to specific technologies, programming languages, or frameworks
-
-### Enterprise Constraints
-
-- Demonstrate mission-critical application development
-- Incorporate organizational constraints (cloud providers, tech stacks, engineering practices)
-- Support enterprise design systems and compliance requirements
-
-### User-Centric Development
-
-- Build applications for different user cohorts and preferences
-- Support various development approaches (from vibe-coding to AI-native development)
-
-### Creative & Iterative Processes
-
-- Validate the concept of parallel implementation exploration
-- Provide robust iterative feature development workflows
-- Extend processes to handle upgrades and modernization tasks
-
-## Contributing
-
-Please see our [Contributing Guide](https://github.com/Karnonson/kite/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
 
 ## Support
 

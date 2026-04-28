@@ -2,16 +2,10 @@ blank_issues_enabled: false
 contact_links:
   - name: 💬 General Discussion
     url: https://github.com/Karnonson/kite/discussions
-    about: Ask questions, share ideas, or discuss Spec-Driven Development
+    about: Ask questions or share ideas about building with Kite
   - name: 📖 Documentation
     url: https://github.com/Karnonson/kite/blob/main/README.md
     about: Read the Kite documentation and guides
-  - name: 🛠️ Extension Development Guide
-    url: https://github.com/Karnonson/kite/blob/main/extensions/EXTENSION-DEVELOPMENT-GUIDE.md
-    about: Learn how to develop and publish Kite extensions
-  - name: 🤝 Contributing Guide
-    url: https://github.com/Karnonson/kite/blob/main/CONTRIBUTING.md
-    about: Learn how to contribute to Kite
   - name: 🔒 Security Issues
     url: https://github.com/Karnonson/kite/blob/main/SECURITY.md
     about: Report security vulnerabilities privately
