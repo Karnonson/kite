@@ -181,7 +181,22 @@ class TestTimestampBranch:
         assert re.match(r"^\d{8}-\d{6}$", data["FEATURE_NUM"])
 
     def test_long_name_truncation(self, git_repo: Path):
-        """Test 5: Long branch name is truncated to <= 244 chars."""
+        """Test 5: Long branch name is truncated to <= 244 chars.
+
+        Skipped on filesystems whose ``NAME_MAX`` is below 250 bytes (e.g.,
+        eCryptfs, which caps single-component filenames at 143 bytes). Git
+        writes ``refs/heads/<branch>.lock`` and ``<branch>``, so a 244-byte
+        branch needs ~250 bytes of filename headroom — unrelated to the
+        truncation logic itself.
+        """
+        try:
+            namemax = os.statvfs(git_repo).f_namemax
+        except (OSError, AttributeError):
+            namemax = 255
+        if namemax < 250:
+            pytest.skip(
+                f"filesystem NAME_MAX={namemax} cannot hold a 244-byte git ref filename"
+            )
         long_name = "a-" * 150 + "end"
         result = run_script(git_repo, "--timestamp", "--short-name", long_name, "Long feature")
         assert result.returncode == 0, result.stderr
