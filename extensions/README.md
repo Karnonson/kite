@@ -80,33 +80,6 @@ See the [Community Extensions](../README.md#-community-extensions) section in th
 
 For the raw catalog data, see [`catalog.community.json`](catalog.community.json).
 
-
-## Adding Your Extension
-
-### Submission Process
-
-To add your extension to the community catalog:
-
-1. **Prepare your extension** following the [Extension Development Guide](EXTENSION-DEVELOPMENT-GUIDE.md)
-2. **Create a GitHub release** for your extension
-3. **Submit a Pull Request** that:
-   - Adds your extension to `extensions/catalog.community.json`
-   - Updates this README with your extension in the Available Extensions table
-4. **Wait for review** - maintainers will review and merge if criteria are met
-
-See the [Extension Publishing Guide](EXTENSION-PUBLISHING-GUIDE.md) for detailed step-by-step instructions.
-
-### Submission Checklist
-
-Before submitting, ensure:
-
-- ✅ Valid `extension.yml` manifest
-- ✅ Complete README with installation and usage instructions
-- ✅ LICENSE file included
-- ✅ GitHub release created with semantic version (e.g., v1.0.0)
-- ✅ Extension tested on a real project
-- ✅ All commands working as documented
-
 ## Installing Extensions
 Once extensions are available (either in your catalog or via direct URL), install them:
 

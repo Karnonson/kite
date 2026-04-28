@@ -1017,7 +1017,6 @@ After creating tasks, sync to Jira:
 - **Extension Issues**: Report to extension repository (see `kite extension info`)
 - **Kite Issues**: <https://github.com/statsperform/spec-kit/issues>
 - **Extension Catalog**: <https://github.com/statsperform/spec-kit/tree/main/extensions>
-- **Documentation**: See EXTENSION-DEVELOPMENT-GUIDE.md and EXTENSION-PUBLISHING-GUIDE.md
 
 ---
 

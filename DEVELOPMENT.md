@@ -11,7 +11,6 @@ Kite is a toolkit for spec-driven development. At its core, it is a coordinated 
 | [spec-driven.md](spec-driven.md)                           | End-to-end explanation of the Spec-Driven Development workflow supported by Kite. |
 | [RELEASE-PROCESS.md](.github/workflows/RELEASE-PROCESS.md) | Release workflow, versioning rules, and changelog generation process.                 |
 | [docs/index.md](docs/index.md)                             | Entry point to the `docs/` documentation set.                                         |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                         | Contribution process, review expectations, testing, and required development practices. |
 
 **Main repository components:**
 

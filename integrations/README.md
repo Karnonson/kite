@@ -124,6 +124,3 @@ Both catalog files follow the same JSON schema:
 | `repository` | string | No | Source repository URL |
 | `tags` | array | No | Searchable tags (e.g., `["cli", "ide"]`) |
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add integrations to the community catalog.
