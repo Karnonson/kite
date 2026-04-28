@@ -11,7 +11,7 @@ coding assistant (Copilot, Claude, or Codex).
 1. **Set up the project (in a terminal, once):**
 
     ```bash
-    uvx --from git+https://github.com/github/spec-kit.git kite init my-app --integration copilot
+    uvx --from git+https://github.com/Karnonson/kite.git kite init my-app --integration copilot
     cd my-app
     ```
 
@@ -62,16 +62,16 @@ controls.
 
 ```bash
 # Create a new project directory
-uvx --from git+https://github.com/github/spec-kit.git kite init <PROJECT_NAME>
+uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
 
 # OR initialize in the current directory
-uvx --from git+https://github.com/github/spec-kit.git kite init .
+uvx --from git+https://github.com/Karnonson/kite.git kite init .
 ```
 
 > [!NOTE]
 > You can also install the CLI persistently with `pipx`:
 > ```bash
-> pipx install git+https://github.com/github/spec-kit.git
+> pipx install git+https://github.com/Karnonson/kite.git
 > ```
 > After installing with `pipx`, run `specify` directly instead of `uvx --from ... specify`, for example:
 > ```bash
@@ -82,8 +82,8 @@ uvx --from git+https://github.com/github/spec-kit.git kite init .
 Pick script type explicitly (optional):
 
 ```bash
-uvx --from git+https://github.com/github/spec-kit.git kite init <PROJECT_NAME> --script ps  # Force PowerShell
-uvx --from git+https://github.com/github/spec-kit.git kite init <PROJECT_NAME> --script sh  # Force POSIX shell
+uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script ps  # Force PowerShell
+uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script sh  # Force POSIX shell
 ```
 
 ### Step 2: Define Your Constitution

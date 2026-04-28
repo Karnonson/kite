@@ -62,14 +62,14 @@ Install once and use everywhere. Pin a specific release tag for stability (check
 
 ```bash
 # Install a specific stable release (recommended — replace vX.Y.Z with the latest tag)
-uv tool install kite-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
 
 # Or install latest from main (may include unreleased changes)
-uv tool install kite-cli --from git+https://github.com/github/spec-kit.git
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
 
 # Alternative: using pipx (also works)
-pipx install git+https://github.com/github/spec-kit.git@vX.Y.Z
-pipx install git+https://github.com/github/spec-kit.git
+pipx install git+https://github.com/Karnonson/kite.git@vX.Y.Z
+pipx install git+https://github.com/Karnonson/kite.git
 ```
 
 Then verify the correct version is installed:
@@ -96,8 +96,8 @@ kite check
 To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
 
 ```bash
-uv tool install kite-cli --force --from git+https://github.com/github/spec-kit.git@vX.Y.Z
-# pipx users: pipx install --force git+https://github.com/github/spec-kit.git@vX.Y.Z
+uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
+# pipx users: pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z
 ```
 
 #### Option 2: One-time Usage
@@ -106,12 +106,12 @@ Run directly without installing:
 
 ```bash
 # Create new project (pinned to a stable release — replace vX.Y.Z with the latest tag)
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init <PROJECT_NAME>
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <PROJECT_NAME>
 
 # Or initialize in existing project
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init . --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init . --integration copilot
 # or
-uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z kite init --here --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here --integration copilot
 ```
 
 **Benefits of persistent installation:**
