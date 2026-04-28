@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/Karnonson/kite/discussions
+    about: Ask questions or share ideas about building with Kite
+  - name: 📖 Documentation
+    url: https://github.com/Karnonson/kite/blob/main/README.md
+    about: Read the Kite documentation and guides
+  - name: 🔒 Security Issues
+    url: https://github.com/Karnonson/kite/blob/main/SECURITY.md
+    about: Report security vulnerabilities privately

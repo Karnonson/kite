@@ -1,0 +1,51 @@
+schema_version: "1.0"
+
+preset:
+  id: "lean"
+  name: "Lean Workflow"
+  version: "1.0.0"
+  description: "Minimal core workflow commands - just the prompt, just the artifact"
+  author: "github"
+  repository: "https://github.com/github/spec-kit"
+  license: "MIT"
+
+requires:
+  kite_version: ">=0.6.0"
+
+provides:
+  templates:
+    - type: "command"
+      name: "kite.specify"
+      file: "commands/kite.specify.md"
+      description: "Lean specify - create spec.md from a feature description"
+      replaces: "kite.specify"
+
+    - type: "command"
+      name: "kite.plan"
+      file: "commands/kite.plan.md"
+      description: "Lean plan - create plan.md from the spec"
+      replaces: "kite.plan"
+
+    - type: "command"
+      name: "kite.tasks"
+      file: "commands/kite.tasks.md"
+      description: "Lean tasks - create tasks.md from plan and spec"
+      replaces: "kite.tasks"
+
+    - type: "command"
+      name: "kite.implement"
+      file: "commands/kite.implement.md"
+      description: "Lean implement - execute tasks from tasks.md"
+      replaces: "kite.implement"
+
+    - type: "command"
+      name: "kite.constitution"
+      file: "commands/kite.constitution.md"
+      description: "Lean constitution - create or update project constitution"
+      replaces: "kite.constitution"
+
+tags:
+  - "lean"
+  - "minimal"
+  - "workflow"
+  - "core"

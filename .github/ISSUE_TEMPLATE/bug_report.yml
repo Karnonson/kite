@@ -1,0 +1,87 @@
+name: Bug Report
+description: Report something that is not working in Kite
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Tell us what you were trying to do and what happened instead.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What were you trying to do?
+      description: Describe the task in plain English.
+      placeholder: I was trying to create a new app with the dev container and Copilot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      description: Include the error message or unexpected behavior.
+      placeholder: Kite stopped at..., or the command printed...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps you took before the problem happened.
+      placeholder: |
+        1. Ran ...
+        2. Opened ...
+        3. Saw ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: setup
+    attributes:
+      label: How did you install or run Kite?
+      options:
+        - Dev container
+        - Direct CLI install with uv
+        - Direct CLI install with pipx
+        - Local checkout
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Kite version
+      description: Run `kite version` if you can.
+      placeholder: "e.g., 0.7.2"
+
+  - type: dropdown
+    id: ai-agent
+    attributes:
+      label: AI assistant
+      options:
+        - GitHub Copilot
+        - Claude Code
+        - Codex CLI
+        - Gemini CLI
+        - Cursor
+        - Other
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output or screenshots
+      description: Paste terminal output, logs, or screenshots that help explain the problem.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Add any detail that might help us understand the issue.

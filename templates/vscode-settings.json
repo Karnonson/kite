@@ -1,0 +1,14 @@
+{
+    "chat.promptFilesRecommendations": {
+        "kite.constitution": true,
+        "kite.specify": true,
+        "kite.plan": true,
+        "kite.tasks": true,
+        "kite.implement": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".kite/scripts/bash/": true,
+        ".kite/scripts/powershell/": true
+    }
+}
+

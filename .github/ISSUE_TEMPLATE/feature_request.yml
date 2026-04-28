@@ -1,0 +1,47 @@
+name: Feature Request
+description: Suggest an improvement to Kite
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. Kite is focused on helping non-technical builders go from idea to working software with AI agents.
+
+  - type: textarea
+    id: builder-problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the user problem, not just the technical change.
+      placeholder: It is hard for a new builder to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-outcome
+    attributes:
+      label: What should Kite help the user do?
+      description: Describe the outcome in plain English.
+      placeholder: Kite should guide the user through...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dev container setup
+        - Kite CLI
+        - AI assistant commands
+        - Documentation
+        - Generated project workflow
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or notes
+      description: Add screenshots, links, examples, or rough ideas.
