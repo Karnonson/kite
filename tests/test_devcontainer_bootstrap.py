@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = REPO_ROOT / "devcontainer-template"
 BOOTSTRAP = REPO_ROOT / "scripts" / "install-devcontainer.sh"
 
-TEMPLATE_FILES = ("devcontainer.json", "post-create.sh", "post-start.sh")
+TEMPLATE_FILES = ("Dockerfile", "devcontainer.json", "post-create.sh", "post-start.sh")
 
 
 pytestmark = pytest.mark.skipif(
@@ -54,8 +54,11 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
 
     data = json5.loads((TEMPLATE_DIR / "devcontainer.json").read_text(encoding="utf-8"))
 
-    assert data["image"].startswith("mcr.microsoft.com/devcontainers/universal")
+    assert data["build"]["dockerfile"] == "Dockerfile"
+    assert data["build"]["context"] == "."
+    assert data["containerUser"] == "codespace"
     assert "ghcr.io/devcontainers/features/docker-in-docker:2" in data["features"]
+    assert "ghcr.io/devcontainers/features/common-utils:2" not in data["features"]
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"
     assert data["postStartCommand"] == "bash .devcontainer/post-start.sh"
     assert data["remoteEnv"]["KITE_DEFAULT_INTEGRATION"] == "copilot"

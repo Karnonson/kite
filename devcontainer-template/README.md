@@ -7,6 +7,7 @@ They are the user-facing dev container template for new Kite projects.
 
 | File                 | Purpose                                                                 |
 | -------------------- | ----------------------------------------------------------------------- |
+| `Dockerfile`         | Thin base-image wrapper that removes the broken Yarn apt source before features install. |
 | `devcontainer.json`  | VS Code dev container definition. Universal image + Docker-in-Docker.  |
 | `post-create.sh`     | Runs once on build: installs pipx + Kite CLI; runs `kite init` if new. |
 | `post-start.sh`      | Runs on every start: marks the workspace as a git safe directory.       |

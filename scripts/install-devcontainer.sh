@@ -19,6 +19,7 @@ set -euo pipefail
 REPO_SLUG="Karnonson/kite"
 DEFAULT_REF="main"
 TEMPLATE_FILES=(
+  "Dockerfile"
   "devcontainer.json"
   "post-create.sh"
   "post-start.sh"

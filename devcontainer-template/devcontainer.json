@@ -2,19 +2,17 @@
 // Docs: docs/devcontainer.md
 {
 	"name": "Kite Workspace",
-	"image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "."
+	},
 	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {
-			"installZsh": true,
-			"upgradePackages": false,
-			"username": "vscode"
-		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
 			"version": "latest",
 			"moby": true
 		}
 	},
-	"containerUser": "vscode",
+	"containerUser": "codespace",
 	"updateRemoteUserUID": true,
 	"remoteEnv": {
 		// Default installs Kite from the upstream repo until kite-cli is published to PyPI.
