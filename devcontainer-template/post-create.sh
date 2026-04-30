@@ -46,6 +46,7 @@ if [[ -d ".kite" ]]; then
 else
   log "Bootstrapping Kite workspace (integration: $KITE_DEFAULT_INTEGRATION)"
   kite init \
+    --here \
     --force \
     --integration "$KITE_DEFAULT_INTEGRATION" \
     --ignore-agent-tools

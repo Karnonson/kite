@@ -1,5 +1,5 @@
 ---
-description: Run the full Kite SDLC end-to-end (discover → specify → design → plan → tasks → backend → frontend → qa) with optional gates between stages.
+description: Run the founder-friendly Kite SDLC end-to-end (constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → qa) with optional gates between stages.
 handoffs:
   - label: Discovery only
     agent: kite.discover
@@ -26,6 +26,7 @@ This command is the **orchestrator entrypoint** for the Kite SDLC. It runs each 
 ## Pre-Execution Checks
 
 **Check for extension hooks (before start)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_start` key.
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally.
@@ -44,7 +45,7 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 2. **One stage at a time.** Run one persona, then stop and either auto-advance (if `auto_approve` is on) or wait for the user to approve.
 3. **Resume-aware.** Always read `.kite/state.yml` first. If a previous run paused mid-flow, offer to resume from that step, not from the top.
 4. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
-5. **Hard gates are non-negotiable.** The contract gate between `kite.backend` and `kite.frontend` is enforced even when `auto_approve` is on.
+5. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
 
 ### Step 1 — Resolve inputs
 
@@ -66,6 +67,7 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 ### Step 2 — Read or create `.kite/state.yml`
 
 1. If `.kite/state.yml` does not exist, create it:
+
    ```yaml
    schema_version: "1.0"
    workflow: kite
@@ -73,6 +75,7 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
    updated_at: "<ISO-8601 timestamp now>"
    artifacts: {}
    ```
+
 2. If it exists and `stage` is not `start`, ask:
    > "I see a previous Kite run paused at stage `<stage>`. Resume from there? [yes]"
    - On "yes": skip past every step whose stage is already complete.
@@ -82,36 +85,40 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 
 Execute these steps in order. Each numbered item is one persona invocation. Between invocations, run the **gate** unless `auto_approve` is true.
 
-1. `kite.discover` — pass the idea as the argument. Wait for it to complete.
-2. **Gate (skippable):** "Discovery looks good — continue to the specification?"
-3. `kite.specify` — pass `persona=<persona>` if non-default.
-4. **Gate (skippable):** "Spec approved — continue to design?"
-5. `kite.design`
-6. **Gate (skippable):** "Design approved — continue to planning?"
-7. `kite.plan`
-8. **Gate (skippable):** "Plan approved — generate the task list?"
-9. `kite.tasks`
-10. `kite.backend` — implement `[backend]`-tagged tasks; produces `contract.md`.
-11. **Contract gate (HARD — never skipped):** verify `specs/<latest>/contract.md` exists and contains no `TODO` or `<placeholder>` markers. If the check fails, **abort** with:
-    > "Backend contract is incomplete. Run `kite.backend` again to finish it before the frontend can build."
-12. `kite.frontend` — implement `[frontend]`-tagged tasks.
-13. `kite.qa` — implement and run `[qa]`-tagged tasks.
+1. `kite.constitution` — use the idea as context to draft practical project principles.
+2. **Gate (skippable):** "Principles look good — continue to discovery?"
+3. `kite.discover` — pass the idea as the argument. Wait for it to complete.
+4. **Gate (skippable):** "Discovery looks good — continue to the specification?"
+5. `kite.specify` — pass the idea as the argument.
+6. **Gate (skippable):** "Spec approved — continue to design?"
+7. `kite.design` — pass `persona=<persona>` if non-default.
+8. **Gate (skippable):** "Design approved — run a final clarification pass?"
+9. `kite.clarify` — pass `persona=<persona>` if non-default.
+10. **Gate (skippable):** "Clarification looks complete — continue to planning?"
+11. `kite.plan` — pass `persona=<persona>` if non-default.
+12. **Gate (skippable):** "Plan approved — generate the task list?"
+13. `kite.tasks` — pass `persona=<persona>` if non-default.
+14. **Gate (skippable):** "Task list approved — start backend implementation?"
+15. `kite.backend` — implement `[backend]`-tagged tasks and produce `contract.md`.
+16. **Contract gate (HARD — never skipped):** verify `specs/<latest>/contract.md` exists and contains no `TODO` or `<placeholder>` markers. If the check fails, **abort** with: "Backend contract is incomplete. Run `kite.backend` again to finish it before the frontend can build."
+17. `kite.frontend` — implement `[frontend]`-tagged tasks against the published contract.
+18. `kite.qa` — implement and run `[qa]`-tagged tasks and append the QA report.
 
 For each persona invocation:
 
-- **Print the stage banner:** "Stage X/13 — <persona name>".
+- **Print the stage banner:** "Stage X/10 — <persona name>".
 - **Invoke the persona command** with the prepared arguments. The persona writes its own files and updates `.kite/state.yml` itself.
 - **After the persona returns**, read its 5-bullet summary back to the user (the persona always prints one).
 - **Run the gate** if `auto_approve` is false. The gate is one yes/no question. On "no" or "reject", abort the run and tell the user which persona to re-run.
 
 ### Step 4 — Hard gates
 
-The contract gate (step 11) is **never** skipped. Algorithm:
+The contract gate (step 16) is **never** skipped. Algorithm:
 
 1. Find `specs/<latest>/`. The latest spec directory is the highest-numbered one (e.g. `specs/003-…/` beats `specs/002-…/`).
 2. Check `<latest>/contract.md` exists. If missing, abort with the message above.
 3. `grep -E 'TODO|<[a-zA-Z][^>]*>' <latest>/contract.md`. If any match, abort.
-4. On pass, print "✅ Contract gate passed — frontend may proceed."
+4. On pass, print "Contract gate passed — frontend may proceed."
 
 If the run is aborted at this gate, leave `.kite/state.yml.stage` set to `backend` so a follow-up `kite.start` can resume.
 
@@ -120,29 +127,30 @@ If the run is aborted at this gate, leave `.kite/state.yml.stage` set to `backen
 After `kite.qa` completes:
 
 1. Update `.kite/state.yml`:
+
    ```yaml
    stage: complete
    updated_at: "<ISO-8601 timestamp now>"
    ```
+
 2. Print a final summary:
-   - One-line verdict from the QA report (✅ / ⚠️ / 🛑).
+   - One-line verdict from the QA report.
    - Number of tasks completed by persona (`backend`, `frontend`, `qa`).
    - Path to the final `tasks.md` and `contract.md`.
-   - One-line "what's next" recommendation:
-     - ✅ → "Ship this loop, or open a new one with `kite.start`."
-     - ⚠️ → "Fix the failing tests with `kite.backend` or `kite.frontend`, then re-run `kite.qa`."
-     - 🛑 → "Investigate the blocker and re-run from the affected persona."
+   - What to do next: ship this loop, re-run the failing layer command, or investigate the blocker and resume from the affected persona.
 
 ### Step 6 — On error / abort
 
 If any persona returns an error, or the user rejects a gate:
 
 1. Update `.kite/state.yml`:
+
    ```yaml
    stage: <name of stage that failed>
    updated_at: "<ISO-8601 timestamp now>"
    error: "<one-line reason>"
    ```
+
 2. Tell the user:
    - Which stage stopped.
    - What the persona reported (one line).

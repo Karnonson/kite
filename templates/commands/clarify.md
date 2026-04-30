@@ -1,12 +1,12 @@
 ---
 description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
-handoffs: 
-  - label: Build Technical Plan
-    agent: kite.plan
-    prompt: Create a plan for the spec. I am building with...
+handoffs:
+ - label: Build Technical Plan
+   agent: kite.plan
+   prompt: Create a plan for the spec and design. Use the kite.research subagent for current official guidance when needed.
 scripts:
-   sh: scripts/bash/check-prerequisites.sh --json --paths-only
-   ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
+ sh: scripts/bash/check-prerequisites.sh --json --paths-only
+ ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
 ---
 
 ## User Input
@@ -20,6 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before clarification)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_clarify` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -29,7 +30,8 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+      ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -39,8 +41,10 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+      ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -49,13 +53,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Outline
 
 Goal: Detect and reduce ambiguity or missing decision points in the active feature specification and record the clarifications directly in the spec file.
 
-Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `__KITE_COMMAND_PLAN__`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
+Note: This clarification workflow is expected to run (and be completed) AFTER `__KITE_COMMAND_DESIGN__` and BEFORE `__KITE_COMMAND_PLAN__`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
 
 Execution steps:
 
@@ -103,7 +108,7 @@ Execution steps:
    - Conflict resolution (e.g., concurrent edits)
 
    Constraints & Tradeoffs:
-   - Technical constraints (language, storage, hosting)
+   - Technical constraints (language, storage, hosting, budget, AI SDK need)
    - Explicit tradeoffs or rejected alternatives
 
    Terminology & Consistency:
@@ -210,7 +215,7 @@ Behavior rules:
 - If no meaningful ambiguities found (or all potential questions would be low-impact), respond: "No critical ambiguities detected worth formal clarification." and suggest proceeding.
 - If spec file missing, instruct user to run `__KITE_COMMAND_SPECIFY__` first (do not create a new spec here).
 - Never exceed 5 total asked questions (clarification retries for a single question do not count as new questions).
-- Avoid speculative tech stack questions unless the absence blocks functional clarity.
+- Avoid low-level implementation-version questions, but do ask about planning-critical constraints when their absence would cause rework: hosting target, budget posture, regulated environments, or whether the product needs an AI SDK / agent framework.
 - Respect user early termination signals ("stop", "done", "proceed").
 - If no questions asked due to full coverage, output a compact coverage summary (all categories Clear) then suggest advancing.
 - If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.
@@ -220,7 +225,8 @@ Context for prioritization: {ARGS}
 ## Post-Execution Checks
 
 **Check for extension hooks (after clarification)**:
-Check if `.kite/extensions.yml` exists in the project root.
+
+- Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.after_clarify` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
 - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
@@ -229,7 +235,8 @@ Check if `.kite/extensions.yml` exists in the project root.
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+      ```text
     ## Extension Hooks
 
     **Optional Hook**: {extension}
@@ -239,12 +246,15 @@ Check if `.kite/extensions.yml` exists in the project root.
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+      ```text
     ## Extension Hooks
 
     **Automatic Hook**: {extension}
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently

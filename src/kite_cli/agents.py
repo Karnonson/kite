@@ -289,7 +289,7 @@ class CommandRegistrar:
             )
 
         description = frontmatter.get(
-            "description", f"Spec-kit workflow command: {skill_name}"
+            "description", f"Kite workflow command: {skill_name}"
         )
         skill_frontmatter = self.build_skill_frontmatter(
             agent_name,
@@ -310,9 +310,9 @@ class CommandRegistrar:
         skill_frontmatter = {
             "name": skill_name,
             "description": description,
-            "compatibility": "Requires spec-kit project structure with .kite/ directory",
+            "compatibility": "Requires Kite project structure with .kite/ directory",
             "metadata": {
-                "author": "github-spec-kit",
+                "author": "kite-core",
                 "source": source,
             },
         }

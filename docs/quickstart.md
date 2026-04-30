@@ -34,9 +34,9 @@ coding assistant (Copilot, Claude, or Codex).
     /kite.start "Build a tool that does <one sentence about your idea>."
     ```
 
-    Kite will walk you through one stage at a time — Discover → Specify →
-    Design → Plan → Tasks → Backend → Contract check → Frontend → QA —
-    and ask "approve and continue?" between each stage. You only ever
+    Kite will walk you through one stage at a time — Constitution →
+    Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA — and ask
+    "approve and continue?" between each stage. You only ever
     answer plain-English yes/no questions.
 
 3. **If anything pauses or breaks, run** `kite resume` (in the terminal)
@@ -61,7 +61,7 @@ controls.
 
 ---
 
-## The 6-Step Process
+## Manual Process
 
 > [!TIP]
 > **Context Awareness**: Kite commands automatically detect the active feature based on your current Git branch (e.g., `001-feature-name`). To switch between different specifications, simply switch Git branches.
@@ -126,7 +126,15 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --
 /kite.specify Build an application that can help me organize my photos in separate photo albums. Albums are grouped by date and can be re-organized by dragging and dropping on the main page. Albums are never in other nested albums. Within each album, photos are previewed in a tile-like interface.
 ```
 
-### Step 4: Refine the Spec
+### Step 4: Create the Design Brief
+
+**In the chat**, use the `/kite.design` slash command to define the product's screens, interaction shape, and design direction before planning.
+
+```bash
+/kite.design persona=founder
+```
+
+### Step 5: Refine the Spec After Design
 
 **In the chat**, use the `/kite.clarify` slash command to identify and resolve ambiguities in your specification. You can provide specific focus areas as arguments.
 
@@ -134,15 +142,15 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --
 /kite.clarify Focus on security and performance requirements.
 ```
 
-### Step 5: Create a Technical Implementation Plan
+### Step 6: Create a Technical Implementation Plan
 
-**In the chat**, use the `/kite.plan` slash command to provide your tech stack and architecture choices.
+**In the chat**, use the `/kite.plan` slash command to provide your tech stack and architecture choices. The planning agent should use the `kite.research` subagent internally when it needs current official framework versions, hosting guidance, or AI SDK capability checks.
 
 ```markdown
 /kite.plan The application uses Vite with minimal number of libraries. Use vanilla HTML, CSS, and JavaScript as much as possible. Images are not uploaded anywhere and metadata is stored in a local SQLite database.
 ```
 
-### Step 6: Break Down and Implement
+### Step 7: Break Down and Implement
 
 **In the chat**, use the `/kite.tasks` slash command to create an actionable task list.
 
@@ -156,10 +164,12 @@ Optionally, validate the plan with `/kite.analyze`:
 /kite.analyze
 ```
 
-Then, use the `/kite.implement` slash command to execute the plan.
+Then, run the split implementation commands in order.
 
 ```markdown
-/kite.implement
+/kite.backend
+/kite.frontend
+/kite.qa
 ```
 
 > [!TIP]
@@ -238,7 +248,9 @@ Have your coding agent audit the implementation plan using `/kite.analyze`:
 Finally, implement the solution:
 
 ```bash
-/kite.implement
+/kite.backend
+/kite.frontend
+/kite.qa
 ```
 
 > [!TIP]

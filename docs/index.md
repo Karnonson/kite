@@ -2,11 +2,11 @@
 
 *Build software with AI agents, even if you are not a developer.*
 
-Kite helps non-technical builders turn an idea into working software by guiding an AI coding agent through discovery, design, backend, frontend, and QA steps.
+Kite helps non-technical builders turn an idea into working software by guiding an AI coding agent through constitution, discovery, design, planning, task generation, and implementation in plain English.
 
 ## What is Spec-Driven Development?
 
-Spec-Driven Development **flips the script** on traditional software development. For decades, code has been king — specifications were just scaffolding we built and discarded once the "real work" of coding began. Spec-Driven Development changes this: **specifications become executable**, directly generating working implementations rather than just guiding them.
+Kite uses Spec-Driven Development as its operating model, but packages it as a guided workflow for builders who want a clear loop instead of tooling ceremony. The spec is an active asset that drives design, planning, tasks, and implementation.
 
 ## Getting Started
 
@@ -17,7 +17,7 @@ Spec-Driven Development **flips the script** on traditional software development
 
 ## Core Philosophy
 
-Spec-Driven Development is a structured process that emphasizes:
+Kite's workflow emphasizes:
 
 - **Intent-driven development** where specifications define the "*what*" before the "*how*"
 - **Rich specification creation** using guardrails and organizational principles
@@ -34,4 +34,4 @@ Spec-Driven Development is a structured process that emphasizes:
 
 ## Support
 
-For support, please check our [Support Guide](https://github.com/Karnonson/kite/blob/main/SUPPORT.md) or open an issue on GitHub.
+For support, please check our [Support Guide](../SUPPORT.md) or open an issue on GitHub.

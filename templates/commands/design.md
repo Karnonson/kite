@@ -1,9 +1,9 @@
 ---
 description: Produce a plain-English design system + page layout brief from the discovery and specification. Text-only — no images, no code.
 handoffs:
-  - label: Plan the Build
-    agent: kite.plan
-    prompt: Use the design brief to write the implementation plan.
+  - label: Clarify Before Planning
+    agent: kite.clarify
+    prompt: Run a final clarification pass before we start the technical plan.
     send: true
   - label: Refine Design
     agent: kite.design
@@ -54,7 +54,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 
 ## Outline
 
-This command runs **after** `kite.specify` and **before** `kite.plan`. It is optimised for non-technical users — keep all language plain.
+This command runs **after** `kite.specify` and **before** the pre-plan clarification and research steps. It is optimised for non-technical users — keep all language plain.
 
 ### Hard rules for this command
 
@@ -202,7 +202,7 @@ The next command, `kite.plan`, will turn this design and the spec into an implem
 
 - The "What this means in plain English" section is **mandatory** and must come first.
 - The Components inventory must contain **at least 3** items (Button, Text input, plus one more) — anything less means the design is too thin.
-- Do not include any tech-stack discussion (React vs Vue, Tailwind vs CSS modules). That belongs to `kite.plan`.
+- Do not include any tech-stack discussion (React vs Vue, Tailwind vs CSS modules). That belongs to `kite.plan`, which can use the `kite.research` subagent when it needs current technical guidance.
 - Do not include accessibility code. State the **goals** in plain English under section 1.5 if relevant ("everything must be reachable by keyboard", "color is never the only signal").
 
 ### Step 5 — Update state and present a summary
@@ -220,11 +220,11 @@ The next command, `kite.plan`, will turn this design and the spec into an implem
    - Number of pages identified
    - Navigation model
    - Number of open questions parked for `kite.plan`
-3. Ask: "Ready to plan the build? Approve to continue with `kite.plan`, or tell me what to change in the design."
+3. Ask: "Ready for a clarification pass before planning? Approve to continue with `kite.clarify`, or tell me what to change in the design."
 
 ### Step 6 — Handoff
 
-If the user approves, recommend running `kite.plan`. Do not run it for them — the orchestrator (`kite.start`) handles that.
+If the user approves, recommend running `kite.clarify`. Do not run it for them — the orchestrator (`kite.start`) handles that.
 
 ---
 

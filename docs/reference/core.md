@@ -1,6 +1,6 @@
 # Core Commands
 
-The core `specify` commands handle project initialization, system checks, and version information.
+The core `kite` commands handle project initialization, system checks, and version information.
 
 ## Initialize a Project
 
@@ -59,7 +59,7 @@ Checks that required tools are available on your system: `git` and any CLI-based
 ## Version Information
 
 ```bash
-specify version
+kite version
 ```
 
 Displays the Kite CLI version, Python version, platform, and architecture.
@@ -67,6 +67,6 @@ Displays the Kite CLI version, Python version, platform, and architecture.
 A quick version check is also available via:
 
 ```bash
-specify --version
-specify -V
+kite --version
+kite -V
 ```

@@ -5,8 +5,8 @@ preset:
   name: "Lean Workflow"
   version: "1.0.0"
   description: "Minimal core workflow commands - just the prompt, just the artifact"
-  author: "github"
-  repository: "https://github.com/github/spec-kit"
+  author: "Kite"
+  repository: "https://github.com/Karnonson/kite"
   license: "MIT"
 
 requires:

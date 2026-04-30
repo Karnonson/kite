@@ -44,25 +44,24 @@ class TestDoctor:
         (spec / "spec.md").write_text("# Spec\n")
         (spec / "design.md").write_text("# Design\n")
         (spec / "plan.md").write_text("# Plan\n")
-        (spec / "tasks.md").write_text("# Tasks\n")
-        (spec / "contract.md").write_text("# Contract\n\n## GET /api/items\n\nReturns items.\n")
+        (spec / "tasks.md").write_text("# Tasks\n\n- [x] Ship the first loop\n")
         monkeypatch.chdir(proj)
         result = runner.invoke(app, ["doctor"])
         assert result.exit_code == 0, result.stdout
         assert "all good" in result.stdout.lower()
 
-    def test_flags_todo_in_contract(self, tmp_path, monkeypatch):
+    def test_flags_open_tasks_as_next_step(self, tmp_path, monkeypatch):
         proj = _make_kite_project(tmp_path)
         (proj / "kite.config.yml").write_text("persona: founder\n")
         spec = proj / "specs" / "001-demo"
         spec.mkdir(parents=True)
         for f in ("spec.md", "design.md", "plan.md", "tasks.md", "discovery.md"):
             (spec / f).write_text(f"# {f}\n")
-        (spec / "contract.md").write_text("# Contract\n\nTODO finish me\n")
+        (spec / "tasks.md").write_text("# Tasks\n\n- [ ] Build the feature\n")
         monkeypatch.chdir(proj)
         result = runner.invoke(app, ["doctor"])
-        assert result.exit_code != 0
-        assert "todo" in result.stdout.lower()
+        assert result.exit_code == 0
+        assert "implement" in result.stdout.lower()
 
 
 class TestResume:

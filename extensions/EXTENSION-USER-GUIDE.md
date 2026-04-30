@@ -160,7 +160,7 @@ This will:
 
 ```bash
 # From GitHub release
-kite extension add <extension-name> --from https://github.com/org/spec-kit-ext/archive/refs/tags/v1.0.0.zip
+kite extension add <extension-name> --from https://github.com/org/kite-ext/archive/refs/tags/v1.0.0.zip
 ```
 
 ### Install from Local Directory (Development)
@@ -495,13 +495,13 @@ kite extension catalog add \
   --name "internal" \
   --priority 2 \
   --install-allowed \
-  https://internal.company.com/spec-kit/catalog.json
+  https://internal.company.com/kite/catalog.json
 
 # Add a discovery-only catalog
 kite extension catalog add \
   --name "partner" \
   --priority 5 \
-  https://partner.example.com/spec-kit/catalog.json
+  https://partner.example.com/kite/catalog.json
 ```
 
 This creates or updates `.kite/extension-catalogs.yml`.
@@ -525,7 +525,7 @@ catalogs:
     description: "Built-in catalog of installable extensions"
 
   - name: "internal"
-    url: "https://internal.company.com/spec-kit/catalog.json"
+    url: "https://internal.company.com/kite/catalog.json"
     priority: 2
     install_allowed: true
     description: "Internal company extensions"
@@ -560,7 +560,7 @@ Create a `catalog.json` file with your extensions:
 {
   "schema_version": "1.0",
   "updated_at": "2026-02-03T00:00:00Z",
-  "catalog_url": "https://your-org.com/spec-kit/catalog.json",
+  "catalog_url": "https://your-org.com/kite/catalog.json",
   "extensions": {
     "jira": {
       "name": "Jira Integration",
@@ -613,7 +613,7 @@ Options for hosting your catalog:
 | Method | URL Example | Use Case |
 | ------ | ----------- | -------- |
 | GitHub Pages | `https://your-org.github.io/spec-kit-catalog/catalog.json` | Public or org-visible |
-| Internal web server | `https://internal.company.com/spec-kit/catalog.json` | Corporate network |
+| Internal web server | `https://internal.company.com/kite/catalog.json` | Corporate network |
 | S3/Cloud storage | `https://s3.amazonaws.com/your-bucket/catalog.json` | Cloud-hosted teams |
 | Local file server | `http://localhost:8000/catalog.json` | Development/testing |
 
@@ -628,7 +628,7 @@ Add to `.kite/extension-catalogs.yml` in your project:
 ```yaml
 catalogs:
   - name: "my-org"
-    url: "https://your-org.com/spec-kit/catalog.json"
+    url: "https://your-org.com/kite/catalog.json"
     priority: 1
     install_allowed: true
 ```
@@ -639,14 +639,14 @@ Or use the CLI:
 kite extension catalog add \
   --name "my-org" \
   --install-allowed \
-  https://your-org.com/spec-kit/catalog.json
+  https://your-org.com/kite/catalog.json
 ```
 
 ##### Option B: Environment variable (recommended for CI/CD, single-catalog)
 
 ```bash
 # In ~/.bashrc, ~/.zshrc, or CI pipeline
-export KITE_CATALOG_URL="https://your-org.com/spec-kit/catalog.json"
+export KITE_CATALOG_URL="https://your-org.com/kite/catalog.json"
 ```
 
 #### 4. Verify Configuration
@@ -754,7 +754,7 @@ You can still install extensions not in your catalog using `--from`:
 kite extension add jira
 
 # Direct URL (bypasses catalog)
-kite extension add <extension-name> --from https://github.com/someone/spec-kit-ext/archive/v1.0.0.zip
+kite extension add <extension-name> --from https://github.com/someone/kite-ext/archive/v1.0.0.zip
 
 # Local development
 kite extension add --dev /path/to/extension
@@ -811,15 +811,11 @@ kite extension add --dev /path/to/extension
 
 ### Incompatible Version
 
-**Error**: `Extension requires spec-kit >=0.2.0, but you have 0.1.0`
+**Error**: `Extension requires Kite >=0.2.0, but you have 0.1.0`
 
 **Solutions**:
 
-1. Upgrade spec-kit:
-
-   ```bash
-   uv tool upgrade specify-cli
-   ```
+1. Upgrade Kite with `uv tool upgrade kite-cli`.
 
 2. Install older version of extension:
 

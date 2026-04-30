@@ -91,7 +91,7 @@ provides:
 
 ### Submitting to the Community Catalog
 
-1. **Fork** the [spec-kit repository](https://github.com/Karnonson/kite)
+1. **Fork** the [Kite repository](https://github.com/Karnonson/kite)
 2. **Add your entry** under the `integrations` key in `integrations/catalog.community.json`:
 
 ```json
@@ -111,7 +111,7 @@ provides:
 }
 ```
 
-3. **Open a pull request** with:
+1. **Open a pull request** with:
    - Your catalog entry
    - Link to your integration repository
    - Confirmation that `integration.yml` is valid

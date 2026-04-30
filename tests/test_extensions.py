@@ -718,7 +718,7 @@ class TestExtensionManager:
         manifest = ExtensionManifest(extension_dir / "extension.yml")
 
         # Requires >=0.1.0, but we have 0.0.1
-        with pytest.raises(CompatibilityError, match="Extension requires spec-kit"):
+        with pytest.raises(CompatibilityError, match="Extension requires Kite"):
             manager.check_compatibility(manifest, "0.0.1")
 
     def test_install_from_directory(self, extension_dir, project_dir):

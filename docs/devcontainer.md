@@ -75,7 +75,9 @@ In your AI coding assistant, use the Kite commands:
 /kite.specify "Add appointment reminders by email."
 /kite.plan
 /kite.tasks
-/kite.implement
+/kite.backend
+/kite.frontend
+/kite.qa
 ```
 
 For most new projects, start with `/kite.start` and let Kite walk you

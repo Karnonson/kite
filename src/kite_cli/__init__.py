@@ -12,7 +12,7 @@
 # ]
 # ///
 """
-Kite CLI - Setup tool for Specify projects
+Kite CLI - Setup tool for Kite projects
 
 Usage:
     uvx kite-cli.py init <project-name>
@@ -137,15 +137,30 @@ CLAUDE_LOCAL_PATH = Path.home() / ".claude" / "local" / "claude"
 CLAUDE_NPM_LOCAL_PATH = Path.home() / ".claude" / "local" / "node_modules" / ".bin" / "claude"
 
 BANNER = """
-███████╗██████╗ ███████╗ ██████╗██╗███████╗██╗   ██╗
-██╔════╝██╔══██╗██╔════╝██╔════╝██║██╔════╝╚██╗ ██╔╝
-███████╗██████╔╝█████╗  ██║     ██║█████╗   ╚████╔╝
-╚════██║██╔═══╝ ██╔══╝  ██║     ██║██╔══╝    ╚██╔╝
-███████║██║     ███████╗╚██████╗██║██║        ██║
-╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝
+██╗  ██╗██╗████████╗███████╗
+██║ ██╔╝██║╚══██╔══╝██╔════╝
+█████╔╝ ██║   ██║   █████╗
+██╔═██╗ ██║   ██║   ██╔══╝
+██║  ██╗██║   ██║   ███████╗
+╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝
 """
 
 TAGLINE = "Kite - Spec-Driven Development Toolkit"
+
+DEFAULT_PROJECT_GITIGNORE = """# Local environment
+.env
+.env.local
+.venv/
+venv/
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Kite local-only config
+.kite/extensions/*/local-config.yml
+"""
 class StepTracker:
     """Track and render hierarchical steps without emojis, similar to Claude Code tree output.
     Supports live auto-refresh via an attached refresh callback.
@@ -339,7 +354,7 @@ class BannerGroup(TyperGroup):
 
 app = typer.Typer(
     name="kite",
-    help="Setup tool for Specify spec-driven development projects",
+    help="Setup tool for Kite spec-driven development projects",
     add_completion=False,
     invoke_without_command=True,
     cls=BannerGroup,
@@ -459,9 +474,31 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> tuple[bool, Option
         os.chdir(project_path)
         if not quiet:
             console.print("[cyan]Initializing git repository...[/cyan]")
-        subprocess.run(["git", "init"], check=True, capture_output=True, text=True)
+        try:
+            subprocess.run(
+                ["git", "init", "-b", "main"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as init_error:
+            init_output = f"{init_error.stderr or ''}\n{init_error.stdout or ''}".lower()
+            unsupported_init_flag = (
+                "unknown option" in init_output
+                or "unknown switch" in init_output
+                or "usage: git init" in init_output
+            )
+            if not unsupported_init_flag:
+                raise
+            subprocess.run(["git", "init"], check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "symbolic-ref", "HEAD", "refs/heads/main"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
         subprocess.run(["git", "add", "."], check=True, capture_output=True, text=True)
-        subprocess.run(["git", "commit", "-m", "Initial commit from Specify template"], check=True, capture_output=True, text=True)
+        subprocess.run(["git", "commit", "-m", "Initial commit from Kite template"], check=True, capture_output=True, text=True)
         if not quiet:
             console.print("[green]✓[/green] Git repository initialized")
         return True, None
@@ -807,9 +844,8 @@ def _install_shared_infra(
         for f in skipped_files:
             console.print(f"    {f}")
         console.print(
-            "To refresh shared infrastructure, run "
-            "[cyan]kite init --here --force[/cyan] or "
-            "[cyan]kite integration upgrade --force[/cyan]."
+            "To refresh shared infrastructure, run kite init --here --force or "
+            "kite integration upgrade --force."
         )
 
     manifest.save()
@@ -917,6 +953,14 @@ def save_init_options(project_path: Path, options: dict[str, Any]) -> None:
     dest = project_path / INIT_OPTIONS_FILE
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(options, indent=2, sort_keys=True))
+
+
+def ensure_project_gitignore(project_path: Path) -> None:
+    """Create a minimal project .gitignore when one does not already exist."""
+    gitignore_path = project_path / ".gitignore"
+    if gitignore_path.exists():
+        return
+    gitignore_path.write_text(DEFAULT_PROJECT_GITIGNORE, encoding="utf-8")
 
 
 def load_init_options(project_path: Path) -> dict[str, Any]:
@@ -1199,7 +1243,7 @@ def init(
     current_dir = Path.cwd()
 
     setup_lines = [
-        "[cyan]Specify Project Setup[/cyan]",
+        "[cyan]Kite Project Setup[/cyan]",
         "",
         f"{'Project':<15} [green]{project_path.name}[/green]",
         f"{'Working Path':<15} [dim]{current_dir}[/dim]",
@@ -1250,7 +1294,7 @@ def init(
     console.print(f"[cyan]Selected coding agent integration:[/cyan] {selected_ai}")
     console.print(f"[cyan]Selected script type:[/cyan] {selected_script}")
 
-    tracker = StepTracker("Initialize Specify Project")
+    tracker = StepTracker("Initialize Kite Project")
 
     sys._specify_tracker_active = True
 
@@ -1322,6 +1366,7 @@ def init(
             tracker.complete("shared-infra", f"scripts ({selected_script}) + templates")
 
             ensure_constitution_from_template(project_path, tracker=tracker)
+            ensure_project_gitignore(project_path)
 
             if not no_git:
                 tracker.start("git")
@@ -1588,16 +1633,17 @@ def init(
 
     steps_lines.append(f"{step_num}. Start using {usage_label} with your coding agent:")
 
-    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Discover → Specify → Design → Plan → Tasks → Backend → Frontend → QA")
+    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA")
     steps_lines.append("")
     steps_lines.append("   Or run each persona stage manually:")
     steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
     steps_lines.append(f"   {step_num}.3 [cyan]{_display_cmd('discover')}[/] - Turn an idea into a discovery brief")
     steps_lines.append(f"   {step_num}.4 [cyan]{_display_cmd('specify')}[/] - Create baseline specification")
     steps_lines.append(f"   {step_num}.5 [cyan]{_display_cmd('design')}[/] - Define design system + page layouts")
-    steps_lines.append(f"   {step_num}.6 [cyan]{_display_cmd('plan')}[/] - Create implementation plan")
-    steps_lines.append(f"   {step_num}.7 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks (tagged backend/frontend/qa)")
-    steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement each layer")
+    steps_lines.append(f"   {step_num}.6 [cyan]{_display_cmd('clarify')}[/] - Resolve missing decisions before planning")
+    steps_lines.append(f"   {step_num}.7 [cyan]{_display_cmd('plan')}[/] - Create implementation plan")
+    steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks for implementation")
+    steps_lines.append(f"   {step_num}.9 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement and verify each layer")
     steps_lines.append("")
     steps_lines.append("   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
     steps_lines.append("")
@@ -5418,7 +5464,7 @@ def doctor():
     """Plain-language health check for a Kite project.
 
     Scans the project for missing or incomplete artifacts (spec, design,
-    plan, tasks, contract) and tells you exactly which command to run
+    plan, tasks) and tells you exactly which command to run
     next. Designed for founders and junior engineers — no jargon.
     """
     project_root = Path.cwd()
@@ -5477,22 +5523,14 @@ def doctor():
             else:
                 console.print(f"[green]✓[/green] {label} present.")
 
-        # Contract gate (hard rule for frontend handoff)
-        contract = latest / "contract.md"
-        if not contract.exists():
-            issues.append(("warn", "Missing [cyan]contract.md[/cyan] — frontend cannot start without it."))
-            suggestions.append("Run [cyan]/kite.backend[/cyan] until it produces a contract.")
-        else:
-            text = contract.read_text(encoding="utf-8", errors="replace")
-            import re as _re
-            if "TODO" in text:
-                issues.append(("error", "[cyan]contract.md[/cyan] still contains [red]TODO[/red] markers."))
-                suggestions.append("Re-run [cyan]/kite.backend[/cyan] to finish the contract.")
-            elif _re.search(r"<[a-zA-Z][^>]*>", text):
-                issues.append(("warn", "[cyan]contract.md[/cyan] has angle-bracket placeholders."))
-                suggestions.append("Fill in the placeholders (re-run [cyan]/kite.backend[/cyan]).")
+        tasks_path = latest / "tasks.md"
+        if tasks_path.exists():
+            tasks_text = tasks_path.read_text(encoding="utf-8", errors="replace")
+            if "- [ ]" in tasks_text:
+                issues.append(("warn", "Open items remain in [cyan]tasks.md[/cyan] — implementation is not finished."))
+                suggestions.append("Run [cyan]/kite.start[/cyan] to resume, or run the next layer command: [cyan]/kite.backend[/cyan], [cyan]/kite.frontend[/cyan], then [cyan]/kite.qa[/cyan].")
             else:
-                console.print("[green]✓[/green] Backend contract complete.")
+                console.print("[green]✓[/green] Task list has no open checklist items.")
 
     # Summary
     console.print()

@@ -10,7 +10,7 @@ Kite provides two catalog files with different purposes:
 
 - **Purpose**: Default upstream catalog of extensions used by the Kite CLI
 - **Default State**: Empty by design in the upstream project - you or your organization populate a fork/copy with extensions you trust
-- **Location (upstream)**: `extensions/catalog.json` in the GitHub-hosted spec-kit repo
+- **Location (upstream)**: `extensions/catalog.json` in the Kite repository
 - **CLI Default**: The `kite extension` commands use the upstream catalog URL by default, unless overridden
 - **Org Catalog**: Point `KITE_CATALOG_URL` at your organization's fork or hosted catalog JSON to use it instead of the upstream default
 - **Customization**: Copy entries from the community catalog into your org catalog, or add your own extensions directly
@@ -18,7 +18,7 @@ Kite provides two catalog files with different purposes:
 **Example override:**
 ```bash
 # Override the default upstream catalog with your organization's catalog
-export KITE_CATALOG_URL="https://your-org.com/spec-kit/catalog.json"
+export KITE_CATALOG_URL="https://your-org.com/kite/catalog.json"
 kite extension search  # Now uses your organization's catalog instead of the upstream default
 ```
 
@@ -62,7 +62,7 @@ Populate your `catalog.json` with approved extensions:
 Skip catalog curation - team members install directly using URLs:
 
 ```bash
-kite extension add <extension-name> --from https://github.com/org/spec-kit-ext/archive/refs/tags/v1.0.0.zip
+kite extension add <extension-name> --from https://github.com/org/kite-ext/archive/refs/tags/v1.0.0.zip
 ```
 
 **Benefits**: Quick for one-off testing or private extensions

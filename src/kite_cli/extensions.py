@@ -2,7 +2,7 @@
 Extension Manager for Kite
 
 Handles installation, removal, and management of Kite extensions.
-Extensions are modular packages that add commands and functionality to spec-kit
+Extensions are modular packages that add commands and functionality to Kite
 without bloating the core framework.
 """
 
@@ -1100,9 +1100,9 @@ class ExtensionManager:
             specifier = SpecifierSet(required)
             if current not in specifier:
                 raise CompatibilityError(
-                    f"Extension requires spec-kit {required}, "
+                    f"Extension requires Kite {required}, "
                     f"but {kite_version} is installed.\n"
-                    f"Upgrade spec-kit with: uv tool install specify-cli --force"
+                    f"Upgrade Kite with: uv tool install kite-cli --force"
                 )
         except InvalidSpecifier:
             raise CompatibilityError(f"Invalid version specifier: {required}")

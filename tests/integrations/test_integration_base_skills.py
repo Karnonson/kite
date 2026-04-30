@@ -101,7 +101,7 @@ class SkillsIntegrationTests:
 
         expected_commands = {
             "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
-            "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
+            "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
         }
 
         # Derive command names from the skill directory names
@@ -129,7 +129,7 @@ class SkillsIntegrationTests:
             assert "description" in fm, f"{f} frontmatter missing 'description'"
             assert "compatibility" in fm, f"{f} frontmatter missing 'compatibility'"
             assert "metadata" in fm, f"{f} frontmatter missing 'metadata'"
-            assert fm["metadata"]["author"] == "github-spec-kit"
+            assert fm["metadata"]["author"] == "kite-core"
             assert "source" in fm["metadata"]
 
     def test_skill_uses_template_descriptions(self, tmp_path):
@@ -360,7 +360,7 @@ class SkillsIntegrationTests:
 
     _SKILL_COMMANDS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
-        "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
+        "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -379,6 +379,7 @@ class SkillsIntegrationTests:
             f".kite/integrations/{self.KEY}.manifest.json",
             ".kite/integrations/kite.manifest.json",
             ".kite/memory/constitution.md",
+            ".gitignore",
             "kite.config.yml",
         ]
         # Script variant

@@ -177,7 +177,7 @@ Repeat steps while a condition is truthy:
   max_iterations: 5
   steps:
     - id: fix
-      command: kite.implement
+      command: kite.qa
 ```
 
 ### Do-While Loop Steps
@@ -205,7 +205,7 @@ Dispatch a step template for each item in a collection (sequential):
   max_concurrency: 3
   step:
     id: impl
-    command: kite.implement
+    command: kite.backend
 ```
 
 ### Fan-In Steps

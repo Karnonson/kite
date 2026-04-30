@@ -1,6 +1,6 @@
 # Workflows
 
-Workflows automate multi-step Spec-Driven Development processes — chaining commands, prompts, shell steps, and human checkpoints into repeatable sequences. They support conditional logic, loops, fan-out/fan-in, and can be paused and resumed from the exact point of interruption.
+Workflows automate multi-step Kite processes by chaining commands, shell steps, and human checkpoints into repeatable sequences. The built-in founder workflow keeps the plain-English path intact while still splitting implementation into backend, frontend, and QA stages.
 
 ## Run a Workflow
 
@@ -8,19 +8,19 @@ Workflows automate multi-step Spec-Driven Development processes — chaining com
 kite workflow run <source>
 ```
 
-| Option              | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| `-i` / `--input`    | Pass input values as `key=value` (repeatable)            |
+| Option | Description |
+| --- | --- |
+| `-i` / `--input` | Pass input values as `key=value` (repeatable) |
 
-Runs a workflow from a catalog ID, URL, or local file path. Inputs declared by the workflow can be provided via `--input` or will be prompted interactively.
+Runs a workflow from a catalog ID, URL, or local file path. Inputs declared by the workflow can be provided via `--input` or prompted interactively.
 
 Example:
 
 ```bash
-kite workflow run kite -i spec="Build a kanban board with drag-and-drop task management" -i scope=full
+kite workflow run kite -i idea="Build a kanban board with drag-and-drop task management"
 ```
 
-> **Note:** All workflow commands require a project already initialized with `kite init`.
+> **Note:** Workflow commands require a project already initialized with `kite init`.
 
 ## Resume a Workflow
 
@@ -28,7 +28,7 @@ kite workflow run kite -i spec="Build a kanban board with drag-and-drop task man
 kite workflow resume <run_id>
 ```
 
-Resumes a paused or failed workflow run from the exact step where it stopped. Useful after responding to a gate step or fixing an issue that caused a failure.
+Resumes a paused or failed workflow run from the exact step where it stopped.
 
 ## Workflow Status
 
@@ -52,7 +52,7 @@ Lists workflows installed in the current project.
 kite workflow add <source>
 ```
 
-Installs a workflow from the catalog, a URL (HTTPS required), or a local file path.
+Installs a workflow from the catalog, a URL, or a local file path.
 
 ## Remove a Workflow
 
@@ -68,11 +68,11 @@ Removes an installed workflow from the project.
 kite workflow search [query]
 ```
 
-| Option  | Description     |
-| ------- | --------------- |
-| `--tag` | Filter by tag   |
+| Option | Description |
+| --- | --- |
+| `--tag` | Filter by tag |
 
-Searches all active catalogs for workflows matching the query.
+Searches all configured workflow catalogs.
 
 ## Workflow Info
 
@@ -92,19 +92,15 @@ Workflow catalogs control where `search` and `add` look for workflows. Catalogs 
 kite workflow catalog list
 ```
 
-Shows all active catalog sources.
-
 ### Add a Catalog
 
 ```bash
 kite workflow catalog add <url>
 ```
 
-| Option          | Description                      |
-| --------------- | -------------------------------- |
-| `--name <name>` | Optional name for the catalog    |
-
-Adds a custom catalog URL to the project's `.kite/workflow-catalogs.yml`.
+| Option | Description |
+| --- | --- |
+| `--name <name>` | Optional name for the catalog |
 
 ### Remove a Catalog
 
@@ -112,139 +108,114 @@ Adds a custom catalog URL to the project's `.kite/workflow-catalogs.yml`.
 kite workflow catalog remove <index>
 ```
 
-Removes a catalog by its index in the catalog list.
-
 ### Catalog Resolution Order
 
-Catalogs are resolved in this order (first match wins):
-
-1. **Environment variable** — `KITE_WORKFLOW_CATALOG_URL` overrides all catalogs
-2. **Project config** — `.kite/workflow-catalogs.yml`
-3. **User config** — `~/.kite/workflow-catalogs.yml`
-4. **Built-in defaults** — official catalog + community catalog
+1. **Environment variable**: `KITE_WORKFLOW_CATALOG_URL` overrides all catalogs
+2. **Project config**: `.kite/workflow-catalogs.yml`
+3. **User config**: `~/.kite/workflow-catalogs.yml`
+4. **Built-in defaults**: official catalog + community catalog
 
 ## Workflow Definition
 
-Workflows are defined in YAML files. Here is the built-in **Full SDD Cycle** workflow that ships with Kite:
+Here is the shape of the built-in **Kite Full SDLC** workflow:
 
 ```yaml
 schema_version: "1.0"
 workflow:
   id: "kite"
-  name: "Full SDD Cycle"
-  version: "1.0.0"
-  author: "GitHub"
-  description: "Runs specify → plan → tasks → implement with review gates"
+  name: "Kite Full SDLC"
+  version: "0.5.0"
+  author: "Kite"
+  description: "Founder-friendly guided SDLC: constitution -> discover -> specify -> design -> clarify -> plan -> tasks -> backend -> frontend -> qa."
 
 requires:
   kite_version: ">=0.7.2"
   integrations:
-    any: ["copilot", "claude", "gemini"]
+    any: ["copilot", "claude", "codex"]
 
 inputs:
-  spec:
+  idea:
     type: string
     required: true
-    prompt: "Describe what you want to build"
+    prompt: "What do you want to build? (one line is enough)"
   integration:
     type: string
     default: "copilot"
-    prompt: "Integration to use (e.g. claude, copilot, gemini)"
-  scope:
+  persona:
     type: string
-    default: "full"
-    enum: ["full", "backend-only", "frontend-only"]
+    default: "founder"
+    enum: ["founder", "junior"]
+  auto_approve:
+    type: boolean
+    default: false
 
 steps:
+  - id: constitution
+    command: kite.constitution
+  - id: discover
+    command: kite.discover
   - id: specify
     command: kite.specify
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
-
-  - id: review-spec
-    type: gate
-    message: "Review the generated spec before planning."
-    options: [approve, reject]
-    on_reject: abort
-
+  - id: design
+    command: kite.design
+  - id: clarify
+    command: kite.clarify
   - id: plan
     command: kite.plan
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
-
-  - id: review-plan
-    type: gate
-    message: "Review the plan before generating tasks."
-    options: [approve, reject]
-    on_reject: abort
-
   - id: tasks
     command: kite.tasks
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
-
-  - id: implement
-    command: kite.implement
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "{{ inputs.spec }}"
+  - id: backend
+    command: kite.backend
+  - id: contract-gate
+    type: shell
+    run: "verify specs/<latest>/contract.md"
+  - id: frontend
+    command: kite.frontend
+  - id: qa
+    command: kite.qa
 ```
 
 This produces the following execution flow:
 
 ```mermaid
 flowchart TB
-    A["specify<br/>(command)"] --> B{"review-spec<br/>(gate)"}
-    B -- approve --> C["plan<br/>(command)"]
-    B -- reject --> X1["⏹ Abort"]
-    C --> D{"review-plan<br/>(gate)"}
-    D -- approve --> E["tasks<br/>(command)"]
-    D -- reject --> X2["⏹ Abort"]
-    E --> F["implement<br/>(command)"]
-
-    style A fill:#49a,color:#fff
-    style B fill:#a94,color:#fff
-    style C fill:#49a,color:#fff
-    style D fill:#a94,color:#fff
-    style E fill:#49a,color:#fff
-    style F fill:#49a,color:#fff
-    style X1 fill:#999,color:#fff
-    style X2 fill:#999,color:#fff
-```
-
-Run it with:
-
-```bash
-kite workflow run kite -i spec="Build a kanban board with drag-and-drop task management"
+    A["constitution"] --> B["discover"]
+    B --> C["specify"]
+    C --> D["design"]
+    D --> E["clarify"]
+    E --> F["plan"]
+    F --> G["tasks"]
+    G --> H["backend"]
+    H --> I{"contract gate"}
+    I -- pass --> J["frontend"]
+    J --> K["qa"]
+    I -- fail --> X["Abort"]
 ```
 
 ## Step Types
 
-| Type         | Purpose                                          |
-| ------------ | ------------------------------------------------ |
-| `command`    | Invoke a Kite command (e.g., `kite.plan`) |
-| `prompt`     | Send an arbitrary prompt to the AI coding agent  |
-| `shell`      | Execute a shell command and capture output       |
-| `gate`       | Pause for human approval before continuing       |
-| `if`         | Conditional branching (then/else)                |
-| `switch`     | Multi-branch dispatch on an expression           |
-| `while`      | Loop while a condition is true                   |
-| `do-while`   | Execute at least once, then loop on condition    |
-| `fan-out`    | Dispatch a step for each item in a list          |
-| `fan-in`     | Aggregate results from a fan-out step            |
+| Type | Purpose |
+| --- | --- |
+| `command` | Invoke a Kite command, such as `kite.plan` |
+| `prompt` | Send an arbitrary prompt to the AI coding agent |
+| `shell` | Execute a shell command and capture output |
+| `gate` | Pause for human approval before continuing |
+| `if` | Conditional branching |
+| `switch` | Multi-branch dispatch on an expression |
+| `while` | Loop while a condition is true |
+| `do-while` | Execute at least once, then loop on condition |
+| `fan-out` | Dispatch a step for each item in a list |
+| `fan-in` | Aggregate results from a fan-out step |
 
 ## Expressions
 
-Steps can reference inputs and previous step outputs using `{{ expression }}` syntax:
+Steps can reference inputs and previous step outputs using `{{ expression }}` syntax.
 
-| Namespace                      | Description                          |
-| ------------------------------ | ------------------------------------ |
-| `inputs.spec`                  | Workflow input values                |
-| `steps.specify.output.file`    | Output from a previous step          |
-| `item`                         | Current item in a fan-out iteration  |
+| Namespace | Description |
+| --- | --- |
+| `inputs.idea` | Workflow input values |
+| `steps.specify.output.file` | Output from a previous step |
+| `item` | Current item in a fan-out iteration |
 
 Available filters: `default`, `join`, `contains`, `map`.
 
@@ -252,27 +223,27 @@ Example:
 
 ```yaml
 condition: "{{ steps.test.output.exit_code == 0 }}"
-args: "{{ inputs.spec }}"
+args: "{{ inputs.idea }}"
 message: "{{ status | default('pending') }}"
 ```
 
 ## Input Types
 
-| Type      | Coercion                                          |
-| --------- | ------------------------------------------------- |
-| `string`  | Pass-through                                      |
-| `number`  | `"42"` → `42`, `"3.14"` → `3.14`                 |
-| `boolean` | `"true"` / `"1"` / `"yes"` → `True`              |
+| Type | Coercion |
+| --- | --- |
+| `string` | Pass-through |
+| `number` | `"42"` -> `42`, `"3.14"` -> `3.14` |
+| `boolean` | `"true"` / `"1"` / `"yes"` -> `True` |
 
 ## State and Resume
 
 Each workflow run persists its state at `.kite/workflows/runs/<run_id>/`:
 
-- `state.json` — current run state and step progress
-- `inputs.json` — resolved input values
-- `log.jsonl` — step-by-step execution log
+- `state.json`: current run state and step progress
+- `inputs.json`: resolved input values
+- `log.jsonl`: step-by-step execution log
 
-This enables `kite workflow resume` to continue from the exact step where a run was paused (e.g., at a gate) or failed.
+This enables `kite workflow resume` to continue from the exact step where a run was paused or failed.
 
 ## FAQ
 

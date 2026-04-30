@@ -31,6 +31,7 @@ ARGUMENT_HINTS: dict[str, str] = {
     "backend": "Optional stack hints or task filter for backend work",
     "frontend": "Optional stack hints or task filter for frontend work",
     "qa": "Optional test runner or task filter for QA",
+    "research": "Framework, hosting, or AI SDK question to verify",
     "start": "One-line idea, or persona/auto_approve flags, or both",
     "implement": "Optional implementation guidance or task filter",
     "analyze": "Optional focus areas for analysis",
@@ -113,7 +114,7 @@ class ClaudeIntegration(SkillsIntegration):
         skill_name = f"kite-{template_name.replace('.', '-')}"
         description = frontmatter.get(
             "description",
-            f"Spec-kit workflow command: {template_name}",
+            f"Kite workflow command: {template_name}",
         )
         skill_frontmatter = self._build_skill_fm(
             skill_name, description, f"templates/commands/{template_name}.md"

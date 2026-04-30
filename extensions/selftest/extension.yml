@@ -4,8 +4,8 @@ extension:
   name: Kite Self-Test Utility
   version: 1.0.0
   description: Verifies catalog extensions by programmatically walking through the discovery, installation, and registration lifecycle.
-  author: spec-kit-core
-  repository: https://github.com/github/spec-kit
+  author: kite-core
+  repository: https://github.com/Karnonson/kite
   license: MIT
 requires:
   kite_version: ">=0.2.0"

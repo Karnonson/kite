@@ -64,6 +64,7 @@ This command runs **after** `kite.backend` has produced `contract.md`. It is the
 4. **Match the design.** Colors, spacing, typography, and component inventory come from `design.md`. Do not freelance new tokens. If a screen needs a component not listed in the design's inventory, ask the user before adding it.
 5. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
 6. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
+7. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
 
 ### Step 1 — Read existing artifacts
 
@@ -110,10 +111,12 @@ Read `kite.config.yml`:
       bundler: <vite|next|none>
   ```
 
+  After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen frontend framework and any AI SDK or agent framework that appears in scope.
+
 ### Step 4 — Filter tasks
 
 1. Parse `tasks.md`.
-2. Build a list of unchecked tasks tagged `[frontend]`.
+2. Build a list of unchecked tasks tagged `[frontend]`, preserving phase order.
 3. If `$ARGUMENTS` includes a filter, narrow by case-insensitive substring match.
 4. For each task, check the contract: list which endpoints the task will consume. If a task implies an endpoint not in `contract.md`, mark it as **blocked: needs new endpoint** and exclude it from the implementation list.
 5. Print the filtered list (with the per-task endpoint mapping) to the user and ask: "Implement these <N> task(s)? [yes]". Wait for approval unless `auto_approve` is true.
@@ -129,8 +132,9 @@ For each `[frontend]` task:
    - Use only endpoints declared in `contract.md`. The base URL and auth model come from the contract — do not hard-code anything else.
    - Handle the errors listed in `contract.md` Section 5. At minimum: a generic error message and a sign-in redirect on `401`.
    - Add a `## What this screen does` plain-English comment block at the top of each new component file.
-4. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.
-5. After every 3 tasks, print a one-line progress summary.
+4. If the task is a frontend verification task, run the exact browser, component-test, or dev-preview flow written in `tasks.md` before marking it done.
+5. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.
+6. After every 3 tasks, print a one-line progress summary.
 
 If you discover the design is unclear (e.g. a page in the spec has no entry in `design.md` Section 2.1), ask **one** consolidated question. If the user wants to revise the design, abort cleanly and recommend `kite.design`.
 

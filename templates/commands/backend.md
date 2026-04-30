@@ -64,6 +64,7 @@ This command runs **after** `kite.tasks`. It is the first **implementation** ste
 4. **Stack picks once.** If the stack is not yet decided, ask **one** consolidated question with a sensible default in square brackets, then write the choice into `kite.config.yml`.
 5. **Plain English summaries.** Every section in `contract.md` includes a one-line plain-English description above the formal definition.
 6. **Refuse silent failures.** If a task references a file that does not exist, ask the user before creating it.
+7. **Respect tracer-bullet phase gates.** Work through `[backend]` tasks in phase order. When you reach a backend verification task, run it before touching any later-phase backend task. If it fails, stop and report instead of skipping ahead.
 
 ### Step 1 — Read existing artifacts
 
@@ -100,10 +101,12 @@ Read `kite.config.yml`:
       datastore: <sqlite|postgres|...>
   ```
 
+    After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen framework and any AI SDK or agent framework that appears in scope.
+
 ### Step 3 — Filter tasks
 
 1. Parse `tasks.md`.
-2. Build a list of unchecked tasks where the tag is `[backend]`.
+2. Build a list of unchecked tasks where the tag is `[backend]`, preserving phase order.
 3. If `$ARGUMENTS` contains a filter (e.g. "only auth"), narrow the list — do a case-insensitive substring match against task titles.
 4. Print the filtered list to the user and ask: "Implement these <N> task(s)? [yes]". Wait for approval unless `auto_approve` is true.
 
@@ -180,8 +183,9 @@ For each filtered `[backend]` task:
 1. State the task title and the files you plan to touch.
 2. Make the change.
 3. If the change adds, removes, or alters an endpoint, **immediately update** the relevant section in `contract.md`.
-4. Update `tasks.md`: change `[ ]` to `[x]` for the completed task. Do not edit other tasks.
-5. After every 3 tasks, print a one-line progress summary.
+4. If the task is a backend verification task, run the exact terminal command or framework dev-environment flow written in `tasks.md` before marking it done. For frameworks that ship an integrated developer environment or studio, use it when the task tells you to.
+5. Update `tasks.md`: change `[ ]` to `[x]` for the completed task. Do not edit other tasks.
+6. After every 3 tasks, print a one-line progress summary.
 
 If a task is ambiguous, ask **one** clarifying question before coding. If it is genuinely blocked (e.g. requires frontend work), mark it `[~]` (in-progress) in `tasks.md` and add a one-line note explaining the blocker.
 

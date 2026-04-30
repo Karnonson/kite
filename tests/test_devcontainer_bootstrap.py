@@ -139,4 +139,5 @@ def test_post_create_skips_init_when_kite_dir_exists() -> None:
     assert 'if [[ -d ".kite" ]]; then' in text
     assert "skipping kite init" in text
     assert 'kite init \\' in text
+    assert "--here" in text
     assert "--force" in text

@@ -1,13 +1,13 @@
 ---
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+description: Generate an actionable, tracer-bullet tasks.md for the feature, with explicit phase verification and clear backend/frontend ownership.
 handoffs: 
   - label: Analyze For Consistency
     agent: kite.analyze
     prompt: Run a project analysis for consistency
     send: true
-  - label: Implement Project
-    agent: kite.implement
-    prompt: Start the implementation in phases
+  - label: Implement Backend
+    agent: kite.backend
+    prompt: Start backend implementation and publish the frontend contract
     send: true
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json
@@ -65,37 +65,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
-3. **Execute task generation workflow**:
-   - Load plan.md and extract tech stack, libraries, project structure
-   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
-   - If data-model.md exists: Extract entities and map to user stories
-   - If contracts/ exists: Map interface contracts to user stories
-   - If research.md exists: Extract decisions for setup tasks
-   - Generate tasks organized by user story (see Task Generation Rules below)
-   - Generate dependency graph showing user story completion order
-   - Create parallel execution examples per user story
-   - Validate task completeness (each user story has all needed tasks, independently testable)
+3. **Execute task generation workflow**: Load `plan.md` and extract the tech stack, libraries, and project structure. Load `spec.md` and extract user stories with their priorities. If `data-model.md` exists, map entities to user stories. If `contracts/` exists, map interface contracts to user stories. If `research.md` exists, extract the setup decisions. Then generate tasks organized by user story and tracer-bullet phase, split backend and frontend work into separate task groups whenever both are in scope, add explicit phase-verification tasks so every phase can be proven working before the next phase starts, generate the dependency graph and per-story parallel execution examples, and validate that each story is independently testable and phase-gated.
 
-4. **Generate tasks.md**: Use `templates/tasks-template.md` as structure, fill with:
-   - Correct feature name from plan.md
-   - Phase 1: Setup tasks (project initialization)
-   - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
-   - Phase 3+: One phase per user story (in priority order from spec.md)
-   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
-   - Final Phase: Polish & cross-cutting concerns
-   - All tasks must follow the strict checklist format (see Task Generation Rules below)
-   - Clear file paths for each task
-   - Dependencies section showing story completion order
-   - Parallel execution examples per story
-   - Implementation strategy section (MVP first, incremental delivery)
+4. **Generate tasks.md**: Use `templates/tasks-template.md` as the structure. Fill in the correct feature name from `plan.md`, create Phase 1 setup tasks, Phase 2 foundational tasks, and one user-story phase per priority from `spec.md`. Each phase must include the story goal, independent test criteria, separate backend/frontend subsections when relevant, and explicit verification tasks. Finish with a polish / cross-cutting phase, clear file paths, the dependencies section, parallel execution examples, and an implementation strategy built around tracer-bullet delivery.
 
-5. **Report**: Output path to generated tasks.md and summary:
-   - Total task count
-   - Task count per user story
-   - Parallel opportunities identified
-   - Independent test criteria for each story
-   - Suggested MVP scope (typically just User Story 1)
-   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+5. **Report**: Output the path to `tasks.md` plus the total task count, task count per user story, task count per persona (`[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`), parallel opportunities, independent test criteria and verification flow for each phase, the suggested MVP scope, and confirmation that every task follows the checklist format with checkbox, task ID, story/persona labels, and file path.
 
 6. **Check for extension hooks**: After tasks.md is generated, check if `.kite/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_tasks` key
@@ -132,7 +106,11 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 ## Task Generation Rules
 
+**CRITICAL**: Use tracer-bullet planning. Every phase MUST end with a concrete verification task that proves the current slice works before the next phase starts.
+
 **CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
+
+**CRITICAL**: When both backend and frontend are in scope, NEVER create a mixed ownership task. Backend code, API contracts, schema, server configuration, and framework dev environments belong to `[backend]`. UI, client state, view-layer styling, and browser interactions belong to `[frontend]`.
 
 **Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
 
@@ -141,7 +119,7 @@ The tasks.md should be immediately executable - each task must be specific enoug
 Every task MUST strictly follow this format:
 
 ```text
-- [ ] [TaskID] [P?] [Story?] Description with file path
+- [ ] [TaskID] [P?] [Story?] [Persona] Description with file path
 ```
 
 **Format Components**:
@@ -155,33 +133,43 @@ Every task MUST strictly follow this format:
    - Foundational phase: NO story label  
    - User Story phases: MUST have story label
    - Polish phase: NO story label
-5. **Description**: Clear action with exact file path
+5. **[Persona] label**: REQUIRED for EVERY task
+  - Allowed labels: `[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`
+  - Use exactly one persona label per task
+  - If work spans backend and frontend, split it into at least two tasks rather than combining ownership
+  - Phase verification tasks should usually be owned by the same persona that produced the slice being verified
+6. **Description**: Clear action with exact file path and, for verification tasks, the command or validation flow to run
 
 **Examples**:
 
-- ✅ CORRECT: `- [ ] T001 Create project structure per implementation plan`
-- ✅ CORRECT: `- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py`
-- ✅ CORRECT: `- [ ] T012 [P] [US1] Create User model in src/models/user.py`
-- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`
-- ❌ WRONG: `- [ ] Create User model` (missing ID and Story label)
+- ✅ CORRECT: `- [ ] T001 [ops] Create project structure per implementation plan in backend/ and frontend/`
+- ✅ CORRECT: `- [ ] T005 [P] [backend] Implement authentication middleware in backend/src/middleware/auth.py`
+- ✅ CORRECT: `- [ ] T012 [P] [US1] [backend] Create User model in backend/src/models/user.py`
+- ✅ CORRECT: `- [ ] T014 [US1] [frontend] Implement dashboard screen in frontend/src/pages/Dashboard.tsx`
+- ✅ CORRECT: `- [ ] T015 [US1] [backend] Verify story 1 API in terminal with \`pytest tests/integration/test_dashboard_api.py\``
+- ❌ WRONG: `- [ ] Create User model` (missing ID and persona label)
 - ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
-- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID)
-- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing file path)
+- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID and persona label)
+- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing persona label and file path)
+- ❌ WRONG: `- [ ] T010 [US1] [backend] [frontend] Build full feature in src/feature.ts` (mixed ownership)
 
 ### Task Organization
 
 1. **From User Stories (spec.md)** - PRIMARY ORGANIZATION:
    - Each user story (P1, P2, P3...) gets its own phase
+  - Treat each phase as a tracer bullet: by the end of the phase, the user should be able to run a command, open a framework dev environment, or complete a short manual flow that proves the slice works
    - Map all related components to their story:
      - Models needed for that story
      - Services needed for that story
      - Interfaces/UI needed for that story
      - If tests requested: Tests specific to that story
    - Mark story dependencies (most stories should be independent)
+  - When both backend and frontend are present, split each story into separate backend and frontend subsections with their own verification tasks
 
 2. **From Contracts**:
    - Map each interface contract → to the user story it serves
    - If tests requested: Each interface contract → contract test task [P] before implementation in that story's phase
+  - Backend tasks that change a contract belong to `[backend]`; frontend tasks consume the contract but never redefine it
 
 3. **From Data Model**:
    - Map each entity to the user story(ies) that need it
@@ -193,14 +181,29 @@ Every task MUST strictly follow this format:
    - Foundational/blocking tasks → Foundational phase (Phase 2)
    - Story-specific setup → within that story's phase
 
+5. **Phase verification**:
+  - Every phase MUST end with at least one executable verification task
+  - Backend verification must use a terminal command or the framework's integrated development environment when one exists
+  - If the chosen backend framework provides a first-party dev studio or inspector UI (for example Mastra Dev Studio), include a task that launches it and verifies the phase there
+  - Frontend verification must use a browser-facing smoke flow, component test, or equivalent framework dev preview
+  - If a phase cannot be verified on its own, the phase is incomplete and must be reworked
+
 ### Phase Structure
 
-- **Phase 1**: Setup (project initialization)
-- **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
+- **Phase 1**: Setup (project initialization + bootstrap verification)
+- **Phase 2**: Foundational (blocking prerequisites + foundation verification before user stories)
 - **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
+  - Within each story: Backend slice → backend verification → frontend slice → frontend verification → QA / acceptance tasks (omit irrelevant subsections if that surface is not in scope)
+  - Tests (if requested) still come before the corresponding implementation tasks inside each subsection
   - Each phase should be a complete, independently testable increment
 - **Final Phase**: Polish & Cross-Cutting Concerns
+
+### Ownership Guardrails
+
+- Backend agents must be able to filter `[backend]` tasks and complete a useful slice without touching `[frontend]` tasks
+- Frontend agents must be able to filter `[frontend]` tasks and complete a useful slice without touching `[backend]` tasks
+- Do not create a single task that asks one agent to edit both server and UI files
+- Shared release, docs, or environment tasks belong to `[ops]` or `[docs]`, not `[backend]` and `[frontend]` together
 
 ## Plain-English summary block (REQUIRED)
 

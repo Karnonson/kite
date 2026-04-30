@@ -561,9 +561,9 @@ class PresetManager:
             specifier = SpecifierSet(required)
             if current not in specifier:
                 raise PresetCompatibilityError(
-                    f"Preset requires spec-kit {required}, "
+                    f"Preset requires Kite {required}, "
                     f"but {kite_version} is installed.\n"
-                    f"Upgrade spec-kit with: uv tool install specify-cli --force"
+                    f"Upgrade Kite with: uv tool install kite-cli --force"
                 )
         except InvalidSpecifier:
             raise PresetCompatibilityError(
@@ -1303,7 +1303,7 @@ class PresetManager:
             original_desc = frontmatter.get("description", "")
             enhanced_desc = SKILL_DESCRIPTIONS.get(
                 short_name,
-                original_desc or f"Spec-kit workflow command: {short_name}",
+                original_desc or f"Kite workflow command: {short_name}",
             )
             frontmatter = dict(frontmatter)
             frontmatter["description"] = enhanced_desc
@@ -1406,7 +1406,7 @@ class PresetManager:
                 original_desc = frontmatter.get("description", "")
                 enhanced_desc = SKILL_DESCRIPTIONS.get(
                     short_name,
-                    original_desc or f"Spec-kit workflow command: {short_name}",
+                    original_desc or f"Kite workflow command: {short_name}",
                 )
 
                 frontmatter_data = registrar.build_skill_frontmatter(

@@ -2,7 +2,10 @@
 
 import json
 import os
+import shutil
+import subprocess
 
+import pytest
 import yaml
 
 from tests.conftest import strip_ansi
@@ -72,6 +75,53 @@ class TestInitIntegrationFlag:
 
         shared_manifest = project / ".kite" / "integrations" / "kite.manifest.json"
         assert shared_manifest.exists()
+
+    def test_init_with_git_uses_main_branch(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        if shutil.which("git") is None:
+            pytest.skip("git required")
+
+        runner = CliRunner()
+        project = tmp_path / "git-main"
+        project.mkdir()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                [
+                    "init",
+                    "--here",
+                    "--integration",
+                    "generic",
+                    "--ai-commands-dir",
+                    ".myagent/commands",
+                    "--script",
+                    "sh",
+                    "--ignore-agent-tools",
+                ],
+                catch_exceptions=False,
+                env={
+                    "GIT_AUTHOR_NAME": "Kite Test",
+                    "GIT_AUTHOR_EMAIL": "kite@example.com",
+                    "GIT_COMMITTER_NAME": "Kite Test",
+                    "GIT_COMMITTER_EMAIL": "kite@example.com",
+                },
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"],
+            cwd=project,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        assert branch == "main"
 
     def test_ai_copilot_auto_promotes(self, tmp_path):
         from typer.testing import CliRunner
@@ -422,6 +472,11 @@ class TestGitExtensionAutoInstall:
         assert "before_specify" in hooks_data["hooks"]
         assert "before_constitution" in hooks_data["hooks"]
 
+        gitignore = project / ".gitignore"
+        assert gitignore.exists(), ".gitignore not created"
+        gitignore_text = gitignore.read_text(encoding="utf-8")
+        assert ".kite/extensions/*/local-config.yml" in gitignore_text
+
     def test_no_git_skips_extension(self, tmp_path):
         """With --no-git, the git extension is NOT installed."""
         from typer.testing import CliRunner
@@ -545,6 +600,9 @@ class TestSharedInfraCommandRefs:
         content = tasks.read_text(encoding="utf-8")
         assert "__KITE_COMMAND_" not in content
         assert "/kite-tasks" in content
+        assert "### Backend Slice for User Story 1" in content
+        assert "### Frontend Verification for User Story 1" in content
+        assert "Verify the story 1 backend slice in the terminal" in content
 
     def test_full_init_claude_resolves_page_templates(self, tmp_path):
         """Full CLI init with Claude (skills agent) produces hyphen refs in page templates."""

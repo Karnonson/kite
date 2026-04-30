@@ -125,10 +125,10 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 15
+        assert len(agent_files) == 16
         expected_commands = {
             "analyze", "backend", "checklist", "clarify", "constitution", "design",
-            "discover", "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
+            "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
         }
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
@@ -189,6 +189,7 @@ class TestCopilotIntegration:
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
             ".github/agents/kite.qa.agent.md",
+            ".github/agents/kite.research.agent.md",
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
@@ -204,6 +205,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
             ".github/prompts/kite.qa.prompt.md",
+            ".github/prompts/kite.research.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
@@ -214,6 +216,7 @@ class TestCopilotIntegration:
             ".kite/init-options.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            ".gitignore",
             "kite.config.yml",
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",
@@ -261,6 +264,7 @@ class TestCopilotIntegration:
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
             ".github/agents/kite.qa.agent.md",
+            ".github/agents/kite.research.agent.md",
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
@@ -276,6 +280,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
             ".github/prompts/kite.qa.prompt.md",
+            ".github/prompts/kite.research.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
@@ -286,6 +291,7 @@ class TestCopilotIntegration:
             ".kite/init-options.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            ".gitignore",
             "kite.config.yml",
             ".kite/scripts/powershell/check-prerequisites.ps1",
             ".kite/scripts/powershell/common.ps1",
@@ -311,7 +317,7 @@ class TestCopilotSkillsMode:
 
     _SKILL_COMMANDS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design",
-        "discover", "frontend", "implement", "plan", "qa", "specify", "start", "tasks", "taskstoissues",
+        "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _make_copilot(self):
@@ -411,7 +417,7 @@ class TestCopilotSkillsMode:
             assert "description" in fm, f"{f} frontmatter missing 'description'"
             assert "compatibility" in fm, f"{f} frontmatter missing 'compatibility'"
             assert "metadata" in fm, f"{f} frontmatter missing 'metadata'"
-            assert fm["metadata"]["author"] == "github-spec-kit"
+            assert fm["metadata"]["author"] == "kite-core"
 
     # -- Copilot-specific post-processing ---------------------------------
 
@@ -635,6 +641,7 @@ class TestCopilotSkillsMode:
             ".kite/integration.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
+            ".gitignore",
             "kite.config.yml",
             # Scripts (sh)
             ".kite/scripts/bash/check-prerequisites.sh",

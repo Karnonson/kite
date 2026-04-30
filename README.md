@@ -5,7 +5,7 @@
 </div>
 
 <p align="center">
-    <strong>Kite is an open-source toolkit that walks you from "I have an idea" to "the app is live" in plain English. You bring the idea; the persona agents (Discover, Design, Backend, Frontend, QA) handle every step of the software lifecycle inside your favourite AI coding assistant.</strong>
+    <strong>Kite is a founder-first toolkit that turns a one-sentence idea into project principles, a delivery plan, and a guided backend, frontend, and QA implementation loop inside your favourite AI coding assistant.</strong>
 </p>
 
 ---
@@ -29,7 +29,7 @@
 
 ## 🤔 What is Spec-Driven Development?
 
-Spec-Driven Development **flips the script** on traditional software development. For decades, code has been king — specifications were just scaffolding we built and discarded once the "real work" of coding began. Spec-Driven Development changes this: **specifications become executable**, directly generating working implementations rather than just guiding them.
+Kite uses Spec-Driven Development as its operating model, but packages it as a guided workflow for builders who want plain-English progress instead of framework jargon. In Kite, the spec is not a dead document: it drives the design brief, plan, task list, and implementation loop.
 
 ## ⚡ Get Started
 
@@ -138,7 +138,7 @@ If you just want Kite to walk you through the whole lifecycle in plain English, 
 /kite.start "Build a tool that <one-sentence description of your idea>."
 ```
 
-`/kite.start` chains Discover → Specify → Design → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval between each stage. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, or `kite doctor` for a plain-language status report.
+`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, or `kite doctor` for a plain-language status report.
 
 Prefer to drive each stage manually? The classic step-by-step flow is below.
 
@@ -150,7 +150,15 @@ Use the **`/kite.constitution`** command to create your project's governing prin
 /kite.constitution Create principles focused on code quality, testing standards, user experience consistency, and performance requirements
 ```
 
-### 4. Create the spec
+### 4. Explore the problem
+
+Use the **`/kite.discover`** command to turn your one-line idea into a plain-English discovery brief before you lock the scope.
+
+```bash
+/kite.discover Build an application that can help me organize my photos in separate photo albums.
+```
+
+### 5. Create the spec
 
 Use the **`/kite.specify`** command to describe what you want to build. Focus on the **what** and **why**, not the tech stack.
 
@@ -158,15 +166,31 @@ Use the **`/kite.specify`** command to describe what you want to build. Focus on
 /kite.specify Build an application that can help me organize my photos in separate photo albums. Albums are grouped by date and can be re-organized by dragging and dropping on the main page. Albums are never in other nested albums. Within each album, photos are previewed in a tile-like interface.
 ```
 
-### 5. Create a technical implementation plan
+### 6. Create a design brief
 
-Use the **`/kite.plan`** command to provide your tech stack and architecture choices.
+Use the **`/kite.design`** command to define the user experience, information hierarchy, and page-level behavior before implementation.
+
+```bash
+/kite.design persona=founder
+```
+
+### 7. Run a final clarification pass
+
+Use the **`/kite.clarify`** command after design to make sure nothing important is missing before technical planning starts.
+
+```bash
+/kite.clarify Focus on anything that would create planning rework later.
+```
+
+### 8. Create a technical implementation plan
+
+Use the **`/kite.plan`** command to provide your tech stack and architecture choices. When the plan needs current framework versions, hosting guidance, or AI SDK capability checks, it should invoke the `kite.research` subagent internally rather than treating research as a separate founder-facing step.
 
 ```bash
 /kite.plan The application uses Vite with minimal number of libraries. Use vanilla HTML, CSS, and JavaScript as much as possible. Images are not uploaded anywhere and metadata is stored in a local SQLite database.
 ```
 
-### 6. Break down into tasks
+### 9. Break down into tasks
 
 Use **`/kite.tasks`** to create an actionable task list from your implementation plan.
 
@@ -174,12 +198,28 @@ Use **`/kite.tasks`** to create an actionable task list from your implementation
 /kite.tasks
 ```
 
-### 7. Execute implementation
+### 10. Build the backend
 
-Use **`/kite.implement`** to execute all tasks and build your feature according to the plan.
+Use **`/kite.backend`** to complete backend-tagged tasks and publish the contract the frontend will use.
 
 ```bash
-/kite.implement
+/kite.backend
+```
+
+### 11. Build the frontend
+
+Use **`/kite.frontend`** after the backend contract is complete.
+
+```bash
+/kite.frontend
+```
+
+### 12. Run QA
+
+Use **`/kite.qa`** to implement QA-tagged tasks, run the checks, and append a plain-English report.
+
+```bash
+/kite.qa
 ```
 
 For detailed step-by-step instructions, see our [comprehensive guide](./spec-driven.md).
@@ -196,16 +236,21 @@ After running `kite init`, your AI coding agent will have access to these slash 
 
 ### Core Commands
 
-Essential commands for the Spec-Driven Development workflow:
+Essential commands for the founder-first Kite workflow:
 
 | Command                  | Agent Skill            | Description                                                                |
 | ------------------------ | ---------------------- | -------------------------------------------------------------------------- |
+| `/kite.start`         | `kite-start`        | Run the guided end-to-end loop with approval gates                         |
 | `/kite.constitution`  | `kite-constitution` | Create or update project governing principles and development guidelines   |
+| `/kite.discover`      | `kite-discover`     | Turn a one-line idea into a discovery brief in plain English               |
 | `/kite.specify`       | `kite-specify`      | Define what you want to build (requirements and user stories)              |
+| `/kite.design`        | `kite-design`       | Produce a text-only UX and page-layout brief                               |
+| `/kite.clarify`       | `kite-clarify`      | Run a post-design clarification pass before technical planning             |
 | `/kite.plan`          | `kite-plan`         | Create technical implementation plans with your chosen tech stack          |
 | `/kite.tasks`         | `kite-tasks`        | Generate actionable task lists for implementation                          |
-| `/kite.taskstoissues` | `kite-taskstoissues`| Convert generated task lists into GitHub issues for tracking and execution |
-| `/kite.implement`     | `kite-implement`    | Execute all tasks to build the feature according to the plan               |
+| `/kite.backend`       | `kite-backend`      | Implement backend-tagged tasks and publish the frontend contract           |
+| `/kite.frontend`      | `kite-frontend`     | Implement frontend-tagged tasks against the published contract             |
+| `/kite.qa`            | `kite-qa`           | Run QA-tagged tasks and append the plain-English QA report                 |
 
 ### Optional Commands
 
@@ -213,9 +258,11 @@ Additional commands for enhanced quality and validation:
 
 | Command              | Agent Skill            | Description                                                                                                                          |
 | -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `/kite.clarify`   | `kite-clarify`      | Clarify underspecified areas (recommended before `/kite.plan`; formerly `/quizme`)                                                |
-| `/kite.analyze`   | `kite-analyze`      | Cross-artifact consistency & coverage analysis (run after `/kite.tasks`, before `/kite.implement`)                             |
+| `/kite.research`  | `kite-research`     | Internal research helper used by plan and coding agents to verify current official stack guidance                                  |
+| `/kite.analyze`   | `kite-analyze`      | Cross-artifact consistency & coverage analysis (run after `/kite.tasks`, before `/kite.backend`)                                |
 | `/kite.checklist` | `kite-checklist`    | Generate custom quality checklists that validate requirements completeness, clarity, and consistency (like "unit tests for English") |
+| `/kite.taskstoissues` | `kite-taskstoissues`| Convert generated task lists into GitHub issues for tracking and execution                                                     |
+| `/kite.implement` | `kite-implement`    | Legacy single-pass implementation helper for custom flows that do not need split handoffs                                       |
 
 ## 🔧 Kite CLI Reference
 
@@ -223,7 +270,7 @@ For full command details, options, and examples, see the [CLI Reference](docs/re
 
 ## 📚 Core Philosophy
 
-Spec-Driven Development is a structured process that emphasizes:
+Kite uses Spec-Driven Development as a practical operating model:
 
 - **Intent-driven development** where specifications define the "*what*" before the "*how*"
 - **Rich specification creation** using guardrails and organizational principles
@@ -330,7 +377,7 @@ Go to the project folder and run your coding agent. In our example, we're using 
 
 ![Bootstrapping Claude Code environment](./media/bootstrap-claude-code.gif)
 
-You will know that things are configured correctly if you see the `/kite.constitution`, `/kite.specify`, `/kite.plan`, `/kite.tasks`, and `/kite.implement` commands available.
+You will know that things are configured correctly if you see the `/kite.constitution`, `/kite.discover`, `/kite.design`, `/kite.plan`, `/kite.tasks`, `/kite.backend`, `/kite.frontend`, and `/kite.qa` commands available.
 
 The first step should be establishing your project's governing principles using the `/kite.constitution` command. This helps ensure consistent decision-making throughout all subsequent development phases:
 
@@ -527,23 +574,25 @@ This step creates a `tasks.md` file in your feature specification directory that
 - **Test-driven development structure** - If tests are requested, test tasks are included and ordered to be written before implementation
 - **Checkpoint validation** - Each user story phase includes checkpoints to validate independent functionality
 
-The generated tasks.md provides a clear roadmap for the `/kite.implement` command, ensuring systematic implementation that maintains code quality and allows for incremental delivery of user stories.
+The generated tasks.md provides a clear roadmap for `/kite.backend`, `/kite.frontend`, and `/kite.qa`, ensuring each slice can be implemented and checked before the next handoff.
 
-### **STEP 7:** Implementation
+### **STEP 7:** Backend, frontend, and QA
 
-Once ready, use the `/kite.implement` command to execute your implementation plan:
+Once ready, run the split implementation commands in order:
 
 ```text
-/kite.implement
+/kite.backend
+/kite.frontend
+/kite.qa
 ```
 
-The `/kite.implement` command will:
+The split implementation flow will:
 
 - Validate that all prerequisites are in place (constitution, spec, plan, and tasks)
 - Parse the task breakdown from `tasks.md`
-- Execute tasks in the correct order, respecting dependencies and parallel execution markers
-- Follow the TDD approach defined in your task plan
-- Provide progress updates and handle errors appropriately
+- Complete backend-tagged tasks and publish `contract.md`
+- Complete frontend-tagged tasks against that contract
+- Run QA-tagged tasks and append a plain-English report
 
 > [!IMPORTANT]
 > The coding agent will execute local CLI commands (such as `dotnet`, `npm`, etc.) - make sure you have the required tools installed on your machine.
@@ -575,11 +624,11 @@ rm gcm-linux_amd64.2.6.1.deb
 
 ## 💬 Support
 
-For support, please open a [GitHub issue](https://github.com/Karnonson/kite/issues/new). We welcome bug reports, feature requests, and questions about using Spec-Driven Development.
+For support, please open a [GitHub issue](https://github.com/Karnonson/kite/issues/new). We welcome bug reports, feature requests, and questions about building with Kite.
 
 ## 🙏 Acknowledgements
 
-This project is heavily influenced by and based on the work and research of [John Lam](https://github.com/jflam).
+Kite draws on earlier public work around spec-driven development, including research shared by [John Lam](https://github.com/jflam), while the workflow, product direction, and integrations in this repository are maintained as Kite.
 
 ## 📄 License
 

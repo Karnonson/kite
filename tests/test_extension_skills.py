@@ -247,7 +247,7 @@ class TestExtensionSkillRegistration:
         assert "description:" in content
         assert "Test hello command" in content
         assert "source: extension:test-ext" in content
-        assert "author: github-spec-kit" in content
+        assert "author: kite-core" in content
         assert "compatibility:" in content
         assert "Run this to say hello." in content
 

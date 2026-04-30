@@ -1,9 +1,16 @@
 {
     "chat.promptFilesRecommendations": {
         "kite.constitution": true,
+        "kite.discover": true,
         "kite.specify": true,
+        "kite.design": true,
+        "kite.clarify": true,
         "kite.plan": true,
         "kite.tasks": true,
+        "kite.backend": true,
+        "kite.frontend": true,
+        "kite.qa": true,
+        "kite.research": true,
         "kite.implement": true
     },
     "chat.tools.terminal.autoApprove": {

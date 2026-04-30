@@ -1,7 +1,7 @@
 """Tests for the bundled `kite` SDLC workflow definition.
 
 These tests load `workflows/kite/workflow.yml` and validate its structure,
-the contract gate, and that all referenced commands resolve.
+the founder fast path, the contract gate, and that all referenced commands resolve.
 """
 
 from __future__ import annotations
@@ -41,9 +41,11 @@ class TestKiteWorkflowStructure:
             if "command" in s
         ]
         assert commands == [
+            "kite.constitution",
             "kite.discover",
             "kite.specify",
             "kite.design",
+            "kite.clarify",
             "kite.plan",
             "kite.tasks",
             "kite.backend",
@@ -54,10 +56,13 @@ class TestKiteWorkflowStructure:
     def test_review_gates_are_skippable_via_auto_approve(self, kite_workflow):
         # Each review gate is wrapped in an `if not inputs.auto_approve` block.
         skippable_ids = {
+            "skip-or-gate-constitution",
             "skip-or-gate-discover",
             "skip-or-gate-specify",
             "skip-or-gate-design",
+            "skip-or-gate-clarify",
             "skip-or-gate-plan",
+            "skip-or-gate-tasks",
         }
         if_steps = [s for s in kite_workflow["steps"] if s.get("type") == "if"]
         if_ids = {s["id"] for s in if_steps}
@@ -68,17 +73,22 @@ class TestKiteWorkflowStructure:
                 # then must contain a single nested gate step
                 assert any(t.get("type") == "gate" for t in s["then"])
 
-    def test_contract_gate_is_hard_shell_step(self, kite_workflow):
-        # The contract gate runs between backend and frontend and is NOT
-        # wrapped in an `if not auto_approve` — it must always run.
+    def test_founder_flow_uses_split_implementation_stages(self, kite_workflow):
         steps = kite_workflow["steps"]
         ids = [s["id"] for s in steps]
+        assert "constitution" in ids
+        assert "clarify" in ids
+        assert "backend" in ids
+        assert "frontend" in ids
+        assert "qa" in ids
         assert "contract-gate" in ids
-        idx_backend = ids.index("backend")
-        idx_gate = ids.index("contract-gate")
-        idx_frontend = ids.index("frontend")
-        assert idx_backend < idx_gate < idx_frontend
+        assert "implement" not in ids
+        assert ids.index("design") < ids.index("clarify") < ids.index("plan")
+        assert ids.index("tasks") < ids.index("backend")
+        assert ids.index("backend") < ids.index("contract-gate") < ids.index("frontend") < ids.index("qa")
 
+    def test_contract_gate_is_hard_shell_step(self, kite_workflow):
+        steps = kite_workflow["steps"]
         gate = next(s for s in steps if s["id"] == "contract-gate")
         assert gate["type"] == "shell"
         assert "contract.md" in gate["run"]

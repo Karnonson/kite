@@ -5,6 +5,7 @@ from unittest.mock import patch
 from typer.testing import CliRunner
 
 from kite_cli import app
+from tests.conftest import strip_ansi
 
 
 runner = CliRunner()
@@ -14,14 +15,14 @@ class TestVersionFlag:
     """Test --version / -V flag on the root command."""
 
     def test_version_long_flag(self):
-        """specify --version prints version and exits 0."""
+        """kite --version prints version and exits 0."""
         with patch("kite_cli.get_kite_version", return_value="1.2.3"):
             result = runner.invoke(app, ["--version"])
         assert result.exit_code == 0
         assert "kite 1.2.3" in result.output
 
     def test_version_short_flag(self):
-        """specify -V prints version and exits 0."""
+        """kite -V prints version and exits 0."""
         with patch("kite_cli.get_kite_version", return_value="1.2.3"):
             result = runner.invoke(app, ["-V"])
         assert result.exit_code == 0
@@ -33,3 +34,13 @@ class TestVersionFlag:
             result = runner.invoke(app, ["--version", "init"])
         assert result.exit_code == 0
         assert "kite 0.7.2" in result.output
+
+    def test_help_uses_kite_branding(self):
+        """Root help should use Kite branding instead of leftover Specify text."""
+        result = runner.invoke(app, ["--help"])
+        normalized_output = strip_ansi(result.output)
+
+        assert result.exit_code == 0
+        assert "Kite - Spec-Driven Development Toolkit" in normalized_output
+        assert "Setup tool for Kite spec-driven development projects" in normalized_output
+        assert "Setup tool for Specify spec-driven development projects" not in normalized_output

@@ -89,6 +89,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read contracts/ for API specifications and test requirements
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
+  - If you need to add or upgrade a framework or dependency and the current version is not clearly verified in plan.md or research.md, invoke the `kite.research` subagent before choosing a version. Do not guess from memory.
 
 4. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:

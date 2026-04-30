@@ -373,6 +373,7 @@ class YamlIntegrationTests:
         "implement",
         "plan",
         "qa",
+        "research",
         "specify",
         "start",
         "tasks",
@@ -394,6 +395,7 @@ class YamlIntegrationTests:
         files.append(".kite/init-options.json")
         files.append(f".kite/integrations/{self.KEY}.manifest.json")
         files.append(".kite/integrations/kite.manifest.json")
+        files.append(".gitignore")
         files.append("kite.config.yml")
 
         if script_variant == "sh":
