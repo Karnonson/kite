@@ -35,7 +35,7 @@ Execution steps:
 
 2. Read the current planning context:
    - Required: `FEATURE_SPEC`
-   - Optional: `specs/<latest>/design.md`, `discovery.md`, `kite.config.yml`, `.kite/memory/constitution.md`, existing `specs/<latest>/research.md`
+   - Optional: `FEATURE_DIR/design.md`, `FEATURE_DIR/discovery.md`, `kite.config.yml`, `.kite/memory/constitution.md`, existing `FEATURE_DIR/research.md`
    - If `FEATURE_SPEC` is missing, instruct the user to run `__KITE_COMMAND_SPECIFY__` first.
 
 3. Treat the calling agent as the owner of user interaction:

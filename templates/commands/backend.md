@@ -69,13 +69,13 @@ This command runs **after** `kite.tasks`. It is the first **implementation** ste
 ### Step 1 — Read existing artifacts
 
 Required:
-- `discovery.md` (`kite.discover`)
-- `specs/<latest>/spec.md` (`kite.specify`)
-- `specs/<latest>/plan.md` (`kite.plan`)
-- `specs/<latest>/tasks.md` (`kite.tasks`)
+- `FEATURE_DIR/discovery.md` (`kite.discover`)
+- `FEATURE_DIR/spec.md` (`kite.specify`)
+- `FEATURE_DIR/plan.md` (`kite.plan`)
+- `FEATURE_DIR/tasks.md` (`kite.tasks`)
 
 Optional:
-- `specs/<latest>/design.md` — used only to understand which screens consume which data.
+- `FEATURE_DIR/design.md` — used only to understand which screens consume which data.
 - `kite.config.yml` — read `persona`, `stack`, `default_integration`.
 - `.kite/state.yml` — confirm previous stage was `tasks`.
 

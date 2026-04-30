@@ -57,6 +57,7 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
     assert data["build"]["dockerfile"] == "Dockerfile"
     assert data["build"]["context"] == "."
     assert data["containerUser"] == "codespace"
+    assert data["otherPortsAttributes"]["onAutoForward"] == "ignore"
     assert "ghcr.io/devcontainers/features/docker-in-docker:2" in data["features"]
     assert "ghcr.io/devcontainers/features/common-utils:2" not in data["features"]
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"

@@ -61,7 +61,7 @@ steps:
     then:
       - id: gate-discover
         type: gate
-        message: "Approve the discovery brief? (specs/<latest>/discovery.md or ./discovery.md)"
+        message: "Approve the discovery brief in specs/<feature>/discovery.md?"
         options: [approve, reject]
         on_reject: abort
 

@@ -14,6 +14,9 @@
 	},
 	"containerUser": "codespace",
 	"updateRemoteUserUID": true,
+	"otherPortsAttributes": {
+		"onAutoForward": "ignore"
+	},
 	"remoteEnv": {
 		// Default installs Kite from the upstream repo until kite-cli is published to PyPI.
 		// Pin to a tag/SHA: "KITE_INSTALL_SPEC": "git+https://github.com/Karnonson/kite.git@v0.7.2"

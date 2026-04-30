@@ -60,9 +60,11 @@ Follow this execution flow:
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
    **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
 
-2. Collect/derive values for placeholders:
-   - If user input (conversation) supplies a value, use it.
-   - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
+2. Collect/derive values for placeholders through a short interview before writing:
+    - If user input (conversation) supplies a value, use it.
+    - For missing choices that materially affect project direction, ask the user one question at a time with a recommended default and a short reason.
+    - Stop asking only when all material choices are clear, the user says to skip questions / proceed / stop, or an answer remains unhelpful after one follow-up.
+    - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded) and record the inference in the Sync Impact Report.
    - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
    - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
      - MAJOR: Backward incompatible governance/principle removals or redefinitions.

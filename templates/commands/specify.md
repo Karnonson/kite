@@ -76,13 +76,14 @@ Given that feature description, do this:
 
    If the user explicitly provided `GIT_BRANCH_NAME`, pass it through to the hook so the branch script uses the exact value as the branch name (bypassing all prefix/suffix generation).
 
-3. **Create the spec feature directory**:
+3. **Create or reuse the spec feature directory**:
 
-   Specs live under the default `specs/` directory unless the user explicitly provides `SPECIFY_FEATURE_DIRECTORY`.
+   Specs live under the default `specs/` directory unless the user explicitly provides `SPECIFY_FEATURE_DIRECTORY`. If `kite.discover` already created a feature directory, reuse it so `discovery.md`, `spec.md`, `design.md`, `plan.md`, and `tasks.md` stay together.
 
    **Resolution order for `SPECIFY_FEATURE_DIRECTORY`**:
    1. If the user explicitly provided `SPECIFY_FEATURE_DIRECTORY` (e.g., via environment variable, argument, or configuration), use it as-is
-   2. Otherwise, auto-generate it under `specs/`:
+   2. If `.kite/feature.json` exists and contains `feature_directory` pointing to an existing directory, use that directory
+   3. Otherwise, auto-generate it under `specs/`:
       - Check `.kite/init-options.json` for `branch_numbering`
       - If `"timestamp"`: prefix is `YYYYMMDD-HHMMSS` (current timestamp)
       - If `"sequential"` or absent: prefix is `NNN` (next available 3-digit number after scanning existing directories in `specs/`)
@@ -101,6 +102,7 @@ Given that feature description, do this:
      ```
      Write the actual resolved directory path value (for example, `specs/003-user-auth`), not the literal string `SPECIFY_FEATURE_DIRECTORY`.
      This allows downstream commands (`__KITE_COMMAND_PLAN__`, `__KITE_COMMAND_TASKS__`, etc.) to locate the feature directory without relying on git branch name conventions.
+   - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
 
    **IMPORTANT**:
    - You must only create one feature per `__KITE_COMMAND_SPECIFY__` invocation
@@ -115,11 +117,11 @@ Given that feature description, do this:
     2. Extract key concepts from description
        Identify: actors, actions, data, constraints
     3. For unclear aspects:
-       - Make informed guesses based on context and industry standards
-       - Only mark with [NEEDS CLARIFICATION: specific question] if:
-         - The choice significantly impacts feature scope or user experience
-         - Multiple reasonable interpretations exist with different implications
-         - No reasonable default exists
+       - Ask the user before guessing whenever the answer materially changes scope, user experience, security/privacy, data ownership, success criteria, or downstream planning.
+       - Ask exactly one question at a time. Provide a recommended default in square brackets and a short reason.
+       - After each answer, reflect it back in one sentence and use it immediately in the spec draft.
+       - Continue until the critical specification choices are clear. Stop only when the user says to skip questions / proceed / stop, or when a vague answer remains unhelpful after one follow-up.
+       - Only mark with [NEEDS CLARIFICATION: specific question] if the user skipped the question, the answer stayed unresolved after one follow-up, or no responsible default exists.
        - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
        - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
     4. Fill User Scenarios & Testing section
@@ -282,20 +284,21 @@ Given that feature description, do this:
 
 When creating this spec from a user prompt:
 
-1. **Make informed guesses**: Use context, industry standards, and common patterns to fill gaps
-2. **Document assumptions**: Record reasonable defaults in the Assumptions section
-3. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
+1. **Ask before guessing**: Use back-and-forth questions for gaps that materially affect the product, user experience, security/privacy, data ownership, or planning.
+2. **Recommend defaults**: When asking, include the recommended default and why it fits. If the user accepts it, record it as a user-approved decision.
+3. **Document assumptions**: If the user skips questions or cannot provide useful answers after one follow-up, record reasonable defaults in the Assumptions section.
+4. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
    - Significantly impact feature scope or user experience
    - Have multiple reasonable interpretations with different implications
    - Lack any reasonable default
-4. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
-5. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
-6. **Common areas needing clarification** (only if no reasonable default exists):
+5. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
+6. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
+7. **Common areas needing clarification**:
    - Feature scope and boundaries (include/exclude specific use cases)
    - User types and permissions (if multiple conflicting interpretations possible)
    - Security/compliance requirements (when legally/financially significant)
 
-**Examples of reasonable defaults** (don't ask about these):
+**Examples of reasonable defaults** (offer these as recommendations when the topic matters):
 
 - Data retention: Industry-standard practices for the domain
 - Performance targets: Standard web/mobile app expectations unless specified

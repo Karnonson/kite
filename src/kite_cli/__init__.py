@@ -5491,10 +5491,11 @@ def doctor():
 
     # 2. Discovery brief
     discovery_paths = list(project_root.glob("specs/*/discovery.md"))
-    if (project_root / "discovery.md").exists():
-        discovery_paths.append(project_root / "discovery.md")
+    legacy_discovery = project_root / "discovery.md"
+    if legacy_discovery.exists():
+        issues.append(("warn", "Found legacy root [cyan]discovery.md[/cyan]; new discovery briefs belong under [cyan]specs/<feature>/discovery.md[/cyan]."))
     if not discovery_paths:
-        issues.append(("warn", "No [cyan]discovery.md[/cyan] yet — you haven't framed the problem."))
+        issues.append(("warn", "No [cyan]specs/<feature>/discovery.md[/cyan] yet — you haven't framed the problem."))
         suggestions.append("Run [cyan]/kite.discover \"<your idea>\"[/cyan] in your AI agent.")
     else:
         console.print(f"[green]✓[/green] Discovery brief found ({len(discovery_paths)}).")

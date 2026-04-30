@@ -89,6 +89,8 @@ through the full flow.
   (Python 3.11, Node 22 LTS, Git, GitHub CLI pre-installed).
 - Docker-in-Docker support, so generated apps can use Docker from inside the
   container without exposing your host socket.
+- Ports started by tools inside the container are not opened automatically. Use
+  the VS Code Ports view when you want to expose a generated app preview.
 - `pnpm` installed globally for TypeScript projects.
 - `kite-cli` installed via `pipx` on every build.
 - GitHub Copilot and Copilot Chat extensions recommended in VS Code.

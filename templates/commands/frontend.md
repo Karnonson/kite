@@ -69,12 +69,12 @@ This command runs **after** `kite.backend` has produced `contract.md`. It is the
 ### Step 1 — Read existing artifacts
 
 Required (abort with the indicated message if missing):
-- `discovery.md` — "Run `kite.discover` first."
-- `specs/<latest>/spec.md` — "Run `kite.specify` first."
-- `specs/<latest>/design.md` — "Run `kite.design` first."
-- `specs/<latest>/plan.md` — "Run `kite.plan` first."
-- `specs/<latest>/tasks.md` — "Run `kite.tasks` first."
-- `specs/<latest>/contract.md` — "The backend contract is not ready. Run `kite.backend` first."
+- `FEATURE_DIR/discovery.md` — "Run `kite.discover` first."
+- `FEATURE_DIR/spec.md` — "Run `kite.specify` first."
+- `FEATURE_DIR/design.md` — "Run `kite.design` first."
+- `FEATURE_DIR/plan.md` — "Run `kite.plan` first."
+- `FEATURE_DIR/tasks.md` — "Run `kite.tasks` first."
+- `FEATURE_DIR/contract.md` — "The backend contract is not ready. Run `kite.backend` first."
 
 Optional:
 - `kite.config.yml` — read `persona`, `stack.frontend`.

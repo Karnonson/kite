@@ -61,20 +61,21 @@ This command runs **after** `kite.specify` and **before** the pre-plan clarifica
 1. **Plain English only.** Forbidden words in user-facing prompts: *epic, story, schema, endpoint, payload, non-functional, KPI, OKR, RFC, MVP, design tokens (use "style choices"), atomic design*. Use everyday alternatives ("colors", "spacing", "what each page looks like").
 2. **Text only.** Never produce images, SVG, base64, Figma JSON, or rendered HTML. ASCII boxes are allowed for layout sketches and must stay under 80 columns wide.
 3. **No code.** Do not write CSS, Tailwind classes, React JSX, or component code. That belongs to `kite.frontend`.
-4. **Reuse what exists.** If `discovery.md` declared a vibe or constraints, lift them — do not re-ask.
-5. **Maximum four questions.** Most answers should come from `discovery.md` and `spec.md`. Only ask about gaps.
+4. **Reuse what exists.** If `FEATURE_DIR/discovery.md` declared a vibe or constraints, lift them — do not re-ask.
+5. **Interview before writing.** Most answers should come from `FEATURE_DIR/discovery.md` and `FEATURE_DIR/spec.md`, but ask every material design question that remains. Ask one at a time with a sensible default, and stop only when the design choices are clear or the user says to skip questions / proceed / stop.
 6. **One Designer.** This command produces the **system** and the **layout** in one file. Do not split.
 
 ### Step 1 — Read existing artifacts
 
-1. Required inputs (refuse to run if any are missing — tell the user which command produces each):
-   - `discovery.md` (produced by `kite.discover`)
-   - `specs/<latest>/spec.md` (produced by `kite.specify`)
-2. Optional inputs (use if present):
+1. Resolve `FEATURE_DIR`: prefer `.kite/feature.json` if it points to an existing directory, otherwise use the latest directory under `specs/`.
+2. Required inputs (refuse to run if any are missing — tell the user which command produces each):
+    - `FEATURE_DIR/discovery.md` (produced by `kite.discover`)
+    - `FEATURE_DIR/spec.md` (produced by `kite.specify`)
+3. Optional inputs (use if present):
    - `kite.config.yml` — read `persona` to tune your tone (founder = warmer, junior = more concise).
    - `.kite/state.yml` — confirm previous stage was `specify`.
 
-If `discovery.md` or `spec.md` is missing, abort and tell the user:
+If `FEATURE_DIR/discovery.md` or `FEATURE_DIR/spec.md` is missing, abort and tell the user:
 > "I need a discovery brief and a specification first. Run `kite.discover` and then `kite.specify`, then come back."
 
 ### Step 2 — Decide what is already answered
@@ -88,11 +89,11 @@ Score against this checklist (✅ / ⚠️ / ❌):
 | Q3 | References | Any apps or websites you'd point at and say "feel like that"? |
 | Q4 | Density | Should the product feel **roomy** (lots of whitespace) or **dense** (more on screen at once)? |
 
-For every ❌ or ⚠️ topic, ask the user, **one at a time**, with a sensible default in square brackets. Skip ✅ topics.
+For every ❌ or ⚠️ topic, ask the user, **one at a time**, with a sensible default in square brackets. Skip ✅ topics. If answers expose another material design choice, ask that follow-up before writing `design.md` unless the user asks to proceed.
 
 ### Step 3 — Build the page list
 
-From `spec.md`, extract every distinct **screen / page / view** the user will encounter. If the spec is light on screens, infer from must-haves in `discovery.md` and confirm with the user in **one** consolidated message ("I'm planning these 5 screens — sound right?").
+From `FEATURE_DIR/spec.md`, extract every distinct **screen / page / view** the user will encounter. If the spec is light on screens, infer from must-haves in `FEATURE_DIR/discovery.md` and confirm with the user in **one** consolidated message ("I'm planning these 5 screens — sound right?").
 
 For each page, capture:
 - **Name** (plain English, not a URL)

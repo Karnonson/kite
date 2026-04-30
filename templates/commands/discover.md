@@ -16,7 +16,7 @@ handoffs:
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty). The user input is a one-line product idea written in plain English (e.g. "I want a tool where coaches can publish weekly training plans and athletes can mark them done"). Your job is **not** to write the spec — it is to interview the user and produce a `discovery.md` brief that the `kite.specify` command will consume next.
+You **MUST** consider the user input before proceeding (if not empty). The user input is a one-line product idea written in plain English (e.g. "I want a tool where coaches can publish weekly training plans and athletes can mark them done"). Your job is **not** to write the spec — it is to interview the user and produce a `specs/<feature>/discovery.md` brief that the `kite.specify` command will consume next.
 
 ## Pre-Execution Checks
 
@@ -62,7 +62,7 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
 
 1. **Plain English only.** No engineering jargon. Forbidden words in user-facing prompts: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*. Use everyday alternatives ("must-have", "what success looks like", "what users see", "what users do").
 2. **One question at a time.** Never bundle three sub-questions into one prompt. Wait for the user's answer before asking the next.
-3. **Maximum six questions.** If the user's initial idea already answers a question, skip it. The total conversation should never exceed six questions before you write `discovery.md`.
+3. **Interview before writing.** Ask every material discovery question needed to understand the project and the user's needs before writing `discovery.md`. Skip only questions already answered by the user's idea, or when the user says to skip questions / proceed / stop.
 4. **Default loudly.** Every question proposes a sensible default in square brackets. The user can answer "ok" / "yes" / Enter to accept it.
 5. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
 6. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
@@ -80,7 +80,26 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
    ```
 3. If `.kite/state.yml` exists, update its `stage` to `discover` and `updated_at`. Preserve other keys.
 
-### Step 2 — Read the user's idea, decide what is already answered
+### Step 2 — Create the feature workspace
+
+Discovery artifacts live with the rest of the feature artifacts under `specs/<feature>/`, never at the repository root.
+
+1. Generate a concise short name (2-4 words) from the user's idea using the same slug style as `kite.specify` (for example, `coach-training-plans`).
+2. If `.kite/feature.json` exists and contains a `feature_directory` that already points to an existing directory, reuse that directory and set `FEATURE_DIR` to it.
+3. Otherwise create a new feature directory under `specs/`:
+   - Read `.kite/init-options.json` if present.
+   - If `branch_numbering` is `timestamp`, use prefix `YYYYMMDD-HHMMSS`.
+   - If `branch_numbering` is `sequential` or absent, scan `specs/` and use the next available 3+ digit prefix (`001`, `002`, ...).
+   - Create `FEATURE_DIR=specs/<prefix>-<short-name>`.
+4. Persist the feature directory to `.kite/feature.json`:
+   ```json
+   {
+     "feature_directory": "<FEATURE_DIR>"
+   }
+   ```
+   Store the project-relative path, such as `specs/001-coach-training-plans`.
+
+### Step 3 — Read the user's idea, decide what is already answered
 
 Score the user's one-liner against this checklist. Mark each ✅ (clearly answered), ⚠️ (partial), or ❌ (missing):
 
@@ -95,7 +114,7 @@ Score the user's one-liner against this checklist. Mark each ✅ (clearly answer
 
 For every ❌ or ⚠️ topic, ask the user the corresponding question — **one at a time**, in the order above. For each ✅ topic, skip the question and reuse the answer the user already gave.
 
-### Step 3 — Conduct the interview
+### Step 4 — Conduct the interview
 
 For each question you ask:
 
@@ -103,10 +122,11 @@ For each question you ask:
 2. Suggest a sensible default in square brackets.
 3. Wait for the user's answer.
 4. **Reflect** the answer back in one sentence ("Got it — so the audience is X, and their pain is Y."). This catches misunderstandings early.
+5. Continue until every material discovery topic is answered. If the user asks to skip questions, gives no useful answer after one follow-up, or says to proceed, stop asking and record the gap under Open questions.
 
 If the user gives a vague or empty answer, ask **one** clarifying follow-up. Do not loop.
 
-### Step 4 — Seed `kite.config.yml` (one-time)
+### Step 5 — Seed `kite.config.yml` (one-time)
 
 If `kite.config.yml` does not yet exist at the repo root, ask exactly one extra question:
 
@@ -127,9 +147,9 @@ created_at: "<ISO-8601 timestamp now>"
 
 If `kite.config.yml` already exists, do **not** ask this question and do **not** modify the file.
 
-### Step 5 — Write `discovery.md`
+### Step 6 — Write `discovery.md`
 
-Write the brief to the **`specs/`** as `discovery.md`. Use this exact structure:
+Write the brief to `FEATURE_DIR/discovery.md`. Use this exact structure:
 
 ```markdown
 # Discovery Brief
@@ -188,14 +208,14 @@ The next command, `kite.specify`, will turn this brief into a formal feature spe
 - Do not include any tech-stack discussion. That belongs to `kite.plan`.
 - Do not number constraints if there are zero — write "None stated."
 
-### Step 6 — Update state and present a summary
+### Step 7 — Update state and present a summary
 
 1. Update `.kite/state.yml`:
    ```yaml
    stage: discover
    updated_at: "<ISO-8601 timestamp now>"
    artifacts:
-     discovery: discovery.md
+     discovery: <FEATURE_DIR>/discovery.md
    ```
 2. Print a **5-bullet** summary to the user:
    - Who it's for
@@ -205,10 +225,10 @@ The next command, `kite.specify`, will turn this brief into a formal feature spe
    - Number of open questions parked for `kite.specify`
 3. Ask: "Ready to turn this into a formal specification? Approve to continue with `kite.specify`, or tell me what to change in the brief."
 
-### Step 7 — Handoff
+### Step 8 — Handoff
 
-If the user approves, recommend running `kite.specify`. Do not run it for them — the orchestrator (`kite.start`) handles that. If the user is running this command standalone, they will invoke `kite.specify` themselves.
+If the user approves, recommend running `kite.specify`. Tell them it will reuse the same `FEATURE_DIR` from `.kite/feature.json`. Do not run it for them — the orchestrator (`kite.start`) handles that. If the user is running this command standalone, they will invoke `kite.specify` themselves.
 
 ---
 
-**Reminder:** This command writes one file (`discovery.md`) and one or two state files (`.kite/state.yml`, optionally `kite.config.yml`). It writes nothing under `specs/` and nothing in `src/`.
+**Reminder:** This command writes one feature artifact (`FEATURE_DIR/discovery.md`) and state/config files (`.kite/state.yml`, `.kite/feature.json`, optionally `kite.config.yml`). It writes nothing in `src/`.
