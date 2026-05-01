@@ -464,13 +464,19 @@ class IntegrationBase(ABC):
 
         return f"{leading}{opening}{fm_text}{closing}{sep}{rest}"
 
-    @staticmethod
-    def _build_context_section(plan_path: str = "") -> str:
+    def _build_context_section(self, plan_path: str = "") -> str:
         """Build the content for the managed section between markers.
 
         *plan_path* is the project-relative path to the current plan
         (e.g. ``"specs/<feature>/plan.md"``).  When empty, the section
         contains only the generic directive without a concrete path.
+
+        Any command template that declares a ``context_hint`` frontmatter
+        field contributes an auto-trigger hint appended as an
+        "## External Skills" subsection.  This ensures that agents loading
+        the instructions file (CLAUDE.md, AGENTS.md, copilot-instructions.md,
+        etc.) know *when* to invoke those commands automatically — because
+        slash commands are not auto-discovered the way SKILL.md files are.
         """
         lines = [
             "For additional context about technologies to be used, project structure,",
@@ -478,7 +484,53 @@ class IntegrationBase(ABC):
         ]
         if plan_path:
             lines.append(f"at {plan_path}")
+
+        hints = self._collect_context_hints()
+        if hints:
+            lines.append("")
+            lines.append("## External Skills")
+            lines.append(
+                "Invoke these Kite commands automatically when the described situation applies:"
+            )
+            for hint in hints:
+                lines.append(f"- {hint}")
+
         return "\n".join(lines)
+
+    def _collect_context_hints(self) -> list[str]:
+        """Return ``context_hint`` values from all command templates.
+
+        Reads the YAML frontmatter of each file returned by
+        ``list_command_templates()`` and collects the ``context_hint``
+        field when present.  Returns an empty list when no templates
+        declare hints.
+        """
+        import yaml as _yaml
+
+        hints: list[str] = []
+        for tmpl in self.list_command_templates():
+            try:
+                raw = tmpl.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            # Fast check before parsing YAML
+            if "context_hint" not in raw:
+                continue
+            # Extract YAML frontmatter between the first pair of --- markers
+            if not raw.startswith("---"):
+                continue
+            end = raw.find("\n---", 3)
+            if end == -1:
+                continue
+            fm_text = raw[3:end].strip()
+            try:
+                fm = _yaml.safe_load(fm_text) or {}
+            except _yaml.YAMLError:
+                continue
+            hint = fm.get("context_hint")
+            if hint and isinstance(hint, str):
+                hints.append(hint.strip())
+        return hints
 
     def upsert_context_section(
         self,
@@ -708,6 +760,10 @@ class IntegrationBase(ABC):
                     if line[0:1].isspace():
                         continue  # skip indented content under scripts
                     skip_section = False
+                # Strip context_hint — it's consumed by _build_context_section
+                # and must not appear in the installed command file.
+                if stripped.startswith("context_hint:"):
+                    continue
             output_lines.append(line)
         content = "".join(output_lines)
 

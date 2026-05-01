@@ -56,6 +56,17 @@ class TestCopilotIntegration:
         prompts = [f for f in created if ".prompt.md" in f.name]
         assert len(agents) == len(prompts)
 
+    def test_mastra_is_skill_only_in_default_mode(self, tmp_path):
+        from kite_cli.integrations.copilot import CopilotIntegration
+        copilot = CopilotIntegration()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m)
+
+        mastra_skill = tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md"
+        assert mastra_skill.exists()
+        assert not (tmp_path / ".github" / "agents" / "kite.mastra.agent.md").exists()
+        assert not (tmp_path / ".github" / "prompts" / "kite.mastra.prompt.md").exists()
+
     def test_setup_creates_vscode_settings_new(self, tmp_path):
         from kite_cli.integrations.copilot import CopilotIntegration
         copilot = CopilotIntegration()
@@ -212,6 +223,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
             ".github/prompts/kite.taskstoissues.prompt.md",
+            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -289,6 +301,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
             ".github/prompts/kite.taskstoissues.prompt.md",
+            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -321,7 +334,7 @@ class TestCopilotSkillsMode:
 
     _SKILL_COMMANDS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design",
-        "discover", "docs", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        "discover", "docs", "frontend", "implement", "mastra", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _make_copilot(self):
@@ -732,6 +745,27 @@ class TestCopilotSkillsMode:
             assert "my args" in prompt, (
                 f"Skills mode prompt should preserve user args, got: {prompt}"
             )
+
+    def test_dispatch_uses_skill_only_for_matching_command(self, tmp_path):
+        """A default-mode Mastra skill must not force other commands into skills mode."""
+        copilot = self._make_copilot()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m)
+
+        import unittest.mock as mock
+        with mock.patch("subprocess.run") as mock_run:
+            mock_run.return_value = mock.Mock(returncode=0, stdout="", stderr="")
+
+            copilot.dispatch_command("plan", "my args", project_root=tmp_path, stream=False)
+            plan_args = mock_run.call_args[0][0]
+            assert "--agent" in plan_args
+            assert "kite.plan" in plan_args
+
+            copilot.dispatch_command("mastra", "my args", project_root=tmp_path, stream=False)
+            mastra_args = mock_run.call_args[0][0]
+            assert "--agent" not in mastra_args
+            prompt = mastra_args[mastra_args.index("-p") + 1]
+            assert prompt == "/kite-mastra my args"
 
     # -- Next-steps display for Copilot skills mode -----------------------
 

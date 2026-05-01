@@ -493,6 +493,7 @@ class TomlIntegrationTests:
         "docs",
         "frontend",
         "implement",
+        "mastra",
         "plan",
         "qa",
         "research",
