@@ -52,3 +52,4 @@ docs/dev
 .specify/extensions/*/local-config.yml
 next-steps/*
 team/*
+temp.md

@@ -98,11 +98,16 @@ kite init <PROJECT_NAME> --integration copilot
 kite check
 ```
 
-To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
+To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Safe dry-run:
 
 ```bash
-uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
-# pipx users: pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z
+kite self upgrade
+```
+
+Apply the detected `uv tool` or `pipx` upgrade command after confirmation:
+
+```bash
+kite self upgrade --apply
 ```
 
 **Benefits of persistent installation:**

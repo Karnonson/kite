@@ -58,6 +58,7 @@ from typer.core import TyperGroup
 import readchar
 
 GITHUB_API_LATEST = "https://api.github.com/repos/Karnonson/kite/releases/latest"
+KITE_RELEASE_REPO = "https://github.com/Karnonson/kite.git"
 
 def _build_agent_config() -> dict[str, dict[str, Any]]:
     """Derive AGENT_CONFIG from INTEGRATION_REGISTRY."""
@@ -1791,6 +1792,62 @@ def _is_newer(latest: str, current: str) -> bool:
         return False
 
 
+def _release_install_spec(tag: str) -> str:
+    """Return the git install spec for a Kite release tag."""
+
+    return f"git+{KITE_RELEASE_REPO}@{tag}"
+
+
+def _uv_tool_upgrade_command(tag: str) -> list[str]:
+    """Build the safe uv-tool reinstall command for a pinned Kite release."""
+
+    return [
+        "uv",
+        "tool",
+        "install",
+        "kite-cli",
+        "--force",
+        "--from",
+        _release_install_spec(tag),
+    ]
+
+
+def _pipx_upgrade_command(tag: str) -> list[str]:
+    """Build the safe pipx reinstall command for a pinned Kite release."""
+
+    return ["pipx", "install", "--force", _release_install_spec(tag)]
+
+
+def _format_command(command: list[str]) -> str:
+    """Return a copy-pasteable shell command without invoking a shell."""
+
+    return shlex.join(command)
+
+
+def _detect_self_install_method(executable: str | None = None) -> str | None:
+    """Detect supported persistent install methods from the running interpreter.
+
+    Detection is intentionally conservative. We only return a method when the
+    interpreter path has the conventional uv-tool or pipx venv shape for the
+    `kite-cli` package. Unknown layouts are treated as read-only so `--apply`
+    cannot mutate a guessed installer target.
+    """
+
+    executable_path = (executable or sys.executable).replace("\\", "/").lower()
+    parts = [part for part in executable_path.split("/") if part]
+
+    if "kite-cli" not in parts:
+        return None
+
+    if "uv" in parts and "tools" in parts:
+        return "uv tool"
+
+    if "pipx" in parts and "venvs" in parts:
+        return "pipx"
+
+    return None
+
+
 def _fetch_latest_release_tag() -> tuple[str | None, str | None]:
     """Return (tag, failure_category). Exactly one outbound call, 5 s timeout.
 
@@ -1832,7 +1889,7 @@ def _fetch_latest_release_tag() -> tuple[str | None, str | None]:
 # ===== Self Commands =====
 self_app = typer.Typer(
     name="self",
-    help="Manage the kite CLI itself (read-only check and reserved upgrade command).",
+    help="Manage the kite CLI itself (read-only checks and safe self-upgrade).",
     add_completion=False,
 )
 app.add_typer(self_app, name="self")
@@ -1842,10 +1899,9 @@ def self_check() -> None:
     """Check whether a newer kite-cli release is available. Read-only.
 
     This command only checks for updates; it does not modify your installation.
-    The reserved (and currently non-destructive) `kite self upgrade` command
-    is the name that a future release will use for actual self-upgrade — its
-    behavior is not implemented in this release and is intentionally out of
-    scope here. See `kite self upgrade --help` for its current status.
+    Use `kite self upgrade` for a non-destructive dry-run that detects the
+    installer and prints the exact command it would run. Add `--apply` only
+    when you want Kite to execute that command after confirmation.
     """
 
     installed = _get_installed_version()
@@ -1887,20 +1943,93 @@ def self_check() -> None:
 
 
 @self_app.command("upgrade")
-def self_upgrade() -> None:
-    """Reserved command surface for self-upgrade; not implemented in this release.
+def self_upgrade(
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Show the detected version, latest release, and upgrade command without running it. This is the default unless --apply is set.",
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help="Run the detected installer command after confirmation.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip the confirmation prompt when used with --apply.",
+    ),
+) -> None:
+    """Safely check and optionally upgrade the installed Kite CLI.
 
-    This command is a documented non-destructive stub in this release: it
-    performs no outbound network request, no install-method detection, and
-    invokes no installer. It prints a three-line guidance message and exits 0.
-    Actual self-upgrade is planned as follow-up work.
-
-    Use `kite self check` today to see whether a newer release is available
-    and to get a copy-pasteable reinstall command.
+    Default behavior is a non-destructive dry-run: detect the current version,
+    check the latest GitHub release, detect a supported persistent install
+    method (`uv tool` or `pipx`), and print the exact command to run. Installers
+    are never invoked unless `--apply` is provided and confirmed.
     """
-    console.print("kite self upgrade is not implemented yet.")
-    console.print("Run 'kite self check' to see whether a newer release is available.")
-    console.print("Actual self-upgrade is planned as follow-up work.")
+
+    if apply and dry_run:
+        console.print("[red]Choose either --dry-run or --apply, not both.[/red]")
+        raise typer.Exit(2)
+
+    installed = _get_installed_version()
+    tag, failure_reason = _fetch_latest_release_tag()
+    install_method = _detect_self_install_method()
+
+    console.print(f"Installed: {installed}")
+    if install_method:
+        console.print(f"Install method: {install_method}")
+    else:
+        console.print("Install method: unknown")
+
+    if tag is None:
+        assert failure_reason is not None
+        console.print(f"[yellow]Could not check latest release:[/yellow] {failure_reason}")
+        console.print("No installer command was run.")
+        raise typer.Exit(1 if apply else 0)
+
+    latest_normalized = _normalize_tag(tag)
+    console.print(f"Latest release: {latest_normalized}")
+
+    if installed != "unknown" and _is_newer(latest_normalized, installed):
+        console.print(f"[green]Update available:[/green] {installed} → {latest_normalized}")
+    elif installed == "unknown":
+        console.print("Current version could not be determined; reinstalling the latest release is safest.")
+    else:
+        console.print(f"[green]Already at or newer than latest release:[/green] {installed}")
+
+    if install_method == "uv tool":
+        command = _uv_tool_upgrade_command(tag)
+    elif install_method == "pipx":
+        command = _pipx_upgrade_command(tag)
+    else:
+        uv_command = _format_command(_uv_tool_upgrade_command(tag))
+        pipx_command = _format_command(_pipx_upgrade_command(tag))
+        console.print("\nKite could not safely detect whether this install is managed by uv tool or pipx.")
+        console.print("No installer command was run.")
+        console.print("\nReinstall or upgrade manually with one of:")
+        console.print(f"  {uv_command}", soft_wrap=True)
+        console.print(f"  {pipx_command}", soft_wrap=True)
+        raise typer.Exit(1 if apply else 0)
+
+    formatted_command = _format_command(command)
+    console.print("\nSuggested upgrade command:")
+    console.print(f"  {formatted_command}", soft_wrap=True)
+
+    if not apply:
+        console.print("\nDry run only. Re-run with --apply to execute this command.")
+        return
+
+    if not yes:
+        typer.confirm("Run this command now?", abort=True)
+
+    result = subprocess.run(command, check=False)
+    if result.returncode != 0:
+        console.print(f"[red]Upgrade command failed with exit code {result.returncode}.[/red]")
+        raise typer.Exit(result.returncode)
+
+    console.print("[green]Kite CLI upgrade command completed.[/green]")
 
 
 # ===== Extension Commands =====

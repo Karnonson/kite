@@ -490,6 +490,7 @@ class TomlIntegrationTests:
         "constitution",
         "design",
         "discover",
+        "docs",
         "frontend",
         "implement",
         "plan",

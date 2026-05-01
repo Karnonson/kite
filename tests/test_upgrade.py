@@ -3,9 +3,10 @@
 Network isolation contract (SC-004 / FR-014): every test that exercises
 `kite self check` or `_fetch_latest_release_tag()` MUST mock
 `urllib.request.urlopen` so no real outbound call ever reaches
-api.github.com. The `self upgrade` stub tests do not need that patch because
-the stub is contractually network-free. Run this module under `pytest-socket`
-(if installed) with `--disable-socket` as an extra safety net.
+api.github.com. `kite self upgrade` MUST mock `_fetch_latest_release_tag()`
+so dry-runs remain network-isolated while still exercising the release-check
+contract. Run this module under `pytest-socket` (if installed) with
+`--disable-socket` as an extra safety net.
 """
 
 import json
@@ -52,28 +53,114 @@ def _http_error(code: int, message: str = "error") -> urllib.error.HTTPError:
     )
 
 
-class TestSelfUpgradeStub:
-    """Pins the `specify self upgrade` stub output + exit code (contract §3.5, FR-016)."""
+class TestSelfUpgrade:
+    def test_default_dry_run_detects_uv_and_does_not_run_installer(self):
+        with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(
+            "kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)
+        ) as fetch_latest, patch(
+            "kite_cli.sys.executable",
+            "/home/user/.local/share/uv/tools/kite-cli/bin/python",
+        ), patch("kite_cli.subprocess.run") as run:
+            result = runner.invoke(app, ["self", "upgrade"])
 
-    def test_prints_exactly_three_lines_and_exits_zero(self):
-        result = runner.invoke(app, ["self", "upgrade"])
+        output = strip_ansi(result.output)
         assert result.exit_code == 0
-        lines = strip_ansi(result.output).strip().splitlines()
-        assert lines == [
-            "kite self upgrade is not implemented yet.",
-            "Run 'kite self check' to see whether a newer release is available.",
-            "Actual self-upgrade is planned as follow-up work.",
-        ]
+        fetch_latest.assert_called_once_with()
+        run.assert_not_called()
+        assert "Installed: 0.7.4" in output
+        assert "Latest release: 0.9.0" in output
+        assert "Install method: uv tool" in output
+        assert "Update available: 0.7.4 → 0.9.0" in output
+        assert (
+            "uv tool install kite-cli --force --from "
+            "git+https://github.com/Karnonson/kite.git@v0.9.0"
+        ) in output
+        assert "Dry run only" in output
 
-    def test_stub_makes_no_network_call(self):
-        # If the stub ever starts calling urllib, this patch's side_effect
-        # would fire and the assertion below would fail.
+    def test_explicit_dry_run_is_network_isolated_through_mocked_helper(self):
         with patch(
             "kite_cli.urllib.request.urlopen",
-            side_effect=AssertionError("stub must not hit the network"),
-        ):
-            result = runner.invoke(app, ["self", "upgrade"])
+            side_effect=AssertionError("upgrade must use the mocked release helper"),
+        ), patch("kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)), patch(
+            "kite_cli._get_installed_version", return_value="0.7.4"
+        ), patch(
+            "kite_cli.sys.executable",
+            "/home/user/.local/share/uv/tools/kite-cli/bin/python",
+        ), patch("kite_cli.subprocess.run") as run:
+            result = runner.invoke(app, ["self", "upgrade", "--dry-run"])
+
         assert result.exit_code == 0
+        run.assert_not_called()
+
+    def test_dry_run_detects_pipx_and_prints_pipx_command(self):
+        with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(
+            "kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)
+        ), patch(
+            "kite_cli.sys.executable",
+            "/home/user/.local/share/pipx/venvs/kite-cli/bin/python",
+        ), patch("kite_cli.subprocess.run") as run:
+            result = runner.invoke(app, ["self", "upgrade"])
+
+        output = strip_ansi(result.output)
+        assert result.exit_code == 0
+        run.assert_not_called()
+        assert "Install method: pipx" in output
+        assert "pipx install --force git+https://github.com/Karnonson/kite.git@v0.9.0" in output
+
+    def test_unknown_install_method_prints_manual_commands_and_does_not_apply(self):
+        with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(
+            "kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)
+        ), patch("kite_cli.sys.executable", "/opt/kite/bin/python"), patch(
+            "kite_cli.subprocess.run"
+        ) as run:
+            result = runner.invoke(app, ["self", "upgrade", "--apply", "--yes"])
+
+        output = strip_ansi(result.output)
+        assert result.exit_code == 1
+        run.assert_not_called()
+        assert "Install method: unknown" in output
+        assert "could not safely detect" in output
+        assert "uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@v0.9.0" in output
+        assert "pipx install --force git+https://github.com/Karnonson/kite.git@v0.9.0" in output
+
+    def test_apply_requires_confirmation_when_yes_is_not_set(self):
+        with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(
+            "kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)
+        ), patch(
+            "kite_cli.sys.executable",
+            "/home/user/.local/share/uv/tools/kite-cli/bin/python",
+        ), patch("kite_cli.subprocess.run") as run:
+            result = runner.invoke(app, ["self", "upgrade", "--apply"], input="n\n")
+
+        output = strip_ansi(result.output)
+        assert result.exit_code != 0
+        run.assert_not_called()
+        assert "Run this command now?" in output
+
+    def test_apply_with_yes_runs_detected_installer_command(self):
+        completed = MagicMock(returncode=0)
+        with patch("kite_cli._get_installed_version", return_value="0.7.4"), patch(
+            "kite_cli._fetch_latest_release_tag", return_value=("v0.9.0", None)
+        ), patch(
+            "kite_cli.sys.executable",
+            "/home/user/.local/share/uv/tools/kite-cli/bin/python",
+        ), patch("kite_cli.subprocess.run", return_value=completed) as run:
+            result = runner.invoke(app, ["self", "upgrade", "--apply", "--yes"])
+
+        assert result.exit_code == 0
+        run.assert_called_once_with(
+            [
+                "uv",
+                "tool",
+                "install",
+                "kite-cli",
+                "--force",
+                "--from",
+                "git+https://github.com/Karnonson/kite.git@v0.9.0",
+            ],
+            check=False,
+        )
+        assert "upgrade command completed" in strip_ansi(result.output)
 
 
 class TestIsNewer:

@@ -4,11 +4,9 @@ handoffs:
   - label: Analyze For Consistency
     agent: kite.analyze
     prompt: Run a project analysis for consistency
-    send: true
   - label: Implement Backend
     agent: kite.backend
     prompt: Start backend implementation and publish the frontend contract
-    send: true
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json
   ps: scripts/powershell/check-prerequisites.ps1 -Json
@@ -65,13 +63,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
-3. **Confirm task-shaping choices before writing**: If the loaded artifacts do not clearly answer implementation ownership, test expectations, dev-environment commands, deployment/ops tasks, or tracer-bullet verification flow, ask the user one question at a time with a recommended default. Continue until the task list can be written without guessing, or stop if the user says to skip questions / proceed / stop.
+3. **Confirm task-shaping choices before writing**: If the loaded artifacts do not clearly answer implementation ownership, approved source layout, test expectations, dev-environment commands, accessibility checks, documentation needs, deployment/ops tasks, or tracer-bullet verification flow, ask the user one question at a time with a recommended default. Continue until the task list can be written without guessing, or stop if the user says to skip questions / proceed / stop.
 
-4. **Execute task generation workflow**: Load `plan.md` and extract the tech stack, libraries, and project structure. Load `spec.md` and extract user stories with their priorities. If `data-model.md` exists, map entities to user stories. If `contracts/` exists, map interface contracts to user stories. If `research.md` exists, extract the setup decisions. Then generate tasks organized by user story and tracer-bullet phase, split backend and frontend work into separate task groups whenever both are in scope, add explicit phase-verification tasks so every phase can be proven working before the next phase starts, generate the dependency graph and per-story parallel execution examples, and validate that each story is independently testable and phase-gated.
+4. **Execute task generation workflow**: Load `plan.md` and extract the tech stack, libraries, and Approved Source Layout. Load `spec.md` and extract user stories with their priorities. If `data-model.md` exists, map entities to user stories. If `contracts/` exists, map interface contracts to user stories. If `research.md` exists, extract the setup decisions. Then generate tasks organized by user story and tracer-bullet phase, split backend and frontend work into separate task groups whenever both are in scope, add explicit phase-verification tasks so every phase can be proven working before the next phase starts, generate the dependency graph and per-story parallel execution examples, and validate that each story is independently testable and phase-gated.
 
-5. **Generate tasks.md**: Use `templates/tasks-template.md` as the structure. Fill in the correct feature name from `plan.md`, create Phase 1 setup tasks, Phase 2 foundational tasks, and one user-story phase per priority from `spec.md`. Each phase must include the story goal, independent test criteria, separate backend/frontend subsections when relevant, and explicit verification tasks. Finish with a polish / cross-cutting phase, clear file paths, the dependencies section, parallel execution examples, and an implementation strategy built around tracer-bullet delivery.
+5. **Generate tasks.md**: Use `templates/tasks-template.md` as the structure. Fill in the correct feature name from `plan.md`, create Phase 1 setup tasks, Phase 2 foundational tasks, and one user-story phase per priority from `spec.md`. Phase 1 MUST include a setup task that creates only the directories listed in the Approved Source Layout. Every task path MUST stay inside the Approved Source Layout from `plan.md`; if a task needs a new root directory, rewrite the task into an approved path or STOP and ask for plan approval. Each phase must include the story goal, independent test criteria, separate backend/frontend/docs/qa subsections when relevant, and explicit verification tasks. Finish with a polish / cross-cutting phase, clear file paths, the dependencies section, parallel execution examples, and an implementation strategy built around tracer-bullet delivery.
 
-6. **Report**: Output the path to `tasks.md` plus the total task count, task count per user story, task count per persona (`[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`), parallel opportunities, independent test criteria and verification flow for each phase, the suggested MVP scope, and confirmation that every task follows the checklist format with checkbox, task ID, story/persona labels, and file path.
+6. **Report**: Output the path to `tasks.md` plus the total task count, task count per user story, task count per persona (`[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`), approved source layout confirmation, parallel opportunities, independent test criteria and verification flow for each phase, the suggested MVP scope, and confirmation that every task follows the checklist format with checkbox, task ID, story/persona labels, and file path. Ask for the single required approval gate: "Approve tasks.md before automated implementation starts?" MUST NOT invoke or auto-send `kite.backend`.
 
 7. **Check for extension hooks**: After tasks.md is generated, check if `.kite/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_tasks` key
@@ -114,7 +112,13 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 **CRITICAL**: When both backend and frontend are in scope, NEVER create a mixed ownership task. Backend code, API contracts, schema, server configuration, and framework dev environments belong to `[backend]`. UI, client state, view-layer styling, and browser interactions belong to `[frontend]`.
 
-**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+**Verification is REQUIRED**: Generate tests and/or framework-appropriate verification tasks for every code change. Depth adapts to the project and framework, but code tasks MUST have an executable validation command, component/smoke test, browser flow, or framework-native verification step before the phase is complete.
+
+**Accessibility is REQUIRED for user-visible work**: Frontend and QA tasks MUST verify keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling where UI exists.
+
+**Documentation ownership is REQUIRED for user-visible features**: If a feature changes user-visible behavior, generate `[docs]` tasks. Use `README.md` only for project overview, setup, common commands, and quickstart. Use `docs/` for durable guides, architecture, deployment, operations, and troubleshooting. Use `specs/<feature>/` only for planning artifacts.
+
+**Approved Source Layout is REQUIRED**: Tasks MUST use only paths listed in plan.md's `## Approved Source Layout`. Framework-native root layouts are allowed only when the plan states why. The first setup phase MUST include a task that creates the approved structure.
 
 ### Checklist Format (REQUIRED)
 
@@ -164,13 +168,13 @@ Every task MUST strictly follow this format:
      - Models needed for that story
      - Services needed for that story
      - Interfaces/UI needed for that story
-     - If tests requested: Tests specific to that story
+      - Required tests or verification specific to that story
    - Mark story dependencies (most stories should be independent)
   - When both backend and frontend are present, split each story into separate backend and frontend subsections with their own verification tasks
 
 2. **From Contracts**:
    - Map each interface contract → to the user story it serves
-   - If tests requested: Each interface contract → contract test task [P] before implementation in that story's phase
+    - Each interface contract → contract test or verification task [P] before or with implementation in that story's phase
   - Backend tasks that change a contract belong to `[backend]`; frontend tasks consume the contract but never redefine it
 
 3. **From Data Model**:
@@ -196,7 +200,7 @@ Every task MUST strictly follow this format:
 - **Phase 2**: Foundational (blocking prerequisites + foundation verification before user stories)
 - **Phase 3+**: User Stories in priority order (P1, P2, P3...)
   - Within each story: Backend slice → backend verification → frontend slice → frontend verification → QA / acceptance tasks (omit irrelevant subsections if that surface is not in scope)
-  - Tests (if requested) still come before the corresponding implementation tasks inside each subsection
+  - Required tests/verification come before or immediately after the corresponding implementation tasks inside each subsection, according to the framework and project testing style
   - Each phase should be a complete, independently testable increment
 - **Final Phase**: Polish & Cross-Cutting Concerns
 

@@ -21,7 +21,7 @@
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
 **AI SDK / Agent Framework**: [e.g., none, Mastra, Google ADK, Vercel AI SDK or NEEDS CLARIFICATION]  
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Testing/Verification**: [required; e.g., pytest, XCTest, cargo test, browser smoke flow, framework-native validation, or NEEDS CLARIFICATION]  
 **Deployment/Hosting**: [e.g., Vercel, Fly.io, Cloud Run, self-hosted or NEEDS CLARIFICATION]  
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
 **Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
@@ -95,6 +95,34 @@ ios/ or android/
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]
+
+## Approved Source Layout
+
+<!--
+  ACTION REQUIRED: Replace this section with the exact repository paths that
+  implementation tasks may create or edit. The __KITE_COMMAND_TASKS__ command
+  MUST keep every code, test, docs, and ops task inside this approved layout.
+
+  Choose one structure and delete unused examples. Framework-native layouts are
+  allowed only when this section explains why (for example, a single Next.js app
+  may use app/, lib/, and prisma/ at the repository root because it is one
+  framework-native project). Full-stack multi-surface apps should prefer grouped
+  roots such as apps/web, apps/api, packages/shared, tests/e2e, and docs.
+-->
+
+```text
+[approved-root-or-file]/
+├── [approved-child]/
+└── [approved-child]/
+```
+
+**Layout rationale**: [Why this layout fits the feature and framework]
+
+**Allowed write roots**:
+
+- `[path]` — [owner/persona and purpose]
+
+**Framework-native exceptions**: [N/A or explain why root-level framework folders are approved]
 
 ## Complexity Tracking
 

@@ -4,7 +4,6 @@ handoffs:
   - label: Create Tasks
     agent: kite.tasks
     prompt: Break the plan into tasks
-    send: true
   - label: Create Checklist
     agent: kite.checklist
     prompt: Create a checklist for the following domain...
@@ -59,28 +58,31 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC, `SPECS_DIR/discovery.md` if present, `SPECS_DIR/design.md` if present, `SPECS_DIR/research.md` if present, `kite.config.yml` if present, and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Feature branch guardrail**: If this is a git repository and `BRANCH` or the current branch is `main` or `master`, STOP before writing the plan. Create/switch to a feature branch if safe; otherwise tell the user the exact branch issue and do not continue on `main` or `master`.
 
-3. **Interview before planning**: Before filling the plan, check whether the current artifacts and `kite.config.yml` already answer the planning-critical decisions. If anything material is missing, ask the user yourself.
+3. **Load context**: Read FEATURE_SPEC, `SPECS_DIR/discovery.md` if present, `SPECS_DIR/design.md` if present, `SPECS_DIR/research.md` if present, `kite.config.yml` if present, and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+
+4. **Interview before planning**: Before filling the plan, check whether the current artifacts and `kite.config.yml` already answer the planning-critical decisions. If anything material is missing, ask the user yourself.
    - Ask exactly one question at a time and wait for the answer before the next question.
    - Offer a recommended default in square brackets with a short reason, so the user can reply `yes`, `ok`, or press Enter to accept it.
-   - Ask about project architecture / shape, backend and frontend framework preferences, storage, hosting or deployment target, budget / operations posture, testing expectations, and AI SDK / agent framework only if the product needs AI behavior.
+    - Ask about project architecture / shape, approved source layout, backend and frontend framework preferences, storage, hosting or deployment target, budget / operations posture, testing expectations, accessibility validation, documentation needs, and AI SDK / agent framework only if the product needs AI behavior.
    - Keep asking until the plan can be written without guessing. Stop early only if the user says to skip questions / proceed / stop, or an answer remains unhelpful after one follow-up.
    - Reflect each answer back in one sentence and persist accepted choices into `kite.config.yml` before writing the plan.
    - After the user accepts candidate choices, invoke the `kite.research` subagent to verify current official docs, stable versions, hosting fit, and MCP / skill support for any AI SDK or agent framework. The research subagent is a helper; this command still owns workflow state and the final plan.
 
-4. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
+5. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context from user-approved answers, `kite.config.yml`, and `research.md`; mark skipped or unresolved choices as `NEEDS CLARIFICATION`
-   - Fill Constitution Check section from constitution
+    - Fill Constitution Check section from constitution
+    - Fill Approved Source Layout with the exact directories tasks may use. Choose one layout, delete unused sample options, and state why framework-native root layouts are allowed if used.
    - Evaluate gates (ERROR if violations unjustified)
    - Phase 0: Generate or refresh `research.md` with official-doc verification for chosen dependencies, frameworks, hosting targets, and any AI SDK / agent framework
    - Phase 1: Generate data-model.md, contracts/, quickstart.md
    - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
 
-5. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+6. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, generated artifacts, approved source layout, testing/verification approach, accessibility coverage, and docs ownership. Ask: "Approve this plan so `kite.tasks` can generate tasks.md, or tell me what to change?" MUST NOT invoke or auto-send `kite.tasks`.
 
-6. **Check for extension hooks**: After reporting, check if `.kite/extensions.yml` exists in the project root.
+7. **Check for extension hooks**: After reporting, check if `.kite/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_plan` key
    - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
    - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
@@ -182,3 +184,4 @@ A plan without this block is incomplete and must be rewritten.
 - Use absolute paths for filesystem operations; use project-relative paths for references in documentation and agent context files
 - Never lock framework or AI SDK versions from memory alone. Verify them against current official docs, release notes, or official package registries.
 - ERROR on gate failures or unresolved clarifications
+- MUST NOT leave Approved Source Layout empty or with unused option labels.

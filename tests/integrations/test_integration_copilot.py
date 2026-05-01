@@ -125,10 +125,10 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 16
+        assert len(agent_files) == 17
         expected_commands = {
             "analyze", "backend", "checklist", "clarify", "constitution", "design",
-            "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+            "discover", "docs", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
         }
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
@@ -185,6 +185,7 @@ class TestCopilotIntegration:
             ".github/agents/kite.constitution.agent.md",
             ".github/agents/kite.design.agent.md",
             ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.docs.agent.md",
             ".github/agents/kite.frontend.agent.md",
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
@@ -201,6 +202,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.constitution.prompt.md",
             ".github/prompts/kite.design.prompt.md",
             ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.docs.prompt.md",
             ".github/prompts/kite.frontend.prompt.md",
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
@@ -260,6 +262,7 @@ class TestCopilotIntegration:
             ".github/agents/kite.constitution.agent.md",
             ".github/agents/kite.design.agent.md",
             ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.docs.agent.md",
             ".github/agents/kite.frontend.agent.md",
             ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
@@ -276,6 +279,7 @@ class TestCopilotIntegration:
             ".github/prompts/kite.constitution.prompt.md",
             ".github/prompts/kite.design.prompt.md",
             ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.docs.prompt.md",
             ".github/prompts/kite.frontend.prompt.md",
             ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
@@ -317,7 +321,7 @@ class TestCopilotSkillsMode:
 
     _SKILL_COMMANDS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design",
-        "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        "discover", "docs", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _make_copilot(self):

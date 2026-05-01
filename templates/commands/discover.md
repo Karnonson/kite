@@ -4,7 +4,6 @@ handoffs:
   - label: Write the Specification
     agent: kite.specify
     prompt: Use the discovery brief to draft the feature specification.
-    send: true
   - label: Refine Discovery
     agent: kite.discover
     prompt: I want to revise the discovery brief.
@@ -66,6 +65,9 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
 4. **Default loudly.** Every question proposes a sensible default in square brackets. The user can answer "ok" / "yes" / Enter to accept it.
 5. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
 6. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
+7. **Approval before advancing.** MUST NOT invoke or auto-send `kite.specify`. After writing `discovery.md`, ask the user to approve or revise the brief before the next stage.
+8. **Allowed writes.** May write `.kite/state.yml`, `.kite/feature.json`, `kite.config.yml` only when absent, and `specs/<feature>/discovery.md`.
+9. **Forbidden writes.** MUST NOT write `spec.md`, `design.md`, `plan.md`, `tasks.md`, application code, tests, or docs outside the active feature directory.
 
 ### Step 1 — Locate or create the project marker
 
@@ -186,17 +188,21 @@ Write the brief to `FEATURE_DIR/discovery.md`. Use this exact structure:
 
 - ...
 
-## 6. Vibe
+## 6. Accessibility expectations
+
+Accessible by default: keyboard access, visible focus, readable contrast, clear labels, clear error messages, and information that is not conveyed by color alone.
+
+## 7. Vibe
 
 Three words: **<word1>, <word2>, <word3>**.
 
-## 7. Open questions for the next stage
+## 8. Open questions for the next stage
 
 > Things you (the agent) noticed that `kite.specify` will need a clearer answer to. Phrase each as a yes/no or A-or-B question so the user can answer fast.
 
 - [ ] ...
 
-## 8. What happens next
+## 9. What happens next
 
 The next command, `kite.specify`, will turn this brief into a formal feature specification. You'll get to review it before any planning happens.
 ```

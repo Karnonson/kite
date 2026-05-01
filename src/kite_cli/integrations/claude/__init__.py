@@ -30,6 +30,7 @@ ARGUMENT_HINTS: dict[str, str] = {
     "tasks": "Optional task generation constraints",
     "backend": "Optional stack hints or task filter for backend work",
     "frontend": "Optional stack hints or task filter for frontend work",
+    "docs": "Optional documentation scope or task filter",
     "qa": "Optional test runner or task filter for QA",
     "research": "Framework, hosting, or AI SDK question to verify",
     "start": "One-line idea, or persona/auto_approve flags, or both",
