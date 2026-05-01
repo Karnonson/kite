@@ -135,7 +135,7 @@ If your environment blocks access to PyPI or GitHub, see the [Enterprise / Air-G
 
 ### 2. Founder fast path (recommended)
 
-Launch your coding agent in the project directory. Most agents expose Kite as `/kite.*` slash commands; Codex CLI in skills mode uses `$kite-*` instead.
+Launch your coding agent in the project directory. Most agents expose Kite as `/kite.*` slash commands; skills-based integrations use agent-native skill syntax such as `/kite-*`, `$kite-*`, or `/skill:kite-*`.
 
 If you just want Kite to walk you through the whole lifecycle in plain English, run:
 
@@ -231,13 +231,13 @@ For detailed step-by-step instructions, see our [comprehensive guide](./spec-dri
 
 ## 🤖 Supported AI Coding Agent Integrations
 
-Kite works with 30+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](docs/reference/integrations.md) guide.
+Kite works with 25+ AI coding agents — both CLI tools and IDE-based assistants. See the full list with notes and usage details in the [Supported AI Coding Agent Integrations](docs/reference/integrations.md) guide.
 
 Run `kite integration list` to see all available integrations in your installed version.
 
 ## Available Slash Commands
 
-After running `kite init`, your AI coding agent will have access to these slash commands for structured development. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
+After running `kite init`, your AI coding agent will have access to these workflow commands for structured development. Some integrations install them as slash-command prompt files; skills-based integrations install `kite-<command>/SKILL.md` skills and may use agent-native invocation syntax.
 
 ### Core Commands
 
