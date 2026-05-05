@@ -54,6 +54,14 @@ You are updating the project constitution at `.kite/memory/constitution.md`. Thi
 
 **Note**: If `.kite/memory/constitution.md` does not exist yet, it should have been initialized from `.kite/templates/constitution-template.md` during project setup. If it's missing, copy the template first.
 
+### Hard rules for this command
+
+1. **Conversational boundary.** Ask exactly one question at a time for material governance choices. MUST NOT write the constitution or recommend advancing until the user approves the collected principles or explicitly says to proceed with documented defaults.
+2. **Allowed writes.** This command may write `.kite/memory/constitution.md` and dependent Kite templates or guidance files only when the Sync Impact Report identifies a needed alignment change.
+3. **Forbidden writes.** MUST NOT write application code, feature specs, plans, tasks, or implementation files.
+4. **Accessibility default.** Treat accessible product behavior as a default principle: keyboard access, visible focus, readable contrast, clear labels, clear error messages, and no color-only signaling.
+5. **Testing default.** Treat tests and verification as required for code changes; adapt depth to the project and framework instead of making tests optional.
+
 Follow this execution flow:
 
 1. Load the existing constitution at `.kite/memory/constitution.md`.
@@ -76,7 +84,8 @@ Follow this execution flow:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
    - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
    - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
-   - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+    - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+    - Ensure the principles include accessibility and required verification unless the user explicitly rejects them and the rejection is documented in the Sync Impact Report.
 
 4. Consistency propagation checklist (convert prior checklist into active validations):
    - Read `.kite/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.

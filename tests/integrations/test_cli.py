@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 import yaml
@@ -63,6 +64,7 @@ class TestInitIntegrationFlag:
         opts = json.loads((project / ".kite" / "init-options.json").read_text(encoding="utf-8"))
         assert opts["integration"] == "copilot"
         assert opts["context_file"] == ".github/copilot-instructions.md"
+        assert opts["profile"] == "standard"
 
         assert (project / ".kite" / "integrations" / "copilot.manifest.json").exists()
 
@@ -75,6 +77,223 @@ class TestInitIntegrationFlag:
 
         shared_manifest = project / ".kite" / "integrations" / "kite.manifest.json"
         assert shared_manifest.exists()
+
+    def test_integration_copilot_profile_minimal(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+        runner = CliRunner()
+        project = tmp_path / "int-profile-minimal"
+        project.mkdir()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, [
+                "init", "--here", "--integration", "copilot",
+                "--profile", "minimal", "--script", "sh", "--no-git",
+            ], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, f"init failed: {result.output}"
+        assert (project / ".github" / "agents" / "kite.start.agent.md").exists()
+        assert not (project / ".github" / "agents" / "kite.research.agent.md").exists()
+        assert not (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert not (project / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
+
+        opts = json.loads((project / ".kite" / "init-options.json").read_text(encoding="utf-8"))
+        assert opts["profile"] == "minimal"
+
+    def test_integration_copilot_profile_standard_includes_analyze(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+        runner = CliRunner()
+        project = tmp_path / "int-profile-standard"
+        project.mkdir()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, [
+                "init", "--here", "--integration", "copilot",
+                "--profile", "standard", "--script", "sh", "--no-git",
+            ], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, f"init failed: {result.output}"
+        assert (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.research.agent.md").exists()
+        assert not (project / ".github" / "agents" / "kite.implement.agent.md").exists()
+
+    def test_integration_copilot_profile_full(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+        runner = CliRunner()
+        project = tmp_path / "int-profile-full"
+        project.mkdir()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, [
+                "init", "--here", "--integration", "copilot",
+                "--profile", "full", "--script", "sh", "--no-git",
+            ], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, f"init failed: {result.output}"
+        assert (project / ".github" / "agents" / "kite.implement.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert (project / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
+
+        opts = json.loads((project / ".kite" / "init-options.json").read_text(encoding="utf-8"))
+        assert opts["profile"] == "full"
+
+    def test_integration_copilot_profile_rejects_unknown(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+        runner = CliRunner()
+        project = tmp_path / "int-profile-invalid"
+        project.mkdir()
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, [
+                "init", "--here", "--integration", "copilot",
+                "--profile", "tiny", "--script", "sh", "--no-git",
+            ])
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 1
+        assert "Unknown install profile 'tiny'" in strip_ansi(result.output)
+
+    def test_init_writes_project_context_for_brownfield_project(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "brownfield"
+        project.mkdir()
+        (project / "package.json").write_text(
+            json.dumps(
+                {
+                    "scripts": {
+                        "lint": "eslint .",
+                        "test": "vitest run",
+                        "build": "vite build",
+                    },
+                    "dependencies": {"react": "18.2.0", "vite": "5.0.0"},
+                    "devDependencies": {"vitest": "1.0.0"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                [
+                    "init",
+                    "--here",
+                    "--force",
+                    "--integration",
+                    "copilot",
+                    "--script",
+                    "sh",
+                    "--no-git",
+                ],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        context_path = project / ".kite" / "project-context.json"
+        assert context_path.exists()
+        context = json.loads(context_path.read_text(encoding="utf-8"))
+        assert context["brownfield"] is True
+        assert context["summary"]["package_manager"] == "npm"
+        assert "react" in context["summary"]["frameworks"]
+        command_ids = {command["id"] for command in context["validation_commands"]}
+        assert {"package-lint", "package-test", "package-build"} <= command_ids
+
+    def test_project_check_runs_commands_from_context(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "check-pass"
+        (project / ".kite").mkdir(parents=True)
+        (project / ".kite" / "project-context.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "validation_commands": [
+                        {
+                            "id": "unit",
+                            "label": "Unit tests",
+                            "command": [sys.executable, "-c", "print('ok')"],
+                            "source": "test",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["check", "--no-refresh-context"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        normalized_output = _normalize_cli_output(result.output)
+        assert "Project validation passed" in normalized_output
+        assert "Unit tests" in normalized_output
+
+    def test_project_check_fails_when_context_command_fails(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "check-fail"
+        (project / ".kite").mkdir(parents=True)
+        (project / ".kite" / "project-context.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "validation_commands": [
+                        {
+                            "id": "unit",
+                            "label": "Unit tests",
+                            "command": [
+                                sys.executable,
+                                "-c",
+                                "import sys; print('boom'); sys.exit(7)",
+                            ],
+                            "source": "test",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["check", "--no-refresh-context"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 1
+        normalized_output = _normalize_cli_output(result.output)
+        assert "1 validation command(s) failed" in normalized_output
+        assert "boom" in normalized_output
 
     def test_init_with_git_uses_main_branch(self, tmp_path):
         from typer.testing import CliRunner
@@ -686,3 +905,164 @@ class TestSharedInfraCommandRefs:
         assert "/kite-plan" in content, "Copilot --skills should use /kite-plan"
         assert "/kite.plan" not in content, "dot-notation leaked into Copilot skills page template"
         assert "__KITE_COMMAND_" not in content
+
+
+class TestProfileCommands:
+    """Tests for `kite profile show` and `kite profile set`."""
+
+    def _init_project(self, runner, project: "Path", profile: str = "standard") -> None:
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                __import__("kite_cli").app,
+                ["init", "--here", "--integration", "copilot", "--profile", profile,
+                 "--script", "sh", "--no-git"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+        assert result.exit_code == 0, f"init failed: {result.output}"
+
+    def test_profile_show_displays_current_profile(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "show-test"
+        project.mkdir()
+        self._init_project(runner, project, profile="minimal")
+
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["profile", "show"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        output = strip_ansi(result.output)
+        assert "minimal" in output
+        assert "Profile" in output
+
+    def test_profile_show_via_subcommand_default(self, tmp_path):
+        """Running `kite profile` with no subcommand should show the profile."""
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "show-default"
+        project.mkdir()
+        self._init_project(runner, project, profile="full")
+
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["profile"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        output = strip_ansi(result.output)
+        assert "full" in output
+
+    def test_profile_show_outside_kite_project_exits_nonzero(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            result = runner.invoke(app, ["profile", "show"])
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code != 0
+        assert "Not a Kite project" in strip_ansi(result.output)
+
+    def test_profile_set_changes_profile(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "set-test"
+        project.mkdir()
+        self._init_project(runner, project, profile="standard")
+
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["profile", "set", "full"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
+        assert opts["profile"] == "full"
+        output = strip_ansi(result.output)
+        assert "full" in output
+
+    def test_profile_set_rejects_unknown_profile(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "set-bad"
+        project.mkdir()
+        self._init_project(runner, project, profile="standard")
+
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["profile", "set", "ultramax"])
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code != 0
+        assert "Unknown install profile 'ultramax'" in strip_ansi(result.output)
+
+    def test_profile_set_outside_kite_project_exits_nonzero(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            result = runner.invoke(app, ["profile", "set", "minimal"])
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code != 0
+        assert "Not a Kite project" in strip_ansi(result.output)
+
+    def test_profile_set_same_profile_is_idempotent(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "set-same"
+        project.mkdir()
+        self._init_project(runner, project, profile="minimal")
+
+        import os
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(app, ["profile", "set", "minimal"], catch_exceptions=False)
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        output = strip_ansi(result.output)
+        assert "already set" in output
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
+        assert opts["profile"] == "minimal"

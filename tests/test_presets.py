@@ -1943,6 +1943,18 @@ class TestSelfTestPreset:
         assert manifest.id == "self-test"
         assert manager.registry.is_installed("self-test")
 
+    def test_install_self_test_preset_without_base_layer_is_quiet(self, project_dir):
+        """Legacy frontmatter-only wrap commands should clean up without warnings."""
+        import warnings
+
+        manager = PresetManager(project_dir)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            manager.install_from_directory(SELF_TEST_PRESET_DIR, "0.1.5")
+
+        messages = [str(warning.message) for warning in caught]
+        assert not any("Cannot compose command 'kite.wrap-test'" in msg for msg in messages)
+
     def test_self_test_overrides_all_core_templates(self, project_dir):
         """Test that installing self-test overrides every core template."""
         # Set up core templates in the project

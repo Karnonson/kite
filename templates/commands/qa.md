@@ -4,7 +4,6 @@ handoffs:
   - label: Ready for review
     agent: kite.start
     prompt: QA passed. Show me the final summary.
-    send: true
   - label: Fix a failure
     agent: kite.backend
     prompt: A backend test is failing — please fix it.
@@ -54,18 +53,21 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 
 ## Outline
 
-This command runs **after** `kite.frontend` (or after `kite.backend` if there is no frontend in scope). It is the final implementation gate before the project is considered "done for this loop".
+This command runs **after** `kite.docs` (or after `kite.frontend`/`kite.backend` if no docs or frontend work is in scope). It is the final implementation gate before the project is considered "done for this loop".
 
 ### Hard rules for this command
 
 1. **Only `[qa]` tasks for implementation work.** Filter `tasks.md` to tasks tagged `[qa]` for new test authoring. Running existing tests is always allowed.
 2. **Coverage minimums.**
    - Backend: every endpoint in `contract.md` Section 2 has at least one **integration test** (request in → response out, with a real or fake datastore — not a unit test of the handler).
-   - Frontend: every page in `design.md` Section 2.1 has at least one **smoke test** (renders without crashing, primary action is reachable).
+    - Frontend: every page in `design.md` Section 2.1 has at least one **smoke test** (renders without crashing, primary action is reachable).
+    - Accessibility: user-visible flows verify keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
+    - Docs: if `[docs]` tasks or docs files changed, verify relevant links, setup commands, and user-facing instructions.
    - If a coverage minimum is not met, mark a follow-up `[qa]` task in `tasks.md` and add it to today's report.
 3. **Never modify production code.** Test fixtures and test-only helpers under `tests/` are allowed. If a failure clearly requires a code fix, **stop**, mark the task blocked, and recommend `kite.backend` or `kite.frontend`.
 4. **Plain English report.** The report appended to `tasks.md` is for the founder to read. Keep it short, no stack traces, no file paths longer than the project root.
 5. **Honest pass/fail.** Never tweak a test to make it pass. If a test is genuinely wrong, mark it `[~]` (in-progress) and explain why in the report.
+6. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before writing test files or reports. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
 
 ### Step 1 — Read existing artifacts
 
@@ -77,6 +79,7 @@ Required:
 Optional but used:
 - `specs/<latest>/contract.md` — for backend coverage check.
 - `specs/<latest>/design.md` — for frontend coverage check.
+- `README.md` and `docs/` — for docs verification when docs changed.
 - `kite.config.yml` — read `persona`, `stack`.
 - `.kite/state.yml` — confirm previous stage was `backend` or `frontend`.
 
@@ -99,7 +102,7 @@ From `kite.config.yml` `stack` and the project layout, pick the runner:
 | Next.js | `vitest` (or `jest` if configured) |
 | Plain HTML | `playwright` if installed, else "smoke tests skipped — no runner" |
 
-If the runner cannot be determined automatically, ask **one** question with a default.
+If the runner cannot be determined automatically, ask **one** question with a default. Tests/verification are required for code changes; if a runner is unavailable, record the blocker and add a follow-up `[qa]` task instead of treating testing as optional.
 
 ### Step 3 — Filter and implement `[qa]` tasks
 
@@ -188,7 +191,7 @@ Append a section at the end of `specs/<latest>/tasks.md` (do not overwrite — a
    - Backend endpoint coverage (covered / total)
    - Frontend page coverage (covered / total)
    - Recommendation (one of: ready to ship / fix N items / blocked)
-3. Ask: "Open the next iteration with `kite.start`, or fix the failures first with `kite.backend` / `kite.frontend`?"
+3. State the result and suggest the next manual command. Do not auto-send `kite.start`.
 
 ### Step 8 — Handoff
 

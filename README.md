@@ -94,15 +94,23 @@ kite init --integration copilot
 # Or create a new project directory explicitly
 kite init <PROJECT_NAME> --integration copilot
 
-# Check installed tools
+# Run detected project checks from .kite/project-context.json
 kite check
+
+# Check installed tools and agent CLIs
+kite check --tools
 ```
 
-To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Quick upgrade:
+To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Safe dry-run:
 
 ```bash
-uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
-# pipx users: pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z
+kite self upgrade
+```
+
+Apply the detected `uv tool` or `pipx` upgrade command after confirmation:
+
+```bash
+kite self upgrade --apply
 ```
 
 **Benefits of persistent installation:**
@@ -138,7 +146,7 @@ If you just want Kite to walk you through the whole lifecycle in plain English, 
 /kite.start "Build a tool that <one-sentence description of your idea>."
 ```
 
-`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, or `kite doctor` for a plain-language status report.
+`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, `kite doctor` for a plain-language status report, or `kite check` to run the validation commands Kite detected for the project.
 
 Prefer to drive each stage manually? The classic step-by-step flow is below.
 
@@ -232,7 +240,7 @@ Run `kite integration list` to see all available integrations in your installed 
 
 ## Available Slash Commands
 
-After running `kite init`, your AI coding agent will have access to these slash commands for structured development. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
+After running `kite init`, your AI coding agent will have access to slash commands for structured development. Use `--profile minimal`, `--profile standard` (default), or `--profile full` to control how many commands are installed. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
 
 ### Core Commands
 
@@ -250,11 +258,12 @@ Essential commands for the founder-first Kite workflow:
 | `/kite.tasks`         | `kite-tasks`        | Generate actionable task lists for implementation                          |
 | `/kite.backend`       | `kite-backend`      | Implement backend-tagged tasks and publish the frontend contract           |
 | `/kite.frontend`      | `kite-frontend`     | Implement frontend-tagged tasks against the published contract             |
+| `/kite.docs`          | `kite-docs`         | Update user-facing documentation before QA                                |
 | `/kite.qa`            | `kite-qa`           | Run QA-tagged tasks and append the plain-English QA report                 |
 
 ### Optional Commands
 
-Additional commands for enhanced quality and validation:
+Additional commands for enhanced quality and validation. Copilot's default `standard` profile keeps the agent list small and includes only the core workflow plus `kite.research`; use `--profile minimal` for only the guided workflow commands or `--profile full` when you want every optional command installed.
 
 | Command              | Agent Skill            | Description                                                                                                                          |
 | -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
@@ -267,6 +276,36 @@ Additional commands for enhanced quality and validation:
 ## 🔧 Kite CLI Reference
 
 For full command details, options, and examples, see the [CLI Reference](docs/reference/overview.md).
+
+### Install profiles
+
+Use `--profile` with `kite init` (or `kite integration install`/`switch`/`upgrade`) to control how many Kite commands are installed:
+
+| Profile    | Commands installed                                              |
+| ---------- | --------------------------------------------------------------- |
+| `minimal`  | Guided workflow only (`kite.start` + core stage agents)         |
+| `standard` | Core workflow + `kite.research` (default)                       |
+| `full`     | Every Kite command including optional review helpers            |
+
+To check or change the profile for an existing project:
+
+```bash
+kite profile              # show current profile
+kite profile set full     # change to full (update JSON only)
+kite profile set minimal --upgrade   # change and immediately regenerate agents
+```
+
+### Project context and validation
+
+During `kite init`, Kite writes `.kite/project-context.json` with detected
+stack details, repository evidence, and validation commands such as package
+scripts, `pytest`, `go test ./...`, or `cargo test`. Agents are instructed to
+read this file before asking brownfield questions about existing behavior.
+
+Run `kite check` from a Kite project to refresh that context and execute the
+detected validation pipeline. Use `kite check --no-refresh-context` to run the
+saved commands exactly as-is, or `kite check --tools` for the older environment
+check that reports installed tools and agent CLIs.
 
 ## 📚 Core Philosophy
 
@@ -356,6 +395,8 @@ You will be prompted to select the coding agent integration you are using. You c
 kite init --integration copilot
 kite init --integration gemini
 kite init --integration codex
+kite init --integration copilot --profile minimal   # lean setup
+kite init --integration copilot --profile full      # everything
 
 # Or create a new directory explicitly:
 kite init <project_name> --integration copilot

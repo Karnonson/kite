@@ -1,6 +1,6 @@
 [project]
 name = "kite-cli"
-version = "0.7.2"
+version = "1.0"
 description = "Kite CLI — a guided SDLC workflow for non-technical builders. Inspired by GitHub Spec Kit."
 requires-python = ">=3.11"
 dependencies = [
@@ -70,4 +70,3 @@ omit = ["*/tests/*", "*/__pycache__/*"]
 precision = 2
 show_missing = true
 skip_covered = false
-

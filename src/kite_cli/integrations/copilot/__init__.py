@@ -5,20 +5,23 @@ Copilot has several unique behaviors compared to standard markdown agents:
 - Each command gets a companion ``.prompt.md`` file in ``.github/prompts/``
 - Installs ``.vscode/settings.json`` with prompt file recommendations
 - Context file lives at ``.github/copilot-instructions.md``
+- Selected command templates can be emitted as ``.github/skills/kite-*/SKILL.md``
+  instead of agent/prompt pairs
 
 When ``--skills`` is passed via ``--integration-options``, Copilot scaffolds
 commands as ``kite-<name>/SKILL.md`` directories under ``.github/skills/``
-instead.  The two modes are mutually exclusive.
+instead.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import shutil
 import warnings
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from ..base import IntegrationBase, IntegrationOption, SkillsIntegration
 from ..manifest import IntegrationManifest
@@ -79,9 +82,10 @@ class CopilotIntegration(IntegrationBase):
     command files.  Workflow dispatch additionally requires the
     ``copilot`` CLI to be installed separately.
 
-    When ``--skills`` is passed via ``--integration-options``, commands
-    are scaffolded as ``kite-<name>/SKILL.md`` under ``.github/skills/``
-    instead of the default ``.agent.md`` + ``.prompt.md`` layout.
+    When ``--skills`` is passed via ``--integration-options``, all commands
+    are scaffolded as ``kite-<name>/SKILL.md`` under ``.github/skills/``.
+    Default scaffolding uses ``.agent.md`` + ``.prompt.md`` except for
+    templates listed in ``_skill_only_templates``.
     """
 
     key = "copilot"
@@ -102,6 +106,24 @@ class CopilotIntegration(IntegrationBase):
 
     # Mutable flag set by setup() — indicates the active scaffolding mode.
     _skills_mode: bool = False
+    _default_agent_templates = {
+        "analyze",
+        "backend",
+        "clarify",
+        "constitution",
+        "design",
+        "discover",
+        "docs",
+        "frontend",
+        "plan",
+        "qa",
+        "research",
+        "specify",
+        "start",
+        "tasks",
+    }
+    _skill_only_templates = {"mastra"}
+    standard_command_templates = frozenset(_default_agent_templates | _skill_only_templates)
 
     def effective_invoke_separator(
         self, parsed_options: dict[str, Any] | None = None
@@ -188,15 +210,13 @@ class CopilotIntegration(IntegrationBase):
         if stem.startswith("kite."):
             stem = stem[len("kite."):]
 
-        # Detect skills mode from project layout when not set via setup()
+        # Detect skills mode from the requested command's project layout when
+        # not set via setup(). Default Copilot scaffolding writes only selected
+        # commands (currently Mastra) as skills, so the presence of any skill
+        # must not force every command down the skills path.
         skills_mode = self._skills_mode
         if not skills_mode and project_root:
-            skills_dir = project_root / ".github" / "skills"
-            if skills_dir.is_dir():
-                skills_mode = any(
-                    d.is_dir() and (d / "SKILL.md").is_file()
-                    for d in skills_dir.glob("kite-*")
-                )
+            skills_mode = self._skill_file(project_root, stem).is_file()
 
         if skills_mode:
             prompt = "/kite-" + stem.replace(".", "-")
@@ -314,11 +334,12 @@ class CopilotIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        """Install copilot commands, companion prompts, and VS Code settings.
+        """Install copilot commands, selected skills, and VS Code settings.
 
         When ``parsed_options["skills"]`` is truthy, delegates to skills
         scaffolding (``kite-<name>/SKILL.md`` under ``.github/skills/``).
-        Otherwise uses the default ``.agent.md`` + ``.prompt.md`` layout.
+        Otherwise uses the default ``.agent.md`` + ``.prompt.md`` layout
+        except for skill-only templates.
         """
         parsed_options = parsed_options or {}
         self._skills_mode = bool(parsed_options.get("skills"))
@@ -333,7 +354,7 @@ class CopilotIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        """Default mode: .agent.md + .prompt.md + VS Code settings merge."""
+        """Default mode: agent/prompt pairs plus selected skill-only templates."""
         project_root_resolved = project_root.resolve()
         if manifest.project_root != project_root_resolved:
             raise ValueError(
@@ -341,9 +362,19 @@ class CopilotIntegration(IntegrationBase):
                 f"project_root ({project_root_resolved})"
             )
 
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
+        agent_templates = [
+            template for template in templates
+            if template.stem not in self._skill_only_templates
+        ]
+        skill_templates = [
+            template for template in templates
+            if template.stem in self._skill_only_templates
+        ]
 
         dest = self.commands_dest(project_root)
         dest_resolved = dest.resolve()
@@ -354,14 +385,15 @@ class CopilotIntegration(IntegrationBase):
                 f"Integration destination {dest_resolved} escapes "
                 f"project root {project_root_resolved}"
             ) from exc
-        dest.mkdir(parents=True, exist_ok=True)
+        if agent_templates:
+            dest.mkdir(parents=True, exist_ok=True)
         created: list[Path] = []
 
         script_type = opts.get("script_type", "sh")
         arg_placeholder = self.registrar_config.get("args", "$ARGUMENTS")
 
         # 1. Process and write command files as .agent.md
-        for src_file in templates:
+        for src_file in agent_templates:
             raw = src_file.read_text(encoding="utf-8")
             processed = self.process_template(
                 raw, self.key, script_type, arg_placeholder,
@@ -375,7 +407,7 @@ class CopilotIntegration(IntegrationBase):
 
         # 2. Generate companion .prompt.md files from the templates we just wrote
         prompts_dir = project_root / ".github" / "prompts"
-        for src_file in templates:
+        for src_file in agent_templates:
             cmd_name = f"kite.{src_file.stem}"
             prompt_content = f"---\nagent: {cmd_name}\n---\n"
             prompt_file = self.write_file_and_record(
@@ -386,24 +418,114 @@ class CopilotIntegration(IntegrationBase):
             )
             created.append(prompt_file)
 
+        # 3. Generate selected commands as Copilot skills only.
+        for src_file in skill_templates:
+            created.append(
+                self._write_skill_template(src_file, project_root, manifest, **opts)
+            )
+
         # Write .vscode/settings.json
         settings_src = self._vscode_settings_path()
         if settings_src and settings_src.is_file():
             dst_settings = project_root / ".vscode" / "settings.json"
             dst_settings.parent.mkdir(parents=True, exist_ok=True)
+            settings_data = self._vscode_settings_data(settings_src, agent_templates)
             if dst_settings.exists():
                 # Merge into existing — don't track since we can't safely
                 # remove the user's settings file on uninstall.
-                self._merge_vscode_settings(settings_src, dst_settings)
+                self._merge_vscode_settings_data(settings_data, dst_settings)
             else:
-                shutil.copy2(settings_src, dst_settings)
-                self.record_file_in_manifest(dst_settings, project_root, manifest)
+                dst_settings = self.write_file_and_record(
+                    json.dumps(settings_data, indent=4) + "\n",
+                    dst_settings,
+                    project_root,
+                    manifest,
+                )
                 created.append(dst_settings)
 
         # 4. Upsert managed context section into the agent context file
         self.upsert_context_section(project_root)
 
         return created
+
+    @staticmethod
+    def _skill_name(command_name: str) -> str:
+        stem = command_name
+        if stem.startswith("kite."):
+            stem = stem[len("kite."):]
+        return "kite-" + stem.replace(".", "-")
+
+    def _skill_file(self, project_root: Path, command_name: str) -> Path:
+        return (
+            project_root
+            / ".github"
+            / "skills"
+            / self._skill_name(command_name)
+            / "SKILL.md"
+        )
+
+    def _write_skill_template(
+        self,
+        src_file: Path,
+        project_root: Path,
+        manifest: IntegrationManifest,
+        **opts: Any,
+    ) -> Path:
+        raw = src_file.read_text(encoding="utf-8")
+        command_name = src_file.stem
+        skill_name = self._skill_name(command_name)
+
+        frontmatter: dict[str, Any] = {}
+        if raw.startswith("---"):
+            parts = raw.split("---", 2)
+            if len(parts) >= 3:
+                try:
+                    fm = yaml.safe_load(parts[1])
+                    if isinstance(fm, dict):
+                        frontmatter = fm
+                except yaml.YAMLError:
+                    pass
+
+        processed_body = self.process_template(
+            raw,
+            self.key,
+            opts.get("script_type", "sh"),
+            "$ARGUMENTS",
+            context_file=self.context_file or "",
+            invoke_separator="-",
+        )
+        if processed_body.startswith("---"):
+            parts = processed_body.split("---", 2)
+            if len(parts) >= 3:
+                processed_body = parts[2]
+
+        description = frontmatter.get("description", "")
+        if not description:
+            description = f"Kite: {command_name} workflow"
+
+        def _quote(v: str) -> str:
+            escaped = v.replace("\\", "\\\\").replace('"', '\\"')
+            return f'"{escaped}"'
+
+        skill_content = (
+            f"---\n"
+            f"name: {_quote(skill_name)}\n"
+            f"description: {_quote(description)}\n"
+            f"compatibility: {_quote('Requires Kite project structure with .kite/ directory')}\n"
+            f"metadata:\n"
+            f"  author: {_quote('kite-core')}\n"
+            f"  source: {_quote('templates/commands/' + src_file.name)}\n"
+            f"---\n"
+            f"{processed_body}"
+        )
+        skill_content = self.post_process_skill_content(skill_content)
+
+        return self.write_file_and_record(
+            skill_content,
+            self._skill_file(project_root, command_name),
+            project_root,
+            manifest,
+        )
 
     def _setup_skills(
         self,
@@ -446,10 +568,28 @@ class CopilotIntegration(IntegrationBase):
         return None
 
     @staticmethod
+    def _vscode_settings_data(src: Path, agent_templates: list[Path]) -> dict[str, Any]:
+        """Load VS Code settings and limit prompt recommendations to installed agents."""
+        settings = json.loads(src.read_text(encoding="utf-8"))
+        recommendations = settings.get("chat.promptFilesRecommendations")
+        if isinstance(recommendations, dict):
+            settings["chat.promptFilesRecommendations"] = {
+                f"kite.{template.stem}": True for template in agent_templates
+            }
+        return settings
+
+    @staticmethod
     def _merge_vscode_settings(src: Path, dst: Path) -> None:
+        """Merge settings from *src* into existing *dst* JSON file."""
+        CopilotIntegration._merge_vscode_settings_data(
+            json.loads(src.read_text(encoding="utf-8")), dst
+        )
+
+    @staticmethod
+    def _merge_vscode_settings_data(new_settings: dict[str, Any], dst: Path) -> None:
         """Merge settings from *src* into existing *dst* JSON file.
 
-        Top-level keys from *src* are added only if missing in *dst*.
+        Top-level keys from *new_settings* are added only if missing in *dst*.
         For dict-valued keys, sub-keys are merged the same way.
 
         If *dst* cannot be parsed (e.g. JSONC with comments), the merge
@@ -462,16 +602,13 @@ class CopilotIntegration(IntegrationBase):
             # Skip merge to preserve the user's settings, but show
             # what they should add manually.
             import logging
-            template_content = src.read_text(encoding="utf-8")
             logging.getLogger(__name__).warning(
                 "Could not parse %s (may contain JSONC comments). "
                 "Skipping settings merge to preserve existing file.\n"
                 "Please add the following settings manually:\n%s",
-                dst, template_content,
+                dst, json.dumps(new_settings, indent=4),
             )
             return
-
-        new_settings = json.loads(src.read_text(encoding="utf-8"))
 
         if not isinstance(existing, dict) or not isinstance(new_settings, dict):
             import logging

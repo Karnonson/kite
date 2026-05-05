@@ -56,6 +56,17 @@ class TestCopilotIntegration:
         prompts = [f for f in created if ".prompt.md" in f.name]
         assert len(agents) == len(prompts)
 
+    def test_mastra_is_skill_only_in_default_mode(self, tmp_path):
+        from kite_cli.integrations.copilot import CopilotIntegration
+        copilot = CopilotIntegration()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m)
+
+        mastra_skill = tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md"
+        assert mastra_skill.exists()
+        assert not (tmp_path / ".github" / "agents" / "kite.mastra.agent.md").exists()
+        assert not (tmp_path / ".github" / "prompts" / "kite.mastra.prompt.md").exists()
+
     def test_setup_creates_vscode_settings_new(self, tmp_path):
         from kite_cli.integrations.copilot import CopilotIntegration
         copilot = CopilotIntegration()
@@ -125,13 +136,54 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 16
+        assert len(agent_files) == 14
         expected_commands = {
-            "analyze", "backend", "checklist", "clarify", "constitution", "design",
-            "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+            "analyze", "backend", "clarify", "constitution", "design", "discover", "docs",
+            "frontend", "plan", "qa", "research", "specify", "start", "tasks",
         }
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
+
+    def test_minimal_profile_installs_guided_workflow_only(self, tmp_path):
+        from kite_cli.integrations.copilot import CopilotIntegration
+        copilot = CopilotIntegration()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m, parsed_options={"profile": "minimal"})
+
+        agents_dir = tmp_path / ".github" / "agents"
+        agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
+        actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
+        assert actual_commands == {
+            "backend", "clarify", "constitution", "design", "discover", "docs",
+            "frontend", "plan", "qa", "specify", "start", "tasks",
+        }
+        assert not (tmp_path / ".github" / "agents" / "kite.research.agent.md").exists()
+        assert not (tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
+
+        settings = json.loads((tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8"))
+        recommendations = settings["chat.promptFilesRecommendations"]
+        assert "kite.research" not in recommendations
+        assert set(recommendations) == {f"kite.{command}" for command in actual_commands}
+
+    def test_full_profile_installs_optional_agents(self, tmp_path):
+        from kite_cli.integrations.copilot import CopilotIntegration
+        copilot = CopilotIntegration()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m, parsed_options={"profile": "full"})
+
+        agents_dir = tmp_path / ".github" / "agents"
+        agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
+        actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
+        assert {"analyze", "checklist", "implement", "taskstoissues"} <= actual_commands
+        assert "mastra" not in actual_commands
+        assert (tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
+
+        prompts_dir = tmp_path / ".github" / "prompts"
+        prompt_commands = {
+            f.name.removeprefix("kite.").removesuffix(".prompt.md")
+            for f in prompts_dir.glob("kite.*.prompt.md")
+        }
+        assert prompt_commands == actual_commands
 
     def test_templates_are_processed(self, tmp_path):
         from kite_cli.integrations.copilot import CopilotIntegration
@@ -180,40 +232,38 @@ class TestCopilotIntegration:
         expected = sorted([
             ".github/agents/kite.analyze.agent.md",
             ".github/agents/kite.backend.agent.md",
-            ".github/agents/kite.checklist.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
             ".github/agents/kite.design.agent.md",
             ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.docs.agent.md",
             ".github/agents/kite.frontend.agent.md",
-            ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
             ".github/agents/kite.qa.agent.md",
             ".github/agents/kite.research.agent.md",
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
-            ".github/agents/kite.taskstoissues.agent.md",
             ".github/prompts/kite.analyze.prompt.md",
             ".github/prompts/kite.backend.prompt.md",
-            ".github/prompts/kite.checklist.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
             ".github/prompts/kite.design.prompt.md",
             ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.docs.prompt.md",
             ".github/prompts/kite.frontend.prompt.md",
-            ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
             ".github/prompts/kite.qa.prompt.md",
             ".github/prompts/kite.research.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
-            ".github/prompts/kite.taskstoissues.prompt.md",
+            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
             ".kite/init-options.json",
+            ".kite/project-context.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
             ".gitignore",
@@ -255,40 +305,38 @@ class TestCopilotIntegration:
         expected = sorted([
             ".github/agents/kite.analyze.agent.md",
             ".github/agents/kite.backend.agent.md",
-            ".github/agents/kite.checklist.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
             ".github/agents/kite.design.agent.md",
             ".github/agents/kite.discover.agent.md",
+            ".github/agents/kite.docs.agent.md",
             ".github/agents/kite.frontend.agent.md",
-            ".github/agents/kite.implement.agent.md",
             ".github/agents/kite.plan.agent.md",
             ".github/agents/kite.qa.agent.md",
             ".github/agents/kite.research.agent.md",
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
-            ".github/agents/kite.taskstoissues.agent.md",
             ".github/prompts/kite.analyze.prompt.md",
             ".github/prompts/kite.backend.prompt.md",
-            ".github/prompts/kite.checklist.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
             ".github/prompts/kite.design.prompt.md",
             ".github/prompts/kite.discover.prompt.md",
+            ".github/prompts/kite.docs.prompt.md",
             ".github/prompts/kite.frontend.prompt.md",
-            ".github/prompts/kite.implement.prompt.md",
             ".github/prompts/kite.plan.prompt.md",
             ".github/prompts/kite.qa.prompt.md",
             ".github/prompts/kite.research.prompt.md",
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
-            ".github/prompts/kite.taskstoissues.prompt.md",
+            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
             ".kite/init-options.json",
+            ".kite/project-context.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
             ".gitignore",
@@ -317,7 +365,7 @@ class TestCopilotSkillsMode:
 
     _SKILL_COMMANDS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design",
-        "discover", "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        "discover", "docs", "frontend", "implement", "mastra", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _make_copilot(self):
@@ -639,6 +687,7 @@ class TestCopilotSkillsMode:
             # Integration metadata
             ".kite/init-options.json",
             ".kite/integration.json",
+            ".kite/project-context.json",
             ".kite/integrations/copilot.manifest.json",
             ".kite/integrations/kite.manifest.json",
             ".gitignore",
@@ -728,6 +777,27 @@ class TestCopilotSkillsMode:
             assert "my args" in prompt, (
                 f"Skills mode prompt should preserve user args, got: {prompt}"
             )
+
+    def test_dispatch_uses_skill_only_for_matching_command(self, tmp_path):
+        """A default-mode Mastra skill must not force other commands into skills mode."""
+        copilot = self._make_copilot()
+        m = IntegrationManifest("copilot", tmp_path)
+        copilot.setup(tmp_path, m)
+
+        import unittest.mock as mock
+        with mock.patch("subprocess.run") as mock_run:
+            mock_run.return_value = mock.Mock(returncode=0, stdout="", stderr="")
+
+            copilot.dispatch_command("plan", "my args", project_root=tmp_path, stream=False)
+            plan_args = mock_run.call_args[0][0]
+            assert "--agent" in plan_args
+            assert "kite.plan" in plan_args
+
+            copilot.dispatch_command("mastra", "my args", project_root=tmp_path, stream=False)
+            mastra_args = mock_run.call_args[0][0]
+            assert "--agent" not in mastra_args
+            prompt = mastra_args[mastra_args.index("-p") + 1]
+            assert prompt == "/kite-mastra my args"
 
     # -- Next-steps display for Copilot skills mode -----------------------
 

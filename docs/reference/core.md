@@ -12,12 +12,29 @@ kite init [<project_name>]
 | ------------------------ | ------------------------------------------------------------------------ |
 | `--integration <key>`    | AI coding agent integration to use (e.g. `copilot`, `claude`, `gemini`). See the [Integrations reference](integrations.md) for all available keys |
 | `--integration-options`  | Options for the integration (e.g. `--integration-options="--commands-dir .myagent/cmds"`) |
+| `--profile <name>`       | Command install profile: `minimal`, `standard` (default), or `full`. Controls how many Kite commands are installed |
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                       |
 | `--here`                 | Initialize in the current directory instead of creating a new one        |
 | `--force`                | Force merge/overwrite when initializing in an existing directory         |
 | `--no-git`               | Skip git repository initialization                                       |
 | `--ignore-agent-tools`   | Skip checks for AI coding agent CLI tools                                |
 | `--branch-numbering`     | Branch numbering strategy: `sequential` (default) or `timestamp`         |
+
+### Install Profiles
+
+| Profile    | Description                                                                 |
+| ---------- | --------------------------------------------------------------------------- |
+| `minimal`  | Guided workflow only — `kite.start` plus the core stage commands            |
+| `standard` | Core workflow + `kite.research` (default, keeps the agent list focused)     |
+| `full`     | Every Kite command including optional review and helper agents               |
+
+```bash
+kite init --integration copilot --profile minimal   # lean setup
+kite init --integration copilot                     # standard (default)
+kite init --integration copilot --profile full      # everything
+```
+
+Use `kite profile set <name>` to change the profile for an existing project, then run `kite integration upgrade --force` to apply it.
 
 Creates a new Kite project with the necessary directory structure, templates, scripts, and AI coding agent integration files.
 
@@ -69,4 +86,54 @@ A quick version check is also available via:
 ```bash
 kite --version
 kite -V
+```
+
+## Manage the Install Profile
+
+### Show the current profile
+
+```bash
+kite profile
+kite profile show
+```
+
+Displays the active install profile and integration details for the current project:
+
+```
+Kite project profile
+  Profile:     standard
+  Integration: copilot
+  Script type: sh
+
+Available profiles: minimal, standard, full
+```
+
+### Change the profile
+
+```bash
+kite profile set <name>
+```
+
+| Argument / Option | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| `<name>`          | Target profile: `minimal`, `standard`, or `full`                     |
+| `--upgrade`       | Immediately run `kite integration upgrade --force` to apply changes  |
+
+Updates `.kite/init-options.json` with the new profile. Without `--upgrade`, the profile is persisted but agent files are not regenerated until you run:
+
+```bash
+kite integration upgrade --force
+```
+
+**Example — switch from standard to full, then apply:**
+
+```bash
+kite profile set full --upgrade
+```
+
+**Example — switch to minimal, apply manually:**
+
+```bash
+kite profile set minimal
+kite integration upgrade --force
 ```

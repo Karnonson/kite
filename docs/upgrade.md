@@ -8,8 +8,10 @@
 
 | What to Upgrade | Command | When to Use |
 |----------------|---------|-------------|
-| **CLI Tool Only** | `uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Get latest CLI features without touching project files |
-| **CLI Tool Only (pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
+| **CLI Tool Only (dry run)** | `kite self upgrade` | Check the latest release and print the exact safe upgrade command without touching your install |
+| **CLI Tool Only (apply)** | `kite self upgrade --apply` | Run the detected `uv tool` or `pipx` reinstall command after confirmation |
+| **CLI Tool Only (manual uv)** | `uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Get latest CLI features without touching project files |
+| **CLI Tool Only (manual pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@vX.Y.Z` | Reinstall/upgrade a pipx-installed CLI to a specific release |
 | **Project Files** | `kite init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
 | **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
 
@@ -18,6 +20,30 @@
 ## Part 1: Upgrade the CLI Tool
 
 The Kite CLI is separate from your project files. Upgrade it to get the latest features and bug fixes.
+
+### Recommended: safe self-upgrade check
+
+Run the self-upgrade command with no flags first:
+
+```bash
+kite self upgrade
+```
+
+This is a **dry run by default**. It detects your installed Kite version, checks the latest GitHub release, tries to identify whether Kite is installed through `uv tool` or `pipx`, and prints the exact command it would use. It does **not** run installers or change files.
+
+If the detected command looks right, apply it:
+
+```bash
+kite self upgrade --apply
+```
+
+Kite asks for confirmation before running the installer. Use `--yes` only in automation:
+
+```bash
+kite self upgrade --apply --yes
+```
+
+If Kite cannot safely detect `uv tool` or `pipx`, it will not mutate your installation. It prints manual `uv tool` and `pipx` commands instead so you can choose the correct one.
 
 ### If you installed with `uv tool install`
 

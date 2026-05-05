@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Verification**: Tests and/or framework-appropriate verification are REQUIRED for code changes. Depth adapts to the project and framework, but every phase must prove its slice works before the next phase starts.
 
 **Organization**: Tasks are grouped into tracer-bullet phases so each phase can be verified on its own before the next one starts. When both backend and frontend are in scope, tasks are split into separate backend and frontend sections so each agent can stay within its lane.
 
@@ -16,16 +16,16 @@ description: "Task list template for feature implementation"
 
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
-- **[Persona]**: Which Kite persona owns this task — one of `[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`. The persona commands (`kite.backend`, `kite.frontend`, `kite.qa`) filter `tasks.md` by this tag. Every task gets exactly one persona label.
+- **[Persona]**: Which Kite persona owns this task — one of `[backend]`, `[frontend]`, `[qa]`, `[docs]`, `[ops]`. The persona commands (`kite.backend`, `kite.frontend`, `kite.docs`, `kite.qa`) filter `tasks.md` by this tag. Every task gets exactly one persona label.
 - Include exact file paths in descriptions
 - Verification tasks must include the command or validation flow that proves the phase works
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- Use only paths listed in plan.md's `## Approved Source Layout`.
+- Phase 1 MUST include a setup task that creates the approved structure before feature work starts.
+- Framework-native root layouts are allowed only when plan.md explicitly explains why.
+- If a task needs a root path not listed in the approved layout, rewrite it into an approved path or stop and update the plan first.
 
 <!-- 
   ============================================================================
@@ -106,9 +106,9 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Frontend Verification for User Story 1
 
-- [ ] T018 [US1] [frontend] Verify the story 1 UI in the browser or component test runner with [command or manual smoke flow]
+- [ ] T018 [US1] [frontend] Verify the story 1 UI in the browser or component test runner with [command or manual smoke flow], including keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### QA Coverage for User Story 1
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
@@ -140,9 +140,9 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Frontend Verification for User Story 2
 
-- [ ] T025 [US2] [frontend] Verify the story 2 UI in the browser or component test runner with [command or flow]
+- [ ] T025 [US2] [frontend] Verify the story 2 UI in the browser or component test runner with [command or flow], including accessibility checks from the design brief
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### QA Coverage for User Story 2
 
 - [ ] T026 [P] [US2] [qa] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T027 [P] [US2] [qa] Integration test for [user journey] in tests/integration/test_[name].py
@@ -172,9 +172,9 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Frontend Verification for User Story 3
 
-- [ ] T032 [US3] [frontend] Verify the story 3 UI in the browser or component test runner with [command or flow]
+- [ ] T032 [US3] [frontend] Verify the story 3 UI in the browser or component test runner with [command or flow], including accessibility checks from the design brief
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### QA Coverage for User Story 3
 
 - [ ] T033 [P] [US3] [qa] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T034 [P] [US3] [qa] Integration test for [user journey] in tests/integration/test_[name].py
@@ -192,6 +192,7 @@ Examples of foundational tasks (adjust based on your project):
 **Purpose**: Improvements that affect multiple user stories
 
 - [ ] TXXX [P] [docs] Documentation updates in docs/
+- [ ] TXXX [P] [docs] Update README.md quickstart/setup notes if user-visible behavior or commands changed
 - [ ] TXXX [backend] Code cleanup and refactoring in backend/
 - [ ] TXXX [frontend] Code cleanup and refactoring in frontend/
 - [ ] TXXX [P] [qa] Additional unit tests (if requested) in tests/unit/
@@ -219,7 +220,7 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Within Each User Story
 
-- Tests (if included) MUST be written and FAIL before implementation
+- Tests/verification MUST be completed before the phase is marked done
 - Backend tasks complete before backend verification
 - Backend verification passes before frontend tasks for the same slice rely on that work
 - Frontend verification passes before the phase is marked complete
@@ -230,7 +231,7 @@ Examples of foundational tasks (adjust based on your project):
 - All Setup tasks marked [P] can run in parallel
 - All Foundational tasks marked [P] can run in parallel (within Phase 2)
 - Once a phase's verification gate passes, the next approved phase can start
-- All tests for a user story marked [P] can run in parallel
+- All QA coverage tasks for a user story marked [P] can run in parallel
 - Backend tasks within a story marked [P] can run in parallel
 - Frontend tasks within a story marked [P] can run in parallel
 - Different personas can work in parallel only when the current phase marks those tasks `[P]` and the verification gate is not skipped
@@ -290,7 +291,7 @@ With multiple developers:
 - [Persona] label tells the owning agent which tasks it may execute
 - Each user story should be independently completable and testable
 - Each phase must end with an explicit verification task before the next phase starts
-- Verify tests fail before implementing
+- Verify framework-required tests or checks before marking implementation complete
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, mixed backend/frontend ownership, cross-story dependencies that break independence

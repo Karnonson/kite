@@ -4,7 +4,6 @@ handoffs:
   - label: Write the Specification
     agent: kite.specify
     prompt: Use the discovery brief to draft the feature specification.
-    send: true
   - label: Refine Discovery
     agent: kite.discover
     prompt: I want to revise the discovery brief.
@@ -16,7 +15,7 @@ handoffs:
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty). The user input is a one-line product idea written in plain English (e.g. "I want a tool where coaches can publish weekly training plans and athletes can mark them done"). Your job is **not** to write the spec — it is to interview the user and produce a `specs/<feature>/discovery.md` brief that the `kite.specify` command will consume next.
+You **MUST** consider the user input before proceeding (if not empty). The user input is a one-line product idea or brownfield improvement request written in plain English (e.g. "I want a tool where coaches can publish weekly training plans and athletes can mark them done" or "Improve the existing dashboard filters"). Your job is **not** to write the spec — it is to interview the user and produce a `specs/<feature>/discovery.md` brief that the `kite.specify` command will consume next.
 
 ## Pre-Execution Checks
 
@@ -63,9 +62,13 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
 1. **Plain English only.** No engineering jargon. Forbidden words in user-facing prompts: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*. Use everyday alternatives ("must-have", "what success looks like", "what users see", "what users do").
 2. **One question at a time.** Never bundle three sub-questions into one prompt. Wait for the user's answer before asking the next.
 3. **Interview before writing.** Ask every material discovery question needed to understand the project and the user's needs before writing `discovery.md`. Skip only questions already answered by the user's idea, or when the user says to skip questions / proceed / stop.
-4. **Default loudly.** Every question proposes a sensible default in square brackets. The user can answer "ok" / "yes" / Enter to accept it.
-5. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
-6. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
+4. **Brownfield-first.** If the repository already contains app code, docs, config, tests, or prior specs, inspect them before interviewing. Treat existing features, current audiences, source layout, and documented constraints as answered context; ask only about the requested change, missing evidence, or contradictions.
+5. **Default loudly.** Every question proposes a sensible default in square brackets. The user can answer "ok" / "yes" / Enter to accept it.
+6. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
+7. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
+8. **Approval before advancing.** MUST NOT invoke or auto-send `kite.specify`. After writing `discovery.md`, ask the user to approve or revise the brief before the next stage.
+9. **Allowed writes.** May write `.kite/state.yml`, `.kite/feature.json`, `kite.config.yml` only when absent, and `specs/<feature>/discovery.md`.
+10. **Forbidden writes.** MUST NOT write `spec.md`, `design.md`, `plan.md`, `tasks.md`, application code, tests, or docs outside the active feature directory.
 
 ### Step 1 — Locate or create the project marker
 
@@ -101,7 +104,13 @@ Discovery artifacts live with the rest of the feature artifacts under `specs/<fe
 
 ### Step 3 — Read the user's idea, decide what is already answered
 
-Score the user's one-liner against this checklist. Mark each ✅ (clearly answered), ⚠️ (partial), or ❌ (missing):
+Before asking questions, do a short brownfield evidence scan when this is an existing project:
+
+- Read obvious project overview files if present: `README.md`, `docs/`, `.kite/state.yml`, `.kite/feature.json`, existing `specs/*`, package/build manifests, route/page/component directories, and tests relevant to the user's request.
+- Do not exhaustively reverse-engineer the app. Capture only evidence that answers discovery questions or affects the requested change.
+- If repository evidence and user input conflict, ask which source to trust before writing the brief.
+
+Score the user's one-liner plus repository evidence against this checklist. Mark each ✅ (clearly answered), ⚠️ (partial), or ❌ (missing):
 
 | # | Topic | Plain-English question for the user |
 |---|---|---|
@@ -186,17 +195,21 @@ Write the brief to `FEATURE_DIR/discovery.md`. Use this exact structure:
 
 - ...
 
-## 6. Vibe
+## 6. Accessibility expectations
+
+Accessible by default: keyboard access, visible focus, readable contrast, clear labels, clear error messages, and information that is not conveyed by color alone.
+
+## 7. Vibe
 
 Three words: **<word1>, <word2>, <word3>**.
 
-## 7. Open questions for the next stage
+## 8. Open questions for the next stage
 
 > Things you (the agent) noticed that `kite.specify` will need a clearer answer to. Phrase each as a yes/no or A-or-B question so the user can answer fast.
 
 - [ ] ...
 
-## 8. What happens next
+## 9. What happens next
 
 The next command, `kite.specify`, will turn this brief into a formal feature specification. You'll get to review it before any planning happens.
 ```
@@ -207,6 +220,7 @@ The next command, `kite.specify`, will turn this brief into a formal feature spe
 - Section 2 must contain **exactly three** must-haves. If the user gave fewer, ask one more question (counts toward the six-question budget). If they gave more, pick the top three and put the rest in section 3.
 - Do not include any tech-stack discussion. That belongs to `kite.plan`.
 - Do not number constraints if there are zero — write "None stated."
+- For brownfield work, include "Existing behavior to preserve: ..." under Constraints when repository evidence identifies current features or flows that should remain intact.
 
 ### Step 7 — Update state and present a summary
 

@@ -4,7 +4,6 @@ handoffs:
   - label: Clarify Before Planning
     agent: kite.clarify
     prompt: Run a final clarification pass before we start the technical plan.
-    send: true
   - label: Refine Design
     agent: kite.design
     prompt: I want to revise the design brief.
@@ -62,8 +61,14 @@ This command runs **after** `kite.specify` and **before** the pre-plan clarifica
 2. **Text only.** Never produce images, SVG, base64, Figma JSON, or rendered HTML. ASCII boxes are allowed for layout sketches and must stay under 80 columns wide.
 3. **No code.** Do not write CSS, Tailwind classes, React JSX, or component code. That belongs to `kite.frontend`.
 4. **Reuse what exists.** If `FEATURE_DIR/discovery.md` declared a vibe or constraints, lift them — do not re-ask.
-5. **Interview before writing.** Most answers should come from `FEATURE_DIR/discovery.md` and `FEATURE_DIR/spec.md`, but ask every material design question that remains. Ask one at a time with a sensible default, and stop only when the design choices are clear or the user says to skip questions / proceed / stop.
-6. **One Designer.** This command produces the **system** and the **layout** in one file. Do not split.
+5. **Brownfield UI first.** If the project already has screens, components, styles, navigation, or design docs, inspect them before asking design questions. Preserve existing UI patterns unless the requested change says otherwise.
+6. **Interview before writing.** Most answers should come from `FEATURE_DIR/discovery.md`, `FEATURE_DIR/spec.md`, and existing UI evidence, but ask every material design question that remains. Ask exactly one question at a time with a sensible default, and stop only when the design choices are clear or the user says to skip questions / proceed / stop.
+7. **One Designer.** This command produces the **system** and the **layout** in one file. Do not split.
+8. **Accessibility default.** The design MUST include keyboard access, visible focus, readable contrast, clear labels, clear error messages, and no color-only signaling for every user-facing flow.
+9. **Small-screen navigation default.** If the app has navigation and the user did not specify a mobile pattern, choose a left-side hamburger sidebar/drawer for small screens.
+10. **Approval before advancing.** MUST NOT invoke or auto-send `kite.clarify` or `kite.plan`. After writing `design.md`, ask the user to approve or revise the design.
+11. **Allowed writes.** May write `FEATURE_DIR/design.md` and `.kite/state.yml`.
+12. **Forbidden writes.** MUST NOT write code, CSS, framework config, `plan.md`, `tasks.md`, or docs outside the feature directory.
 
 ### Step 1 — Read existing artifacts
 
@@ -72,15 +77,16 @@ This command runs **after** `kite.specify` and **before** the pre-plan clarifica
     - `FEATURE_DIR/discovery.md` (produced by `kite.discover`)
     - `FEATURE_DIR/spec.md` (produced by `kite.specify`)
 3. Optional inputs (use if present):
-   - `kite.config.yml` — read `persona` to tune your tone (founder = warmer, junior = more concise).
-   - `.kite/state.yml` — confirm previous stage was `specify`.
+    - `kite.config.yml` — read `persona` to tune your tone (founder = warmer, junior = more concise).
+    - `.kite/state.yml` — confirm previous stage was `specify`.
+    - Existing UI evidence — current routes/pages/components, style files, design docs, screenshots committed to the repo, and navigation code relevant to the requested change.
 
 If `FEATURE_DIR/discovery.md` or `FEATURE_DIR/spec.md` is missing, abort and tell the user:
 > "I need a discovery brief and a specification first. Run `kite.discover` and then `kite.specify`, then come back."
 
 ### Step 2 — Decide what is already answered
 
-Score against this checklist (✅ / ⚠️ / ❌):
+Score the discovery/spec plus existing UI evidence against this checklist (✅ / ⚠️ / ❌):
 
 | # | Topic | Plain-English question (only if ❌ or ⚠️) |
 |---|---|---|
@@ -157,6 +163,15 @@ A list of the reusable UI building blocks the product needs. Do **not** describe
 
 > Keep this list short. If a component appears on only one page, do not list it here — list it under that page's *Key elements*.
 
+### 1.6 Accessibility defaults
+
+- Keyboard access: <how primary actions can be reached without a mouse>
+- Visible focus: <how focused controls are obvious>
+- Readable contrast: <plain-language contrast expectation>
+- Clear labels: <how fields/buttons are named>
+- Clear errors: <how errors explain the problem and next step>
+- Non-color signaling: <how status is shown without relying on color alone>
+
 ## 2. Layout
 
 ### 2.1 Page list
@@ -188,6 +203,8 @@ For every page, copy this block:
 
 How does the user move between pages? Pick **one** model and explain in one paragraph.
 
+If no mobile navigation preference is stated and the app has multiple destinations, specify a left-side hamburger sidebar/drawer for small screens and explain how it preserves keyboard access and visible focus.
+
 ## 3. Open questions for the next stage
 
 > Things `kite.plan` will need to decide. Phrase as yes/no or A-or-B questions.
@@ -204,7 +221,7 @@ The next command, `kite.plan`, will turn this design and the spec into an implem
 - The "What this means in plain English" section is **mandatory** and must come first.
 - The Components inventory must contain **at least 3** items (Button, Text input, plus one more) — anything less means the design is too thin.
 - Do not include any tech-stack discussion (React vs Vue, Tailwind vs CSS modules). That belongs to `kite.plan`, which can use the `kite.research` subagent when it needs current technical guidance.
-- Do not include accessibility code. State the **goals** in plain English under section 1.5 if relevant ("everything must be reachable by keyboard", "color is never the only signal").
+- Do not include accessibility code. State the **goals** in plain English under section 1.6; accessibility is mandatory for user-visible UI, not optional polish.
 
 ### Step 5 — Update state and present a summary
 

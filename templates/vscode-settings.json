@@ -9,13 +9,12 @@
         "kite.tasks": true,
         "kite.backend": true,
         "kite.frontend": true,
+        "kite.docs": true,
         "kite.qa": true,
-        "kite.research": true,
-        "kite.implement": true
+        "kite.research": true
     },
     "chat.tools.terminal.autoApprove": {
         ".kite/scripts/bash/": true,
         ".kite/scripts/powershell/": true
     }
 }
-

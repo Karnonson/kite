@@ -89,7 +89,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read contracts/ for API specifications and test requirements
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
-  - If you need to add or upgrade a framework or dependency and the current version is not clearly verified in plan.md or research.md, invoke the `kite.research` subagent before choosing a version. Do not guess from memory.
+   - For brownfield projects, inspect existing docs, package/build manifests, source layout, tests, and relevant implemented features before changing code. Treat existing behavior as answered context and ask only about missing evidence or conflicts.
+   - If you need to add or upgrade a framework or dependency and the current version is not clearly verified in plan.md or research.md, invoke the `kite.research` subagent before choosing a version. Do not guess from memory. Never use `latest` or floating dependency versions.
 
 4. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:

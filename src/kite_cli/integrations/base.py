@@ -95,6 +95,27 @@ class IntegrationBase(ABC):
     invoke_separator: str = "."
     """Separator used in slash-command invocations (``"."`` → ``/kite.plan``)."""
 
+    core_command_templates: frozenset[str] = frozenset(
+        {
+            "backend",
+            "clarify",
+            "constitution",
+            "design",
+            "discover",
+            "docs",
+            "frontend",
+            "plan",
+            "qa",
+            "specify",
+            "start",
+            "tasks",
+        }
+    )
+    """Command templates needed for the guided Kite workflow."""
+
+    standard_command_templates: frozenset[str] | None = None
+    """Default install profile for an integration. ``None`` means all templates."""
+
     # -- Markers for managed context section ------------------------------
 
     CONTEXT_MARKER_START = "<!-- KITE START -->"
@@ -281,6 +302,23 @@ class IntegrationBase(ABC):
             return []
         return sorted(f for f in cmd_dir.iterdir() if f.is_file() and f.suffix == ".md")
 
+    def filter_command_templates(
+        self,
+        templates: list[Path],
+        parsed_options: dict[str, Any] | None = None,
+    ) -> list[Path]:
+        """Filter command templates according to the requested install profile."""
+        profile = (parsed_options or {}).get("profile", "standard")
+        if profile == "full":
+            return templates
+        if profile == "minimal":
+            allowed = self.core_command_templates
+        else:
+            allowed = self.standard_command_templates
+        if allowed is None:
+            return templates
+        return [template for template in templates if template.stem in allowed]
+
     def command_filename(self, template_name: str) -> str:
         """Return the destination filename for a command template.
 
@@ -464,13 +502,19 @@ class IntegrationBase(ABC):
 
         return f"{leading}{opening}{fm_text}{closing}{sep}{rest}"
 
-    @staticmethod
-    def _build_context_section(plan_path: str = "") -> str:
+    def _build_context_section(self, plan_path: str = "") -> str:
         """Build the content for the managed section between markers.
 
         *plan_path* is the project-relative path to the current plan
         (e.g. ``"specs/<feature>/plan.md"``).  When empty, the section
         contains only the generic directive without a concrete path.
+
+        Any command template that declares a ``context_hint`` frontmatter
+        field contributes an auto-trigger hint appended as an
+        "## External Skills" subsection.  This ensures that agents loading
+        the instructions file (CLAUDE.md, AGENTS.md, copilot-instructions.md,
+        etc.) know *when* to invoke those commands automatically — because
+        slash commands are not auto-discovered the way SKILL.md files are.
         """
         lines = [
             "For additional context about technologies to be used, project structure,",
@@ -478,7 +522,75 @@ class IntegrationBase(ABC):
         ]
         if plan_path:
             lines.append(f"at {plan_path}")
+
+        lines.extend(
+            [
+                "",
+                "## Default Kite agent rules",
+                "- Brownfield-first: when the repository already contains code, docs,",
+                "  config, tests, or specs, inspect them before asking questions. Treat",
+                "  existing behavior as answered context and ask only about desired",
+                "  changes, missing evidence, or conflicts.",
+                "- Project memory: read `.kite/project-context.json` when it exists",
+                "  before asking about the stack, existing features, test commands, or",
+                "  repository structure. Refresh it with `kite check` if it appears stale.",
+                "- Validation: use `kite check` as the default project validation command",
+                "  when Kite has detected validation commands for the repository.",
+                "- Dependency versions: never add or update dependencies using `latest`",
+                "  or other floating version specs. Verify current stable versions and",
+                "  pin concrete versions or project-approved ranges.",
+                "- Responsive UI: when a UI needs small-screen navigation and the user",
+                "  has not specified a different pattern, use a left-side hamburger",
+                "  sidebar/drawer.",
+            ]
+        )
+
+        hints = self._collect_context_hints()
+        if hints:
+            lines.append("")
+            lines.append("## External Skills")
+            lines.append(
+                "Invoke these Kite commands automatically when the described situation applies:"
+            )
+            for hint in hints:
+                lines.append(f"- {hint}")
+
         return "\n".join(lines)
+
+    def _collect_context_hints(self) -> list[str]:
+        """Return ``context_hint`` values from all command templates.
+
+        Reads the YAML frontmatter of each file returned by
+        ``list_command_templates()`` and collects the ``context_hint``
+        field when present.  Returns an empty list when no templates
+        declare hints.
+        """
+        import yaml as _yaml
+
+        hints: list[str] = []
+        for tmpl in self.list_command_templates():
+            try:
+                raw = tmpl.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            # Fast check before parsing YAML
+            if "context_hint" not in raw:
+                continue
+            # Extract YAML frontmatter between the first pair of --- markers
+            if not raw.startswith("---"):
+                continue
+            end = raw.find("\n---", 3)
+            if end == -1:
+                continue
+            fm_text = raw[3:end].strip()
+            try:
+                fm = _yaml.safe_load(fm_text) or {}
+            except _yaml.YAMLError:
+                continue
+            hint = fm.get("context_hint")
+            if hint and isinstance(hint, str):
+                hints.append(hint.strip())
+        return hints
 
     def upsert_context_section(
         self,
@@ -708,6 +820,10 @@ class IntegrationBase(ABC):
                     if line[0:1].isspace():
                         continue  # skip indented content under scripts
                     skip_section = False
+                # Strip context_hint — it's consumed by _build_context_section
+                # and must not appear in the installed command file.
+                if stripped.startswith("context_hint:"):
+                    continue
             output_lines.append(line)
         content = "".join(output_lines)
 
@@ -748,7 +864,9 @@ class IntegrationBase(ABC):
         and call ``process_template()`` in their own loop — see
         ``CopilotIntegration`` for an example.
         """
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -910,7 +1028,9 @@ class MarkdownIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -1115,7 +1235,9 @@ class TomlIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -1289,7 +1411,9 @@ class YamlIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 

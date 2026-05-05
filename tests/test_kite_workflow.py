@@ -50,6 +50,7 @@ class TestKiteWorkflowStructure:
             "kite.tasks",
             "kite.backend",
             "kite.frontend",
+            "kite.docs",
             "kite.qa",
         ]
 
@@ -62,7 +63,6 @@ class TestKiteWorkflowStructure:
             "skip-or-gate-design",
             "skip-or-gate-clarify",
             "skip-or-gate-plan",
-            "skip-or-gate-tasks",
         }
         if_steps = [s for s in kite_workflow["steps"] if s.get("type") == "if"]
         if_ids = {s["id"] for s in if_steps}
@@ -80,12 +80,22 @@ class TestKiteWorkflowStructure:
         assert "clarify" in ids
         assert "backend" in ids
         assert "frontend" in ids
+        assert "docs" in ids
         assert "qa" in ids
         assert "contract-gate" in ids
         assert "implement" not in ids
         assert ids.index("design") < ids.index("clarify") < ids.index("plan")
         assert ids.index("tasks") < ids.index("backend")
-        assert ids.index("backend") < ids.index("contract-gate") < ids.index("frontend") < ids.index("qa")
+        assert ids.index("backend") < ids.index("contract-gate") < ids.index("frontend") < ids.index("docs") < ids.index("qa")
+
+    def test_tasks_gate_is_required_before_implementation(self, kite_workflow):
+        steps = kite_workflow["steps"]
+        ids = [s["id"] for s in steps]
+        gate = next(s for s in steps if s["id"] == "gate-tasks")
+        assert gate["type"] == "gate"
+        assert "tasks.md" in gate["message"]
+        assert ids.index("tasks") < ids.index("gate-tasks") < ids.index("backend")
+        assert "auto_approve" not in str(gate)
 
     def test_contract_gate_is_hard_shell_step(self, kite_workflow):
         steps = kite_workflow["steps"]

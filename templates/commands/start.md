@@ -1,5 +1,5 @@
 ---
-description: Run the founder-friendly Kite SDLC end-to-end (constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → qa) with optional gates between stages.
+description: Run the founder-friendly Kite SDLC end-to-end (constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → docs → qa) with human planning gates and one implementation approval.
 handoffs:
   - label: Discovery only
     agent: kite.discover
@@ -21,7 +21,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 - A free-form preference list (e.g. "auto-approve gates, persona=junior, idea=…")
 - Or empty — in which case ask the user for the idea.
 
-This command is the **orchestrator entrypoint** for the Kite SDLC. It runs each persona in sequence, pausing for human review between stages unless the user opts into auto-approval.
+This command is the **orchestrator entrypoint** for the Kite SDLC. It coordinates gates and resume points; it does not cause persona commands to run ahead of the approved stage.
 
 ## Pre-Execution Checks
 
@@ -42,17 +42,20 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 ### Hard rules for this command
 
 1. **Never write code, design, or specs yourself.** Every artifact comes from the persona command that owns it. This command only **chains** persona commands and presents review gates.
-2. **One stage at a time.** Run one persona, then stop and either auto-advance (if `auto_approve` is on) or wait for the user to approve.
+2. **One stage at a time through planning.** Run one persona, then stop at the gate unless the stage is routine and explicitly auto-approved. Persona commands from constitution through plan MUST still ask one question at a time and MUST NOT write or advance when material decisions are missing.
 3. **Resume-aware.** Always read `.kite/state.yml` first. If a previous run paused mid-flow, offer to resume from that step, not from the top.
-4. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
-5. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
+4. **Brownfield-first.** If the repository already has application code, docs, config, tests, or specs, instruct every stage to inspect that evidence before asking feature or architecture questions. Existing implemented behavior is answered context; ask only about the desired change, missing evidence, or conflicts.
+5. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
+6. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, `kite.docs`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
+7. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, create or switch to a feature branch before writing feature artifacts. STOP IF branch creation/switching fails, and tell the user to resolve the branch issue before continuing. If there is no git repository, continue without branch changes.
+8. **No self-recursive auto-send.** NEVER invoke or hand off to `kite.start` automatically. It is acceptable to tell the user to run `kite.start` manually to resume.
 
 ### Step 1 — Resolve inputs
 
 1. Parse `$ARGUMENTS` for any of:
    - `idea=<one line>`
    - `persona=<founder|junior>` (default: `founder`)
-   - `auto_approve=<true|false>` (default: `false`)
+    - `auto_approve=<true|false>` (default: `false`; never skips the task-list approval gate)
    - `integration=<copilot|claude|codex|...>` (default: read from `kite.config.yml` if present, else `copilot`)
    - Any free-form text not matching the above is treated as the idea.
 
@@ -64,7 +67,14 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 4. Print a one-line confirmation:
    > "Running the Kite SDLC. Idea: <idea>. Persona: <persona>. Auto-approve gates: <yes|no>."
 
-### Step 2 — Read or create `.kite/state.yml`
+### Step 2 — Branch and state guardrails
+
+1. If `.git/` exists or `git rev-parse --is-inside-work-tree` succeeds, read the current branch.
+2. If the branch is `main` or `master`, create or switch to a feature branch named from the idea (for example `kite/<short-feature-name>` or the numbering convention already configured by Kite).
+3. STOP IF the working tree, permissions, or branch conflicts prevent a safe branch switch. Do not proceed on `main` or `master`; print the exact command the user can run after resolving the issue.
+4. If no git repository exists, skip this guardrail and continue.
+
+### Step 3 — Read or create `.kite/state.yml`
 
 1. If `.kite/state.yml` does not exist, create it:
 
@@ -81,9 +91,9 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
    - On "yes": skip past every step whose stage is already complete.
    - On "no": confirm reset, then overwrite `stage` to `start`.
 
-### Step 3 — The pipeline
+### Step 4 — The pipeline
 
-Execute these steps in order. Each numbered item is one persona invocation. Between invocations, run the **gate** unless `auto_approve` is true.
+Execute these steps in order. Each numbered item is one persona invocation. Constitution through plan are conversational planning stages; each persona owns its interview and MUST NOT auto-send the next command. After the plan is approved, generate tasks.md, then require exactly one approval gate before automated implementation starts.
 
 1. `kite.constitution` — use the idea as context to draft practical project principles.
 2. **Gate (skippable):** "Principles look good — continue to discovery?"
@@ -98,20 +108,22 @@ Execute these steps in order. Each numbered item is one persona invocation. Betw
 11. `kite.plan` — pass `persona=<persona>` if non-default.
 12. **Gate (skippable):** "Plan approved — generate the task list?"
 13. `kite.tasks` — pass `persona=<persona>` if non-default.
-14. **Gate (skippable):** "Task list approved — start backend implementation?"
+14. **Gate (REQUIRED — never skipped by `auto_approve`):** "Approve tasks.md before automated implementation starts?"
 15. `kite.backend` — implement `[backend]`-tagged tasks and produce `contract.md`.
 16. **Contract gate (HARD — never skipped):** verify `specs/<latest>/contract.md` exists and contains no `TODO` or `<placeholder>` markers. If the check fails, **abort** with: "Backend contract is incomplete. Run `kite.backend` again to finish it before the frontend can build."
 17. `kite.frontend` — implement `[frontend]`-tagged tasks against the published contract.
-18. `kite.qa` — implement and run `[qa]`-tagged tasks and append the QA report.
+18. `kite.docs` — implement `[docs]`-tagged documentation tasks.
+19. `kite.qa` — implement and run `[qa]`-tagged tasks and append the QA report.
 
 For each persona invocation:
 
-- **Print the stage banner:** "Stage X/10 — <persona name>".
+- **Print the stage banner:** "Stage X/11 — <persona name>".
 - **Invoke the persona command** with the prepared arguments. The persona writes its own files and updates `.kite/state.yml` itself.
+- **For brownfield repositories**, include the instruction: "Read existing docs, config, tests, source layout, and relevant implemented features first. Do not ask the user to restate existing behavior unless the repository evidence conflicts or is missing."
 - **After the persona returns**, read its 5-bullet summary back to the user (the persona always prints one).
-- **Run the gate** if `auto_approve` is false. The gate is one yes/no question. On "no" or "reject", abort the run and tell the user which persona to re-run.
+- **Run the gate** if required. Planning gates are one yes/no question and may be skipped only when `auto_approve` is true. The tasks gate is ALWAYS required. After the tasks gate is approved, continue backend → frontend → docs → qa without repeated approval prompts unless blocked or unsafe.
 
-### Step 4 — Hard gates
+### Step 5 — Hard gates
 
 The contract gate (step 16) is **never** skipped. Algorithm:
 
@@ -122,7 +134,7 @@ The contract gate (step 16) is **never** skipped. Algorithm:
 
 If the run is aborted at this gate, leave `.kite/state.yml.stage` set to `backend` so a follow-up `kite.start` can resume.
 
-### Step 5 — Closing summary
+### Step 6 — Closing summary
 
 After `kite.qa` completes:
 
@@ -135,11 +147,11 @@ After `kite.qa` completes:
 
 2. Print a final summary:
    - One-line verdict from the QA report.
-   - Number of tasks completed by persona (`backend`, `frontend`, `qa`).
+    - Number of tasks completed by persona (`backend`, `frontend`, `docs`, `qa`).
    - Path to the final `tasks.md` and `contract.md`.
    - What to do next: ship this loop, re-run the failing layer command, or investigate the blocker and resume from the affected persona.
 
-### Step 6 — On error / abort
+### Step 7 — On error / abort
 
 If any persona returns an error, or the user rejects a gate:
 

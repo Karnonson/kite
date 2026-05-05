@@ -20,6 +20,9 @@ provides:
     - name: kite.git.feature
       file: commands/kite.git.feature.md
       description: "Create a feature branch with sequential or timestamp numbering"
+      hook_only: true
+      script_sh: scripts/bash/create-new-feature.sh
+      script_ps: scripts/powershell/create-new-feature.ps1
     - name: kite.git.validate
       file: commands/kite.git.validate.md
       description: "Validate current branch follows feature branch naming conventions"
@@ -29,9 +32,15 @@ provides:
     - name: kite.git.initialize
       file: commands/kite.git.initialize.md
       description: "Initialize a Git repository with an initial commit"
+      hook_only: true
+      script_sh: scripts/bash/initialize-repo.sh
+      script_ps: scripts/powershell/initialize-repo.ps1
     - name: kite.git.commit
       file: commands/kite.git.commit.md
       description: "Auto-commit changes after a Kite command completes"
+      hook_only: true
+      script_sh: scripts/bash/auto-commit.sh
+      script_ps: scripts/powershell/auto-commit.ps1
 
   config:
     - name: "git-config.yml"

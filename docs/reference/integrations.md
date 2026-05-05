@@ -64,6 +64,7 @@ kite integration install <key>
 
 | Option                   | Description                                                              |
 | ------------------------ | ------------------------------------------------------------------------ |
+| `--profile <name>`       | Command install profile: `minimal`, `standard` (default), or `full`     |
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                        |
 | `--integration-options`  | Integration-specific options (e.g. `--integration-options="--commands-dir .myagent/cmds"`) |
 
@@ -95,6 +96,7 @@ kite integration switch <key>
 
 | Option                   | Description                                                              |
 | ------------------------ | ------------------------------------------------------------------------ |
+| `--profile <name>`       | Command install profile: `minimal`, `standard` (default), or `full`     |
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                        |
 | `--force`                | Force removal of modified files during uninstall                         |
 | `--integration-options`  | Options for the target integration                                       |
@@ -109,6 +111,7 @@ kite integration upgrade [<key>]
 
 | Option                   | Description                                                              |
 | ------------------------ | ------------------------------------------------------------------------ |
+| `--profile <name>`       | Command install profile: `minimal`, `standard` (default), or `full`     |
 | `--force`                | Overwrite files even if they have been modified                          |
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                        |
 | `--integration-options`  | Options for the integration                                              |
@@ -151,3 +154,13 @@ CLI-based integrations (like Claude Code, Gemini CLI) require the tool to be ins
 ### When should I use `upgrade` vs `switch`?
 
 Use `upgrade` when you've upgraded Kite and want to refresh the same integration's templates. Use `switch` when you want to change to a different AI coding agent.
+
+### How do I change the install profile for an existing project?
+
+Run `kite profile set <name>` followed by `kite integration upgrade --force`, or combine them with the `--upgrade` flag:
+
+```bash
+kite profile set full --upgrade
+```
+
+See [Manage the Install Profile](core.md#manage-the-install-profile) for details.

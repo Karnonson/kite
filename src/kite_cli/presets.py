@@ -782,12 +782,12 @@ class PresetManager:
                 if composed is None:
                     # Composition no longer possible (e.g. base layer removed).
                     # Unregister any stale command file from non-skill agents.
-                    import warnings
-                    warnings.warn(
-                        f"Cannot compose command '{cmd_name}': no base layer. "
-                        f"Stale command files may remain.",
-                        stacklevel=2,
-                    )
+                    # Legacy presets may declare composition only in command
+                    # frontmatter; when those commands have no base layer,
+                    # cleanup is sufficient and should not produce pytest/user
+                    # warning noise. Explicit manifest composition remains
+                    # warning-worthy because it is an install-order/config issue.
+                    explicit_manifest_composition = False
                     registrar._ensure_configs()
                     # Include aliases from the top layer's manifest
                     cmd_names_to_unregister = [cmd_name]
@@ -797,10 +797,22 @@ class PresetManager:
                         if _m:
                             for _t in _m.templates:
                                 if _t.get("name") == cmd_name and _t.get("type") == "command":
+                                    if (
+                                        "strategy" in _t
+                                        and _t.get("strategy", "replace") != "replace"
+                                    ):
+                                        explicit_manifest_composition = True
                                     for alias in _t.get("aliases", []):
                                         if isinstance(alias, str):
                                             cmd_names_to_unregister.append(alias)
                                     break
+                    if explicit_manifest_composition:
+                        import warnings
+                        warnings.warn(
+                            f"Cannot compose command '{cmd_name}': no base layer. "
+                            f"Stale command files may remain.",
+                            stacklevel=2,
+                        )
                     registrar.unregister_commands(
                         {agent: cmd_names_to_unregister for agent in registrar.AGENT_CONFIGS
                          if registrar.AGENT_CONFIGS[agent].get("extension") != "/SKILL.md"},

@@ -62,6 +62,13 @@ Goal: Detect and reduce ambiguity or missing decision points in the active featu
 
 Note: This clarification workflow is expected to run (and be completed) AFTER `__KITE_COMMAND_DESIGN__` and BEFORE `__KITE_COMMAND_PLAN__`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
 
+Hard rules:
+
+- MUST ask exactly one clarification question at a time and wait for the answer before continuing.
+- MUST NOT invoke or auto-send `__KITE_COMMAND_PLAN__`. After writing clarifications, ask the user to approve proceeding to planning or request changes.
+- May write only `FEATURE_SPEC` and `.kite/state.yml`; MUST NOT write plans, tasks, code, or docs.
+- Treat accessibility as a planning-critical area for user-visible UI: keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
+
 Execution steps:
 
 1. Run `{SCRIPT}` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:

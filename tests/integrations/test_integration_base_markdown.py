@@ -162,6 +162,9 @@ class MarkdownIntegrationTests:
             assert "<!-- KITE START -->" in content
             assert "<!-- KITE END -->" in content
             assert "read the current plan" in content
+            assert "Brownfield-first" in content
+            assert "never add or update dependencies using `latest`" in content
+            assert "left-side hamburger" in content
 
     def test_teardown_removes_context_section(self, tmp_path):
         i = get_integration(self.KEY)
@@ -253,7 +256,7 @@ class MarkdownIntegrationTests:
 
     COMMAND_STEMS = [
         "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
-        "frontend", "implement", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        "docs", "frontend", "implement", "mastra", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -269,6 +272,7 @@ class MarkdownIntegrationTests:
         # Framework files
         files.append(f".kite/integration.json")
         files.append(f".kite/init-options.json")
+        files.append(".kite/project-context.json")
         files.append(f".kite/integrations/{self.KEY}.manifest.json")
         files.append(f".kite/integrations/kite.manifest.json")
         # Project config (Phase 4 T402: persona default written by kite init)

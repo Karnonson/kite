@@ -48,6 +48,16 @@ class TestIntegrationBase:
     def test_options_default_empty(self):
         assert StubIntegration.options() == []
 
+    def test_context_section_includes_default_agent_rules(self):
+        content = StubIntegration()._build_context_section("specs/001-demo/plan.md")
+
+        assert "## Default Kite agent rules" in content
+        assert "Brownfield-first" in content
+        assert ".kite/project-context.json" in content
+        assert "kite check" in content
+        assert "never add or update dependencies using `latest`" in content
+        assert "left-side hamburger" in content
+
     def test_shared_commands_dir(self):
         i = StubIntegration()
         cmd_dir = i.shared_commands_dir()
@@ -120,6 +130,20 @@ class TestBasePrimitives:
         templates = i.list_command_templates()
         assert len(templates) > 0
         assert all(t.suffix == ".md" for t in templates)
+
+    def test_standard_profile_keeps_all_templates_by_default(self):
+        i = StubIntegration()
+        templates = i.list_command_templates()
+        assert i.filter_command_templates(templates, {"profile": "standard"}) == templates
+
+    def test_minimal_profile_keeps_guided_workflow_templates(self):
+        i = StubIntegration()
+        templates = i.list_command_templates()
+        filtered = i.filter_command_templates(templates, {"profile": "minimal"})
+        filtered_stems = {template.stem for template in filtered}
+        assert "start" in filtered_stems
+        assert "research" not in filtered_stems
+        assert filtered_stems <= i.core_command_templates
 
     def test_command_filename_default(self):
         i = StubIntegration()
