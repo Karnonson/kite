@@ -1,9 +1,9 @@
 ---
 description: Implement tasks tagged [frontend] from tasks.md, consuming design.md and the backend contract. Refuses to run if either is missing.
 handoffs:
-  - label: Update Docs
-    agent: kite.docs
-    prompt: The UI is in place. Update user-facing documentation before QA.
+  - label: Run QA
+    agent: kite.qa
+    prompt: The frontend is in place. Run the test suite and report.
     send: true
   - label: Refine the Design
     agent: kite.design
@@ -62,15 +62,9 @@ This command runs **after** `kite.backend` has produced `contract.md`. It is the
 2. **Only `[frontend]` tasks.** Filter `tasks.md` to tasks tagged `[frontend]`. Do not touch backend code.
 3. **Never invent an endpoint.** Every network call must reference an endpoint declared in `contract.md`. If a task needs an endpoint that does not exist, **stop**, mark the task blocked with the line "needs new endpoint", and tell the user to run `kite.backend` again.
 4. **Match the design.** Colors, spacing, typography, and component inventory come from `design.md`. Do not freelance new tokens. If a screen needs a component not listed in the design's inventory, ask the user before adding it.
-5. **Brownfield UI first.** Inspect existing frontend routes, components, styles, state/data helpers, and tests before implementing. Reuse current patterns and do not ask the user about implemented UI behavior unless evidence is missing or conflicts.
-6. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
-7. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
-8. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
-9. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing code. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
-10. **Approved layout only.** Read plan.md's `## Approved Source Layout`. MUST NOT create or edit files outside the approved frontend/shared/test paths unless the plan explicitly allows them.
-11. **Accessibility required.** Every user-facing screen MUST support keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
-12. **Small-screen navigation default.** If responsive navigation is needed and the user/design did not specify the pattern, use a left-side hamburger sidebar/drawer on small screens.
-13. **Validation required.** Run relevant frontend tests, lint, typecheck, component/smoke tests, or exact verification tasks from `tasks.md`. When browser-capable tooling is available, launch the app and validate the primary flow in a browser/dev preview. Fix failures you caused before marking tasks complete.
+5. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
+6. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
+7. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
 
 ### Step 1 — Read existing artifacts
 
@@ -118,7 +112,6 @@ Read `kite.config.yml`:
   ```
 
   After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen frontend framework and any AI SDK or agent framework that appears in scope.
-  Never install or write dependencies using `latest` or floating versions; use verified concrete versions or project-approved ranges.
 
 ### Step 4 — Filter tasks
 
@@ -126,27 +119,22 @@ Read `kite.config.yml`:
 2. Build a list of unchecked tasks tagged `[frontend]`, preserving phase order.
 3. If `$ARGUMENTS` includes a filter, narrow by case-insensitive substring match.
 4. For each task, check the contract: list which endpoints the task will consume. If a task implies an endpoint not in `contract.md`, mark it as **blocked: needs new endpoint** and exclude it from the implementation list.
-5. Print the filtered list (with the per-task endpoint mapping). If this command is running after the approved `tasks.md` implementation gate, do not ask for another approval; proceed unless blocked or unsafe. If run directly without prior task approval, ask once: "Implement these <N> task(s)? [yes]".
+5. Print the filtered list (with the per-task endpoint mapping) to the user and ask: "Implement these <N> task(s)? [yes]". Wait for approval unless `auto_approve` is true.
 
 ### Step 5 — Implement the tasks
 
 For each `[frontend]` task:
 
 1. State the task title and the files you plan to touch.
-   - Confirm each file is within the Approved Source Layout before editing.
 2. Pull the relevant page block from `design.md` Section 2.1 ("Page list") and the relevant endpoints from `contract.md` Section 2.
 3. Build the screen / component:
    - Use the colors, spacing, and typography from `design.md` Section 1. **Do not introduce new tokens.**
-   - Reuse existing components, layout wrappers, route conventions, and responsive behavior when present.
-   - If navigation must collapse on small screens and no different pattern is specified, implement a left-side hamburger sidebar/drawer.
    - Use only endpoints declared in `contract.md`. The base URL and auth model come from the contract — do not hard-code anything else.
    - Handle the errors listed in `contract.md` Section 5. At minimum: a generic error message and a sign-in redirect on `401`.
-   - Implement accessible behavior: keyboard-reachable controls, visible focus states, readable contrast, clear labels, clear error messages, and status indicators that do not rely on color alone.
    - Add a `## What this screen does` plain-English comment block at the top of each new component file.
 4. If the task is a frontend verification task, run the exact browser, component-test, or dev-preview flow written in `tasks.md` before marking it done.
-5. For any frontend code change, run the relevant validation command(s) from `tasks.md`, the frontend framework, or the existing test suite. If browser-capable tooling is available, launch the app and complete the primary flow in a browser/dev preview. If validation fails because of your change, fix it before continuing. If validation cannot run, mark the task blocked and explain why.
-6. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.
-7. After every 3 tasks, print a one-line progress summary.
+5. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.
+6. After every 3 tasks, print a one-line progress summary.
 
 If you discover the design is unclear (e.g. a page in the spec has no entry in `design.md` Section 2.1), ask **one** consolidated question. If the user wants to revise the design, abort cleanly and recommend `kite.design`.
 
@@ -173,13 +161,12 @@ All subsequent tasks use this module. If the module already exists, extend it �
    - Number of `[frontend]` tasks completed (and any blocked, with reason)
    - Number of screens built
    - Whether every screen ties back to a `design.md` page block
-    - Whether every network call ties back to a `contract.md` endpoint
-    - Browser/component validation result for the primary flow
- 3. State the next step: "`kite.docs` updates user-facing documentation before QA." Do not ask for another approval when the task-list gate has already been approved.
+   - Whether every network call ties back to a `contract.md` endpoint
+3. Ask: "Run QA next? Approve to continue with `kite.qa`, or tell me what to change in the UI."
 
 ### Step 8 — Handoff
 
-Recommend running `kite.docs` next. The orchestrator (`kite.start`) handles automated progression after the approved task-list gate.
+If the user approves, recommend running `kite.qa`. Do not run it for them — the orchestrator (`kite.start`) handles that.
 
 ---
 

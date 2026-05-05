@@ -7,6 +7,7 @@ handoffs:
   - label: Clarify Spec Requirements
     agent: kite.clarify
     prompt: Clarify specification requirements
+    send: true
 ---
 
 ## User Input
@@ -69,11 +70,9 @@ Given that feature description, do this:
      - "Create a dashboard for analytics" → "analytics-dashboard"
      - "Fix payment processing timeout bug" → "fix-payment-timeout"
 
-2. **Feature branch guardrail**:
+2. **Branch creation** (optional, via hook):
 
-   If this project is a git repository, check the current branch before writing feature artifacts. If the current branch is `main` or `master`, create or switch to a feature branch using the existing Kite branch naming convention or a safe slug from the feature name. STOP IF branch creation/switching fails; do not continue on `main` or `master`. If no git repository exists, continue without branch changes.
-
-   If a `before_specify` hook ran successfully in the Pre-Execution Checks above, it may have created/switched to a git branch and output JSON containing `BRANCH_NAME` and `FEATURE_NUM`. Note these values for reference, but the branch name does **not** dictate the spec directory name.
+   If a `before_specify` hook ran successfully in the Pre-Execution Checks above, it will have created/switched to a git branch and output JSON containing `BRANCH_NAME` and `FEATURE_NUM`. Note these values for reference, but the branch name does **not** dictate the spec directory name.
 
    If the user explicitly provided `GIT_BRANCH_NAME`, pass it through to the hook so the branch script uses the exact value as the branch name (bypassing all prefix/suffix generation).
 
@@ -103,8 +102,7 @@ Given that feature description, do this:
      ```
      Write the actual resolved directory path value (for example, `specs/003-user-auth`), not the literal string `SPECIFY_FEATURE_DIRECTORY`.
      This allows downstream commands (`__KITE_COMMAND_PLAN__`, `__KITE_COMMAND_TASKS__`, etc.) to locate the feature directory without relying on git branch name conventions.
-    - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
-    - **Brownfield-first**: If the repository already contains app code, docs, config, tests, or prior specs, read the relevant evidence before asking clarification questions. Treat implemented features and documented behavior as answered context; ask only about the requested change, missing evidence, or conflicts. The spec MUST distinguish existing behavior to preserve from new or changed behavior.
+   - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
 
    **IMPORTANT**:
    - You must only create one feature per `__KITE_COMMAND_SPECIFY__` invocation
@@ -114,7 +112,7 @@ Given that feature description, do this:
 4. Load `templates/spec-template.md` to understand required sections.
 
 5. Follow this execution flow:
-    1. Parse user description from arguments and brownfield evidence from the repository
+    1. Parse user description from arguments
        If empty: ERROR "No feature description provided"
     2. Extract key concepts from description
        Identify: actors, actions, data, constraints
@@ -126,7 +124,6 @@ Given that feature description, do this:
        - Only mark with [NEEDS CLARIFICATION: specific question] if the user skipped the question, the answer stayed unresolved after one follow-up, or no responsible default exists.
        - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
        - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
-       - MUST NOT present multiple unresolved questions at once. Ask one question, wait for the answer, then continue.
     4. Fill User Scenarios & Testing section
        If no clear user flow: ERROR "Cannot determine user scenarios"
     5. Generate Functional Requirements
@@ -159,12 +156,11 @@ Given that feature description, do this:
       - [ ] Written for non-technical stakeholders
       - [ ] All mandatory sections completed
       
-       ## Requirement Completeness
-       
-       - [ ] No [NEEDS CLARIFICATION] markers remain
-       - [ ] Requirements are testable and unambiguous
-       - [ ] Accessibility requirements cover keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling where user-visible UI exists
-       - [ ] Success criteria are measurable
+      ## Requirement Completeness
+      
+      - [ ] No [NEEDS CLARIFICATION] markers remain
+      - [ ] Requirements are testable and unambiguous
+      - [ ] Success criteria are measurable
       - [ ] Success criteria are technology-agnostic (no implementation details)
       - [ ] All acceptance scenarios are defined
       - [ ] Edge cases are identified
@@ -200,7 +196,7 @@ Given that feature description, do this:
       - **If [NEEDS CLARIFICATION] markers remain**:
         1. Extract all [NEEDS CLARIFICATION: ...] markers from the spec
         2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by scope/security/UX impact) and make informed guesses for the rest
-         3. For each clarification needed (max 3), present exactly one question at a time in this format, wait for the answer, update the spec, then continue to the next question if still needed:
+        3. For each clarification needed (max 3), present options to user in this format:
 
            ```markdown
            ## Question [N]: [Topic]
@@ -226,10 +222,11 @@ Given that feature description, do this:
            - Each cell should have spaces around content: `| Content |` not `|Content|`
            - Header separator must have at least 3 dashes: `|--------|`
            - Test that the table renders correctly in markdown preview
-         5. Number questions sequentially (Q1, Q2, Q3 - max 3 total)
-         6. Wait for the user's answer to the current question before asking the next question.
-         7. Update the spec by replacing the current [NEEDS CLARIFICATION] marker with the user's selected or provided answer.
-         8. Re-run validation after each clarification is resolved.
+        5. Number questions sequentially (Q1, Q2, Q3 - max 3 total)
+        6. Present all questions together before waiting for responses
+        7. Wait for user to respond with their choices for all questions (e.g., "Q1: A, Q2: Custom - [details], Q3: B")
+        8. Update the spec by replacing each [NEEDS CLARIFICATION] marker with the user's selected or provided answer
+        9. Re-run validation after all clarifications are resolved
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
@@ -237,8 +234,7 @@ Given that feature description, do this:
    - `SPECIFY_FEATURE_DIRECTORY` — the feature directory path
    - `SPEC_FILE` — the spec file path
    - Checklist results summary
-    - Readiness for the next phase (`__KITE_COMMAND_CLARIFY__` or `__KITE_COMMAND_PLAN__`)
-    - A plain approval question: "Approve this specification before design/clarification, or tell me what to change?"
+   - Readiness for the next phase (`__KITE_COMMAND_CLARIFY__` or `__KITE_COMMAND_PLAN__`)
 
 9. **Check for extension hooks**: After reporting completion, check if `.kite/extensions.yml` exists in the project root.
    - If it exists, read it and look for entries under the `hooks.after_specify` key

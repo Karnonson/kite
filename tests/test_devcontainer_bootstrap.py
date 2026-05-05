@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import stat
@@ -50,31 +49,15 @@ def test_shell_scripts_pass_bash_syntax_check() -> None:
         assert result.returncode == 0, f"{script}: {result.stderr}"
 
 
-def test_dockerfile_installs_browser_terminal_helpers() -> None:
-    text = (TEMPLATE_DIR / "Dockerfile").read_text(encoding="utf-8")
-
-    assert "apt-get update" in text
-    assert "apt-get install -y --no-install-recommends" in text
-    assert "bubblewrap" in text
-    assert "socat" in text
-    assert "rm -rf /var/lib/apt/lists/*" in text
-
-
 def test_devcontainer_json_parses_and_has_required_keys() -> None:
-    text = (TEMPLATE_DIR / "devcontainer.json").read_text(encoding="utf-8")
-    without_line_comments = "\n".join(
-        line for line in text.splitlines() if not line.lstrip().startswith("//")
-    )
-    data = json.loads(without_line_comments)
+    import json5
+
+    data = json5.loads((TEMPLATE_DIR / "devcontainer.json").read_text(encoding="utf-8"))
 
     assert data["build"]["dockerfile"] == "Dockerfile"
     assert data["build"]["context"] == "."
     assert data["containerUser"] == "codespace"
     assert data["otherPortsAttributes"]["onAutoForward"] == "ignore"
-    assert set(data["portsAttributes"]) == {"3000", "4173", "5173", "8000", "8080"}
-    for port, attributes in data["portsAttributes"].items():
-        assert attributes["onAutoForward"] == "notify", port
-        assert attributes["protocol"] == "http", port
     assert "ghcr.io/devcontainers/features/docker-in-docker:2" in data["features"]
     assert "ghcr.io/devcontainers/features/common-utils:2" not in data["features"]
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"

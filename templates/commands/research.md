@@ -50,10 +50,9 @@ Execution steps:
     - For AI SDKs or agent frameworks, check official support for MCP, skills, starter kits, templates, or agent best practices
 
 5. Research loop for every shortlisted or selected tool:
-    - **Official docs first.** Use the vendor's official docs, install guide, release notes, or package registry page before any blog post or secondary source.
-    - Verify the **current stable version** or the official install target.
-    - Never recommend `latest` or floating dependency versions; record concrete verified versions or project-approved ranges.
-    - Capture the canonical quickstart or installation URL.
+   - **Official docs first.** Use the vendor's official docs, install guide, release notes, or package registry page before any blog post or secondary source.
+   - Verify the **current stable version** or the official install target.
+   - Capture the canonical quickstart or installation URL.
    - Record compatibility notes with the rest of the chosen stack.
    - For AI SDKs / agent frameworks, explicitly check the official docs for:
      - MCP servers or official MCP integrations
@@ -122,10 +121,9 @@ Execution steps:
    ```
 
    Rules for the brief:
-    - Use real source URLs.
-    - Every version entry must cite the official source used to verify it.
-    - No install command or dependency recommendation may use `latest` or a floating version.
-    - The AI SDK section must explicitly say either `Not needed for this feature` or name the chosen SDK / framework.
+   - Use real source URLs.
+   - Every version entry must cite the official source used to verify it.
+   - The AI SDK section must explicitly say either `Not needed for this feature` or name the chosen SDK / framework.
    - The agent-support table must explicitly say whether MCP / skills guidance was found, not just leave the cell vague.
 
 7. Validation before finishing:

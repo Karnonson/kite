@@ -25,10 +25,10 @@ them at your own risk; expect rough edges.
 | [Claude Code](https://www.anthropic.com/claude-code)                                 | `claude`         | Skills-based integration; installs skills in `.claude/skills`                                                                              |
 | [CodeBuddy CLI](https://www.codebuddy.ai/cli)                                        | `codebuddy`      |                                                                                                                                           |
 | [Codex CLI](https://github.com/openai/codex)                                         | `codex`          | Skills-based integration; installs skills into `.agents/skills` and invokes them as `$kite-<command>` |
-| [Cursor](https://cursor.sh/)                                                         | `cursor-agent`   |                                                                                                                                           |
+| [Cursor](https://cursor.sh/)                                                         | `cursor-agent`   | Skills-based integration; installs skills into `.cursor/skills`                                                                            |
 | [Forge](https://forgecode.dev/)                                                      | `forge`          |                                                                                                                                           |
 | [Gemini CLI](https://github.com/google-gemini/gemini-cli)                            | `gemini`         |                                                                                                                                           |
-| [GitHub Copilot](https://code.visualstudio.com/)                                     | `copilot`        |                                                                                                                                           |
+| [GitHub Copilot](https://code.visualstudio.com/)                                     | `copilot`        | Default mode installs `.agent.md` files with companion prompts; optional skills mode installs `.github/skills`                             |
 | [Goose](https://block.github.io/goose/)                                              | `goose`          | Uses YAML recipe format in `.goose/recipes/`                                                                                              |
 | [IBM Bob](https://www.ibm.com/products/bob)                                          | `bob`            | IDE-based agent                                                                                                                           |
 | [iFlow CLI](https://docs.iflow.cn/en/cli/quickstart)                                 | `iflow`          |                                                                                                                                           |
@@ -36,7 +36,7 @@ them at your own risk; expect rough edges.
 | [Kilo Code](https://github.com/Kilo-Org/kilocode)                                    | `kilocode`       |                                                                                                                                           |
 | [Kimi Code](https://code.kimi.com/)                                                  | `kimi`           | Skills-based integration; supports `--migrate-legacy` for dotted→hyphenated directory migration                                            |
 | [Kiro CLI](https://kiro.dev/docs/cli/)                                               | `kiro-cli`       | Alias: `--integration kiro`                                                                                                               |
-| [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                            | `vibe`           |                                                                                                                                           |
+| [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                            | `vibe`           | Skills-based integration; installs skills into `.vibe/skills`                                                                              |
 | [opencode](https://opencode.ai/)                                                     | `opencode`       |                                                                                                                                           |
 | [Pi Coding Agent](https://pi.dev)                                                    | `pi`             | Pi doesn't have MCP support out of the box, so `taskstoissues` won't work as intended. |
 | [Qoder CLI](https://qoder.com/cli)                                                   | `qodercli`       |                                                                                                                                           |
@@ -122,15 +122,22 @@ Reinstalls the current integration with updated templates and commands (e.g., af
 
 Some integrations accept additional options via `--integration-options`:
 
-| Integration | Option              | Description                                                    |
-| ----------- | ------------------- | -------------------------------------------------------------- |
-| `generic`   | `--commands-dir`    | Required. Directory for command files                          |
-| `kimi`      | `--migrate-legacy`  | Migrate legacy dotted skill directories to hyphenated format   |
+| Integration     | Option              | Description                                                                    |
+| --------------- | ------------------- | ------------------------------------------------------------------------------ |
+| `codex`         | `--skills`          | Install as agent skills; enabled by default                                    |
+| `copilot`       | `--skills`          | Install `kite-<command>/SKILL.md` skills instead of `.agent.md` prompt files   |
+| `cursor-agent`  | `--skills`          | Install as agent skills; enabled by default                                    |
+| `generic`       | `--commands-dir`    | Required. Directory for command files                                          |
+| `kimi`          | `--skills`          | Install as agent skills; enabled by default                                    |
+| `kimi`          | `--migrate-legacy`  | Migrate legacy dotted skill directories to hyphenated format                   |
+| `trae`          | `--skills`          | Install as agent skills; enabled by default                                    |
+| `vibe`          | `--skills`          | Install as agent skills; enabled by default                                    |
 
 Example:
 
 ```bash
 kite integration install generic --integration-options="--commands-dir .myagent/cmds"
+kite init my-project --integration copilot --integration-options="--skills"
 ```
 
 ## FAQ

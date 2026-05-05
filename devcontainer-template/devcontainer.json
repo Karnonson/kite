@@ -14,33 +14,6 @@
 	},
 	"containerUser": "codespace",
 	"updateRemoteUserUID": true,
-	"portsAttributes": {
-		"3000": {
-			"label": "App preview",
-			"onAutoForward": "notify",
-			"protocol": "http"
-		},
-		"4173": {
-			"label": "Vite preview",
-			"onAutoForward": "notify",
-			"protocol": "http"
-		},
-		"5173": {
-			"label": "Vite dev server",
-			"onAutoForward": "notify",
-			"protocol": "http"
-		},
-		"8000": {
-			"label": "Python/API preview",
-			"onAutoForward": "notify",
-			"protocol": "http"
-		},
-		"8080": {
-			"label": "Web/API preview",
-			"onAutoForward": "notify",
-			"protocol": "http"
-		}
-	},
 	"otherPortsAttributes": {
 		"onAutoForward": "ignore"
 	},
@@ -74,7 +47,6 @@
 					"kite.tasks": true,
 					"kite.backend": true,
 					"kite.frontend": true,
-					"kite.docs": true,
 					"kite.qa": true,
 					"kite.research": true,
 					"kite.implement": true

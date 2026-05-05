@@ -4,7 +4,7 @@ workflow:
   name: "Kite Full SDLC"
   version: "0.5.0"
   author: "Kite"
-  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → docs → qa."
+  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → qa."
 
 requires:
   kite_version: ">=0.7.2"
@@ -28,7 +28,7 @@ inputs:
   auto_approve:
     type: boolean
     default: false
-    prompt: "Auto-advance routine gates? (the task-list approval gate is never skipped)"
+    prompt: "Auto-approve gates between stages? (skip the human review prompts)"
 
 steps:
   # 1. Constitution --------------------------------------------------
@@ -140,11 +140,15 @@ steps:
     input:
       args: "persona={{ inputs.persona }}"
 
-  - id: gate-tasks
-    type: gate
-    message: "Approve tasks.md before automated implementation starts?"
-    options: [approve, reject]
-    on_reject: abort
+  - id: skip-or-gate-tasks
+    type: if
+    condition: "{{ not inputs.auto_approve }}"
+    then:
+      - id: gate-tasks
+        type: gate
+        message: "Approve the task list before backend implementation?"
+        options: [approve, reject]
+        on_reject: abort
 
   # 8. Backend implementation ---------------------------------------
   - id: backend
@@ -185,14 +189,7 @@ steps:
     input:
       args: "persona={{ inputs.persona }}"
 
-  # 11. Documentation ------------------------------------------------
-  - id: docs
-    command: kite.docs
-    integration: "{{ inputs.integration }}"
-    input:
-      args: "persona={{ inputs.persona }}"
-
-  # 12. QA -----------------------------------------------------------
+  # 11. QA -----------------------------------------------------------
   - id: qa
     command: kite.qa
     integration: "{{ inputs.integration }}"

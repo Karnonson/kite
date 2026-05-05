@@ -89,25 +89,11 @@ through the full flow.
   (Python 3.11, Node 22 LTS, Git, GitHub CLI pre-installed).
 - Docker-in-Docker support, so generated apps can use Docker from inside the
   container without exposing your host socket.
-- Common app ports (`3000`, `4173`, `5173`, `8000`, and `8080`) are explicitly
-  allowed for safe forwarding notifications. Other ports are ignored by default,
-  so arbitrary services are not surprise-opened.
-- Browser and terminal runner helpers: `bubblewrap`/`bwrap` provides a
-  lightweight Linux sandbox used by some browser or AI runners, and `socat`
-  relays ports, sockets, and streams when tooling needs a network bridge.
+- Ports started by tools inside the container are not opened automatically. Use
+  the VS Code Ports view when you want to expose a generated app preview.
 - `pnpm` installed globally for TypeScript projects.
 - `kite-cli` installed via `pipx` on every build.
 - GitHub Copilot and Copilot Chat extensions recommended in VS Code.
-
-## Browser previews and localhost
-
-When you run an app inside the dev container, bind the server to all container
-interfaces, not loopback only. For example, use `0.0.0.0` instead of
-`localhost` or `127.0.0.1` in your dev server host setting.
-
-Use the forwarded URL from the VS Code **Ports** view for browser automation or
-preview tooling. Some browser runners reject raw `localhost` URLs from inside a
-container, while the forwarded URL points at the correct host/container bridge.
 
 ## What gets re-created on rebuild
 
