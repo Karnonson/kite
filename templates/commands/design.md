@@ -61,12 +61,14 @@ This command runs **after** `kite.specify` and **before** the pre-plan clarifica
 2. **Text only.** Never produce images, SVG, base64, Figma JSON, or rendered HTML. ASCII boxes are allowed for layout sketches and must stay under 80 columns wide.
 3. **No code.** Do not write CSS, Tailwind classes, React JSX, or component code. That belongs to `kite.frontend`.
 4. **Reuse what exists.** If `FEATURE_DIR/discovery.md` declared a vibe or constraints, lift them — do not re-ask.
-5. **Interview before writing.** Most answers should come from `FEATURE_DIR/discovery.md` and `FEATURE_DIR/spec.md`, but ask every material design question that remains. Ask exactly one question at a time with a sensible default, and stop only when the design choices are clear or the user says to skip questions / proceed / stop.
-6. **One Designer.** This command produces the **system** and the **layout** in one file. Do not split.
-7. **Accessibility default.** The design MUST include keyboard access, visible focus, readable contrast, clear labels, clear error messages, and no color-only signaling for every user-facing flow.
-8. **Approval before advancing.** MUST NOT invoke or auto-send `kite.clarify` or `kite.plan`. After writing `design.md`, ask the user to approve or revise the design.
-9. **Allowed writes.** May write `FEATURE_DIR/design.md` and `.kite/state.yml`.
-10. **Forbidden writes.** MUST NOT write code, CSS, framework config, `plan.md`, `tasks.md`, or docs outside the feature directory.
+5. **Brownfield UI first.** If the project already has screens, components, styles, navigation, or design docs, inspect them before asking design questions. Preserve existing UI patterns unless the requested change says otherwise.
+6. **Interview before writing.** Most answers should come from `FEATURE_DIR/discovery.md`, `FEATURE_DIR/spec.md`, and existing UI evidence, but ask every material design question that remains. Ask exactly one question at a time with a sensible default, and stop only when the design choices are clear or the user says to skip questions / proceed / stop.
+7. **One Designer.** This command produces the **system** and the **layout** in one file. Do not split.
+8. **Accessibility default.** The design MUST include keyboard access, visible focus, readable contrast, clear labels, clear error messages, and no color-only signaling for every user-facing flow.
+9. **Small-screen navigation default.** If the app has navigation and the user did not specify a mobile pattern, choose a left-side hamburger sidebar/drawer for small screens.
+10. **Approval before advancing.** MUST NOT invoke or auto-send `kite.clarify` or `kite.plan`. After writing `design.md`, ask the user to approve or revise the design.
+11. **Allowed writes.** May write `FEATURE_DIR/design.md` and `.kite/state.yml`.
+12. **Forbidden writes.** MUST NOT write code, CSS, framework config, `plan.md`, `tasks.md`, or docs outside the feature directory.
 
 ### Step 1 — Read existing artifacts
 
@@ -75,15 +77,16 @@ This command runs **after** `kite.specify` and **before** the pre-plan clarifica
     - `FEATURE_DIR/discovery.md` (produced by `kite.discover`)
     - `FEATURE_DIR/spec.md` (produced by `kite.specify`)
 3. Optional inputs (use if present):
-   - `kite.config.yml` — read `persona` to tune your tone (founder = warmer, junior = more concise).
-   - `.kite/state.yml` — confirm previous stage was `specify`.
+    - `kite.config.yml` — read `persona` to tune your tone (founder = warmer, junior = more concise).
+    - `.kite/state.yml` — confirm previous stage was `specify`.
+    - Existing UI evidence — current routes/pages/components, style files, design docs, screenshots committed to the repo, and navigation code relevant to the requested change.
 
 If `FEATURE_DIR/discovery.md` or `FEATURE_DIR/spec.md` is missing, abort and tell the user:
 > "I need a discovery brief and a specification first. Run `kite.discover` and then `kite.specify`, then come back."
 
 ### Step 2 — Decide what is already answered
 
-Score against this checklist (✅ / ⚠️ / ❌):
+Score the discovery/spec plus existing UI evidence against this checklist (✅ / ⚠️ / ❌):
 
 | # | Topic | Plain-English question (only if ❌ or ⚠️) |
 |---|---|---|
@@ -199,6 +202,8 @@ For every page, copy this block:
 ### 2.2 Navigation
 
 How does the user move between pages? Pick **one** model and explain in one paragraph.
+
+If no mobile navigation preference is stated and the app has multiple destinations, specify a left-side hamburger sidebar/drawer for small screens and explain how it preserves keyboard access and visible focus.
 
 ## 3. Open questions for the next stage
 

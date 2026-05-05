@@ -76,6 +76,9 @@ class TestClaudeIntegration:
         assert "<!-- KITE START -->" in content
         assert "<!-- KITE END -->" in content
         assert "read the current plan" in content
+        assert "Brownfield-first" in content
+        assert "never add or update dependencies using `latest`" in content
+        assert "left-side hamburger" in content
 
     def test_upsert_context_section_strips_bom(self, tmp_path):
         """Existing context file with UTF-8 BOM must be cleaned up on upsert."""

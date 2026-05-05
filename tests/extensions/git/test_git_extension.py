@@ -137,16 +137,37 @@ class TestGitExtensionManifest:
         assert m.version == "1.0.0"
 
     def test_manifest_commands(self):
-        """Manifest declares expected commands."""
+        """Manifest declares expected commands; hook-only ones are excluded from .commands."""
         from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
+
+        # .commands excludes hook-only commands
         names = [c["name"] for c in m.commands]
-        assert "kite.git.feature" in names
         assert "kite.git.validate" in names
         assert "kite.git.remote" in names
-        assert "kite.git.initialize" in names
-        assert "kite.git.commit" in names
+        assert "kite.git.feature" not in names
+        assert "kite.git.initialize" not in names
+        assert "kite.git.commit" not in names
+
+        # .hook_only_commands contains the three hook-only entries
+        hook_only_names = [c["name"] for c in m.hook_only_commands]
+        assert "kite.git.feature" in hook_only_names
+        assert "kite.git.initialize" in hook_only_names
+        assert "kite.git.commit" in hook_only_names
+
+        # .all_commands contains everything
+        all_names = [c["name"] for c in m.all_commands]
+        assert len(all_names) == 5
+
+    def test_hook_only_commands_have_scripts(self):
+        """Hook-only commands declare script_sh and script_ps paths."""
+        from kite_cli.extensions import ExtensionManifest
+
+        m = ExtensionManifest(EXT_DIR / "extension.yml")
+        for cmd in m.hook_only_commands:
+            assert cmd.get("script_sh"), f"{cmd['name']} missing script_sh"
+            assert cmd.get("script_ps"), f"{cmd['name']} missing script_ps"
 
     def test_manifest_hooks(self):
         """Manifest declares expected hooks."""
@@ -161,11 +182,11 @@ class TestGitExtensionManifest:
         assert m.hooks["before_specify"]["command"] == "kite.git.feature"
 
     def test_manifest_command_files_exist(self):
-        """All command files referenced in the manifest exist."""
+        """All command files referenced in the manifest exist (including hook-only)."""
         from kite_cli.extensions import ExtensionManifest
 
         m = ExtensionManifest(EXT_DIR / "extension.yml")
-        for cmd in m.commands:
+        for cmd in m.all_commands:
             cmd_path = EXT_DIR / cmd["file"]
             assert cmd_path.is_file(), f"Missing command file: {cmd['file']}"
 
@@ -209,6 +230,85 @@ class TestGitExtensionInstall:
         path = _locate_bundled_extension("git")
         assert path is not None
         assert (path / "extension.yml").is_file()
+
+
+class TestGitHookOnlyRegistration:
+    def test_register_hooks_stores_hook_only_metadata(self, tmp_path: Path):
+        """register_hooks stores hook_only, script_sh, script_ps for hook-only commands."""
+        import yaml
+        from kite_cli.extensions import ExtensionManifest, HookExecutor
+
+        (tmp_path / ".kite").mkdir()
+        manifest = ExtensionManifest(EXT_DIR / "extension.yml")
+        executor = HookExecutor(tmp_path)
+        executor.register_hooks(manifest)
+
+        config_path = tmp_path / ".kite" / "extensions.yml"
+        assert config_path.exists()
+        config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+
+        # The before_specify hook uses kite.git.feature (hook_only)
+        before_specify = config["hooks"]["before_specify"]
+        assert len(before_specify) == 1
+        entry = before_specify[0]
+        assert entry["hook_only"] is True
+        assert "scripts/bash/create-new-feature.sh" in entry["script_sh"]
+        assert "scripts/powershell/create-new-feature.ps1" in entry["script_ps"]
+
+    def test_render_hook_invocation_uses_script_for_hook_only(self, tmp_path: Path):
+        """_render_hook_invocation returns a bash call for hook_only hooks."""
+        from kite_cli.extensions import HookExecutor
+
+        (tmp_path / ".kite").mkdir()
+        # Write minimal init-options.json (sh script type, default agent)
+        import json
+        (tmp_path / ".kite" / "init-options.json").write_text(
+            json.dumps({"ai": "copilot", "script": "sh"}), encoding="utf-8"
+        )
+        executor = HookExecutor(tmp_path)
+
+        hook = {
+            "extension": "git",
+            "command": "kite.git.commit",
+            "hook_only": True,
+            "script_sh": "scripts/bash/auto-commit.sh",
+            "script_ps": "scripts/powershell/auto-commit.ps1",
+        }
+        invocation = executor._render_hook_invocation("kite.git.commit", hook)
+        assert invocation == "bash .kite/extensions/git/scripts/bash/auto-commit.sh"
+
+    def test_render_hook_invocation_ps_for_hook_only(self, tmp_path: Path):
+        """_render_hook_invocation returns a powershell call for hook_only hooks when script=ps."""
+        import json
+        from kite_cli.extensions import HookExecutor
+
+        (tmp_path / ".kite").mkdir()
+        (tmp_path / ".kite" / "init-options.json").write_text(
+            json.dumps({"ai": "copilot", "script": "ps"}), encoding="utf-8"
+        )
+        executor = HookExecutor(tmp_path)
+
+        hook = {
+            "extension": "git",
+            "command": "kite.git.feature",
+            "hook_only": True,
+            "script_sh": "scripts/bash/create-new-feature.sh",
+            "script_ps": "scripts/powershell/create-new-feature.ps1",
+        }
+        invocation = executor._render_hook_invocation("kite.git.feature", hook)
+        assert invocation == "powershell -File .kite/extensions/git/scripts/powershell/create-new-feature.ps1"
+
+    def test_non_hook_only_commands_not_installed_as_agents(self, tmp_path: Path):
+        """Only validate and remote get installed as agent files (not feature/commit/initialize)."""
+        from kite_cli.extensions import ExtensionManifest
+
+        manifest = ExtensionManifest(EXT_DIR / "extension.yml")
+        installed_names = {c["name"] for c in manifest.commands}
+
+        assert installed_names == {"kite.git.validate", "kite.git.remote"}
+        assert "kite.git.feature" not in installed_names
+        assert "kite.git.commit" not in installed_names
+        assert "kite.git.initialize" not in installed_names
 
 
 # ── initialize-repo.sh Tests ─────────────────────────────────────────────────

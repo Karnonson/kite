@@ -62,13 +62,15 @@ This command runs **after** `kite.backend` has produced `contract.md`. It is the
 2. **Only `[frontend]` tasks.** Filter `tasks.md` to tasks tagged `[frontend]`. Do not touch backend code.
 3. **Never invent an endpoint.** Every network call must reference an endpoint declared in `contract.md`. If a task needs an endpoint that does not exist, **stop**, mark the task blocked with the line "needs new endpoint", and tell the user to run `kite.backend` again.
 4. **Match the design.** Colors, spacing, typography, and component inventory come from `design.md`. Do not freelance new tokens. If a screen needs a component not listed in the design's inventory, ask the user before adding it.
-5. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
-6. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
-7. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
-8. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing code. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
-9. **Approved layout only.** Read plan.md's `## Approved Source Layout`. MUST NOT create or edit files outside the approved frontend/shared/test paths unless the plan explicitly allows them.
-10. **Accessibility required.** Every user-facing screen MUST support keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
-11. **Validation required.** Run relevant frontend tests, lint, typecheck, component/smoke tests, or exact verification tasks from `tasks.md`. When browser-capable tooling is available, launch the app and validate the primary flow in a browser/dev preview. Fix failures you caused before marking tasks complete.
+5. **Brownfield UI first.** Inspect existing frontend routes, components, styles, state/data helpers, and tests before implementing. Reuse current patterns and do not ask the user about implemented UI behavior unless evidence is missing or conflicts.
+6. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
+7. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
+8. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
+9. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing code. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
+10. **Approved layout only.** Read plan.md's `## Approved Source Layout`. MUST NOT create or edit files outside the approved frontend/shared/test paths unless the plan explicitly allows them.
+11. **Accessibility required.** Every user-facing screen MUST support keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
+12. **Small-screen navigation default.** If responsive navigation is needed and the user/design did not specify the pattern, use a left-side hamburger sidebar/drawer on small screens.
+13. **Validation required.** Run relevant frontend tests, lint, typecheck, component/smoke tests, or exact verification tasks from `tasks.md`. When browser-capable tooling is available, launch the app and validate the primary flow in a browser/dev preview. Fix failures you caused before marking tasks complete.
 
 ### Step 1 — Read existing artifacts
 
@@ -116,6 +118,7 @@ Read `kite.config.yml`:
   ```
 
   After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen frontend framework and any AI SDK or agent framework that appears in scope.
+  Never install or write dependencies using `latest` or floating versions; use verified concrete versions or project-approved ranges.
 
 ### Step 4 — Filter tasks
 
@@ -134,10 +137,12 @@ For each `[frontend]` task:
 2. Pull the relevant page block from `design.md` Section 2.1 ("Page list") and the relevant endpoints from `contract.md` Section 2.
 3. Build the screen / component:
    - Use the colors, spacing, and typography from `design.md` Section 1. **Do not introduce new tokens.**
+   - Reuse existing components, layout wrappers, route conventions, and responsive behavior when present.
+   - If navigation must collapse on small screens and no different pattern is specified, implement a left-side hamburger sidebar/drawer.
    - Use only endpoints declared in `contract.md`. The base URL and auth model come from the contract — do not hard-code anything else.
-    - Handle the errors listed in `contract.md` Section 5. At minimum: a generic error message and a sign-in redirect on `401`.
-    - Implement accessible behavior: keyboard-reachable controls, visible focus states, readable contrast, clear labels, clear error messages, and status indicators that do not rely on color alone.
-    - Add a `## What this screen does` plain-English comment block at the top of each new component file.
+   - Handle the errors listed in `contract.md` Section 5. At minimum: a generic error message and a sign-in redirect on `401`.
+   - Implement accessible behavior: keyboard-reachable controls, visible focus states, readable contrast, clear labels, clear error messages, and status indicators that do not rely on color alone.
+   - Add a `## What this screen does` plain-English comment block at the top of each new component file.
 4. If the task is a frontend verification task, run the exact browser, component-test, or dev-preview flow written in `tasks.md` before marking it done.
 5. For any frontend code change, run the relevant validation command(s) from `tasks.md`, the frontend framework, or the existing test suite. If browser-capable tooling is available, launch the app and complete the primary flow in a browser/dev preview. If validation fails because of your change, fix it before continuing. If validation cannot run, mark the task blocked and explain why.
 6. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.

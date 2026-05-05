@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import warnings
 from pathlib import Path
 from typing import Any
@@ -107,7 +106,24 @@ class CopilotIntegration(IntegrationBase):
 
     # Mutable flag set by setup() — indicates the active scaffolding mode.
     _skills_mode: bool = False
+    _default_agent_templates = {
+        "analyze",
+        "backend",
+        "clarify",
+        "constitution",
+        "design",
+        "discover",
+        "docs",
+        "frontend",
+        "plan",
+        "qa",
+        "research",
+        "specify",
+        "start",
+        "tasks",
+    }
     _skill_only_templates = {"mastra"}
+    standard_command_templates = frozenset(_default_agent_templates | _skill_only_templates)
 
     def effective_invoke_separator(
         self, parsed_options: dict[str, Any] | None = None
@@ -346,7 +362,9 @@ class CopilotIntegration(IntegrationBase):
                 f"project_root ({project_root_resolved})"
             )
 
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
         agent_templates = [
@@ -411,13 +429,18 @@ class CopilotIntegration(IntegrationBase):
         if settings_src and settings_src.is_file():
             dst_settings = project_root / ".vscode" / "settings.json"
             dst_settings.parent.mkdir(parents=True, exist_ok=True)
+            settings_data = self._vscode_settings_data(settings_src, agent_templates)
             if dst_settings.exists():
                 # Merge into existing — don't track since we can't safely
                 # remove the user's settings file on uninstall.
-                self._merge_vscode_settings(settings_src, dst_settings)
+                self._merge_vscode_settings_data(settings_data, dst_settings)
             else:
-                shutil.copy2(settings_src, dst_settings)
-                self.record_file_in_manifest(dst_settings, project_root, manifest)
+                dst_settings = self.write_file_and_record(
+                    json.dumps(settings_data, indent=4) + "\n",
+                    dst_settings,
+                    project_root,
+                    manifest,
+                )
                 created.append(dst_settings)
 
         # 4. Upsert managed context section into the agent context file
@@ -545,10 +568,28 @@ class CopilotIntegration(IntegrationBase):
         return None
 
     @staticmethod
+    def _vscode_settings_data(src: Path, agent_templates: list[Path]) -> dict[str, Any]:
+        """Load VS Code settings and limit prompt recommendations to installed agents."""
+        settings = json.loads(src.read_text(encoding="utf-8"))
+        recommendations = settings.get("chat.promptFilesRecommendations")
+        if isinstance(recommendations, dict):
+            settings["chat.promptFilesRecommendations"] = {
+                f"kite.{template.stem}": True for template in agent_templates
+            }
+        return settings
+
+    @staticmethod
     def _merge_vscode_settings(src: Path, dst: Path) -> None:
+        """Merge settings from *src* into existing *dst* JSON file."""
+        CopilotIntegration._merge_vscode_settings_data(
+            json.loads(src.read_text(encoding="utf-8")), dst
+        )
+
+    @staticmethod
+    def _merge_vscode_settings_data(new_settings: dict[str, Any], dst: Path) -> None:
         """Merge settings from *src* into existing *dst* JSON file.
 
-        Top-level keys from *src* are added only if missing in *dst*.
+        Top-level keys from *new_settings* are added only if missing in *dst*.
         For dict-valued keys, sub-keys are merged the same way.
 
         If *dst* cannot be parsed (e.g. JSONC with comments), the merge
@@ -561,16 +602,13 @@ class CopilotIntegration(IntegrationBase):
             # Skip merge to preserve the user's settings, but show
             # what they should add manually.
             import logging
-            template_content = src.read_text(encoding="utf-8")
             logging.getLogger(__name__).warning(
                 "Could not parse %s (may contain JSONC comments). "
                 "Skipping settings merge to preserve existing file.\n"
                 "Please add the following settings manually:\n%s",
-                dst, template_content,
+                dst, json.dumps(new_settings, indent=4),
             )
             return
-
-        new_settings = json.loads(src.read_text(encoding="utf-8"))
 
         if not isinstance(existing, dict) or not isinstance(new_settings, dict):
             import logging

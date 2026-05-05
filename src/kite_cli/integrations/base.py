@@ -95,6 +95,27 @@ class IntegrationBase(ABC):
     invoke_separator: str = "."
     """Separator used in slash-command invocations (``"."`` → ``/kite.plan``)."""
 
+    core_command_templates: frozenset[str] = frozenset(
+        {
+            "backend",
+            "clarify",
+            "constitution",
+            "design",
+            "discover",
+            "docs",
+            "frontend",
+            "plan",
+            "qa",
+            "specify",
+            "start",
+            "tasks",
+        }
+    )
+    """Command templates needed for the guided Kite workflow."""
+
+    standard_command_templates: frozenset[str] | None = None
+    """Default install profile for an integration. ``None`` means all templates."""
+
     # -- Markers for managed context section ------------------------------
 
     CONTEXT_MARKER_START = "<!-- KITE START -->"
@@ -280,6 +301,23 @@ class IntegrationBase(ABC):
         if not cmd_dir or not cmd_dir.is_dir():
             return []
         return sorted(f for f in cmd_dir.iterdir() if f.is_file() and f.suffix == ".md")
+
+    def filter_command_templates(
+        self,
+        templates: list[Path],
+        parsed_options: dict[str, Any] | None = None,
+    ) -> list[Path]:
+        """Filter command templates according to the requested install profile."""
+        profile = (parsed_options or {}).get("profile", "standard")
+        if profile == "full":
+            return templates
+        if profile == "minimal":
+            allowed = self.core_command_templates
+        else:
+            allowed = self.standard_command_templates
+        if allowed is None:
+            return templates
+        return [template for template in templates if template.stem in allowed]
 
     def command_filename(self, template_name: str) -> str:
         """Return the destination filename for a command template.
@@ -484,6 +522,28 @@ class IntegrationBase(ABC):
         ]
         if plan_path:
             lines.append(f"at {plan_path}")
+
+        lines.extend(
+            [
+                "",
+                "## Default Kite agent rules",
+                "- Brownfield-first: when the repository already contains code, docs,",
+                "  config, tests, or specs, inspect them before asking questions. Treat",
+                "  existing behavior as answered context and ask only about desired",
+                "  changes, missing evidence, or conflicts.",
+                "- Project memory: read `.kite/project-context.json` when it exists",
+                "  before asking about the stack, existing features, test commands, or",
+                "  repository structure. Refresh it with `kite check` if it appears stale.",
+                "- Validation: use `kite check` as the default project validation command",
+                "  when Kite has detected validation commands for the repository.",
+                "- Dependency versions: never add or update dependencies using `latest`",
+                "  or other floating version specs. Verify current stable versions and",
+                "  pin concrete versions or project-approved ranges.",
+                "- Responsive UI: when a UI needs small-screen navigation and the user",
+                "  has not specified a different pattern, use a left-side hamburger",
+                "  sidebar/drawer.",
+            ]
+        )
 
         hints = self._collect_context_hints()
         if hints:
@@ -804,7 +864,9 @@ class IntegrationBase(ABC):
         and call ``process_template()`` in their own loop — see
         ``CopilotIntegration`` for an example.
         """
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -966,7 +1028,9 @@ class MarkdownIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -1171,7 +1235,9 @@ class TomlIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -1345,7 +1411,9 @@ class YamlIntegration(IntegrationBase):
         parsed_options: dict[str, Any] | None = None,
         **opts: Any,
     ) -> list[Path]:
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 

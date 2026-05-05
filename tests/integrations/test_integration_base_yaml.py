@@ -251,6 +251,9 @@ class YamlIntegrationTests:
             assert "<!-- KITE START -->" in content
             assert "<!-- KITE END -->" in content
             assert "read the current plan" in content
+            assert "Brownfield-first" in content
+            assert "never add or update dependencies using `latest`" in content
+            assert "left-side hamburger" in content
 
     def test_teardown_removes_context_section(self, tmp_path):
         i = get_integration(self.KEY)
@@ -395,6 +398,7 @@ class YamlIntegrationTests:
         # Framework files
         files.append(".kite/integration.json")
         files.append(".kite/init-options.json")
+        files.append(".kite/project-context.json")
         files.append(f".kite/integrations/{self.KEY}.manifest.json")
         files.append(".kite/integrations/kite.manifest.json")
         files.append(".gitignore")

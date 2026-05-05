@@ -44,10 +44,11 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 1. **Never write code, design, or specs yourself.** Every artifact comes from the persona command that owns it. This command only **chains** persona commands and presents review gates.
 2. **One stage at a time through planning.** Run one persona, then stop at the gate unless the stage is routine and explicitly auto-approved. Persona commands from constitution through plan MUST still ask one question at a time and MUST NOT write or advance when material decisions are missing.
 3. **Resume-aware.** Always read `.kite/state.yml` first. If a previous run paused mid-flow, offer to resume from that step, not from the top.
-4. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
-5. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, `kite.docs`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
-6. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, create or switch to a feature branch before writing feature artifacts. STOP IF branch creation/switching fails, and tell the user to resolve the branch issue before continuing. If there is no git repository, continue without branch changes.
-7. **No self-recursive auto-send.** NEVER invoke or hand off to `kite.start` automatically. It is acceptable to tell the user to run `kite.start` manually to resume.
+4. **Brownfield-first.** If the repository already has application code, docs, config, tests, or specs, instruct every stage to inspect that evidence before asking feature or architecture questions. Existing implemented behavior is answered context; ask only about the desired change, missing evidence, or conflicts.
+5. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
+6. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, `kite.docs`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
+7. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, create or switch to a feature branch before writing feature artifacts. STOP IF branch creation/switching fails, and tell the user to resolve the branch issue before continuing. If there is no git repository, continue without branch changes.
+8. **No self-recursive auto-send.** NEVER invoke or hand off to `kite.start` automatically. It is acceptable to tell the user to run `kite.start` manually to resume.
 
 ### Step 1 — Resolve inputs
 
@@ -118,6 +119,7 @@ For each persona invocation:
 
 - **Print the stage banner:** "Stage X/11 — <persona name>".
 - **Invoke the persona command** with the prepared arguments. The persona writes its own files and updates `.kite/state.yml` itself.
+- **For brownfield repositories**, include the instruction: "Read existing docs, config, tests, source layout, and relevant implemented features first. Do not ask the user to restate existing behavior unless the repository evidence conflicts or is missing."
 - **After the persona returns**, read its 5-bullet summary back to the user (the persona always prints one).
 - **Run the gate** if required. Planning gates are one yes/no question and may be skipped only when `auto_approve` is true. The tasks gate is ALWAYS required. After the tasks gate is approved, continue backend → frontend → docs → qa without repeated approval prompts unless blocked or unsafe.
 

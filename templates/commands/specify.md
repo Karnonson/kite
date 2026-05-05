@@ -103,7 +103,8 @@ Given that feature description, do this:
      ```
      Write the actual resolved directory path value (for example, `specs/003-user-auth`), not the literal string `SPECIFY_FEATURE_DIRECTORY`.
      This allows downstream commands (`__KITE_COMMAND_PLAN__`, `__KITE_COMMAND_TASKS__`, etc.) to locate the feature directory without relying on git branch name conventions.
-   - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
+    - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
+    - **Brownfield-first**: If the repository already contains app code, docs, config, tests, or prior specs, read the relevant evidence before asking clarification questions. Treat implemented features and documented behavior as answered context; ask only about the requested change, missing evidence, or conflicts. The spec MUST distinguish existing behavior to preserve from new or changed behavior.
 
    **IMPORTANT**:
    - You must only create one feature per `__KITE_COMMAND_SPECIFY__` invocation
@@ -113,7 +114,7 @@ Given that feature description, do this:
 4. Load `templates/spec-template.md` to understand required sections.
 
 5. Follow this execution flow:
-    1. Parse user description from arguments
+    1. Parse user description from arguments and brownfield evidence from the repository
        If empty: ERROR "No feature description provided"
     2. Extract key concepts from description
        Identify: actors, actions, data, constraints

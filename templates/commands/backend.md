@@ -61,13 +61,15 @@ This command runs **after** `kite.tasks`. It is the first **implementation** ste
 1. **Only `[backend]` tasks.** Filter `tasks.md` to tasks tagged `[backend]`. Do not implement `[frontend]` or `[qa]` tasks. If a task has no tag, skip it and warn.
 2. **Contract first, code second.** Before writing or modifying production code, draft `contract.md` from the spec and the tasks. Iterate on it as code lands, but never finish the command without a complete contract.
 3. **No frontend code.** Never edit anything under a frontend folder (e.g. `web/`, `frontend/`, `app/`, `src/components/`). If a task seems to require it, mark the task blocked and stop.
-4. **Stack picks once.** If the stack is not yet decided, ask **one** consolidated question with a sensible default in square brackets, then write the choice into `kite.config.yml`.
-5. **Plain English summaries.** Every section in `contract.md` includes a one-line plain-English description above the formal definition.
-6. **Refuse silent failures.** If a task references a file that does not exist, ask the user before creating it.
-7. **Respect tracer-bullet phase gates.** Work through `[backend]` tasks in phase order. When you reach a backend verification task, run it before touching any later-phase backend task. If it fails, stop and report instead of skipping ahead.
-8. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing code. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
-9. **Approved layout only.** Read plan.md's `## Approved Source Layout`. MUST NOT create or edit files outside the approved backend/shared/test paths unless the plan explicitly allows them.
-10. **Validation required.** Run relevant backend tests, lint, typecheck, framework-native validation, or exact verification tasks from `tasks.md` after code changes. Fix failures you caused before marking tasks complete.
+4. **Brownfield backend first.** Inspect existing backend routes, services, models, schemas, config, tests, and data helpers before implementing. Reuse current patterns and do not ask the user about implemented backend behavior unless evidence is missing or conflicts.
+5. **Stack picks once.** If the stack is not yet decided, ask **one** consolidated question with a sensible default in square brackets, then write the choice into `kite.config.yml`.
+6. **Dependency versions are pinned.** Never install or write dependencies using `latest` or floating versions; use verified concrete versions or project-approved ranges.
+7. **Plain English summaries.** Every section in `contract.md` includes a one-line plain-English description above the formal definition.
+8. **Refuse silent failures.** If a task references a file that does not exist, ask the user before creating it.
+9. **Respect tracer-bullet phase gates.** Work through `[backend]` tasks in phase order. When you reach a backend verification task, run it before touching any later-phase backend task. If it fails, stop and report instead of skipping ahead.
+10. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing code. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
+11. **Approved layout only.** Read plan.md's `## Approved Source Layout`. MUST NOT create or edit files outside the approved backend/shared/test paths unless the plan explicitly allows them.
+12. **Validation required.** Run relevant backend tests, lint, typecheck, framework-native validation, or exact verification tasks from `tasks.md` after code changes. Fix failures you caused before marking tasks complete.
 
 ### Step 1 — Read existing artifacts
 
@@ -81,6 +83,7 @@ Optional:
 - `FEATURE_DIR/design.md` — used only to understand which screens consume which data.
 - `kite.config.yml` — read `persona`, `stack`, `default_integration`.
 - `.kite/state.yml` — confirm previous stage was `tasks`.
+- Existing backend evidence — current routes/services/models/schemas, package/build manifests, environment config examples, test suites, and data-access helpers relevant to the requested change.
 
 If any required artifact is missing, abort and tell the user which command produces it.
 
@@ -104,7 +107,7 @@ Read `kite.config.yml`:
       datastore: <sqlite|postgres|...>
   ```
 
-    After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen framework and any AI SDK or agent framework that appears in scope.
+    After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen framework and any AI SDK or agent framework that appears in scope. Never use `latest` or floating dependency versions.
 
 ### Step 3 — Filter tasks
 
@@ -185,7 +188,7 @@ For each filtered `[backend]` task:
 
 1. State the task title and the files you plan to touch.
    - Confirm each file is within the Approved Source Layout before editing.
-2. Make the change.
+2. Make the change, reusing existing backend patterns when present.
 3. If the change adds, removes, or alters an endpoint, **immediately update** the relevant section in `contract.md`.
 4. If the task is a backend verification task, run the exact terminal command or framework dev-environment flow written in `tasks.md` before marking it done. For frameworks that ship an integrated developer environment or studio, use it when the task tells you to.
 5. For any backend code change, run the relevant validation command(s) from `tasks.md`, the backend framework, or the existing test suite. If validation fails because of your change, fix it before continuing. If validation cannot run, mark the task blocked and explain why.

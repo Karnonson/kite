@@ -19,6 +19,13 @@ BACKEND_COMMAND = REPO_ROOT / "templates" / "commands" / "backend.md"
 FRONTEND_COMMAND = REPO_ROOT / "templates" / "commands" / "frontend.md"
 DOCS_COMMAND = REPO_ROOT / "templates" / "commands" / "docs.md"
 QA_COMMAND = REPO_ROOT / "templates" / "commands" / "qa.md"
+DESIGN_COMMAND = REPO_ROOT / "templates" / "commands" / "design.md"
+DISCOVER_COMMAND = REPO_ROOT / "templates" / "commands" / "discover.md"
+IMPLEMENT_COMMAND = REPO_ROOT / "templates" / "commands" / "implement.md"
+PLAN_COMMAND = REPO_ROOT / "templates" / "commands" / "plan.md"
+RESEARCH_COMMAND = REPO_ROOT / "templates" / "commands" / "research.md"
+SPECIFY_COMMAND = REPO_ROOT / "templates" / "commands" / "specify.md"
+START_COMMAND = REPO_ROOT / "templates" / "commands" / "start.md"
 PLAN_TEMPLATE = REPO_ROOT / "templates" / "plan-template.md"
 PRE_IMPLEMENTATION_COMMANDS = (
     "constitution",
@@ -28,6 +35,25 @@ PRE_IMPLEMENTATION_COMMANDS = (
     "clarify",
     "plan",
     "tasks",
+)
+BROWNFIELD_COMMANDS = (
+    START_COMMAND,
+    DISCOVER_COMMAND,
+    SPECIFY_COMMAND,
+    DESIGN_COMMAND,
+    PLAN_COMMAND,
+    TASKS_COMMAND,
+    BACKEND_COMMAND,
+    FRONTEND_COMMAND,
+    IMPLEMENT_COMMAND,
+)
+DEPENDENCY_VERSION_COMMANDS = (
+    PLAN_COMMAND,
+    TASKS_COMMAND,
+    BACKEND_COMMAND,
+    FRONTEND_COMMAND,
+    IMPLEMENT_COMMAND,
+    RESEARCH_COMMAND,
 )
 
 PERSONA_LABELS = ("[backend]", "[frontend]", "[qa]", "[docs]", "[ops]")
@@ -103,6 +129,29 @@ class TestTasksPromptRules:
         assert DOCS_COMMAND.exists()
         assert "Only `[docs]` tasks" in _read_text(DOCS_COMMAND)
         assert "kite.docs" in _read_text(FRONTEND_COMMAND)
+
+    def test_brownfield_commands_inspect_existing_project_before_questions(self):
+        for path in BROWNFIELD_COMMANDS:
+            content = _read_text(path).lower()
+            assert "brownfield" in content, path.name
+            assert "existing" in content, path.name
+            assert (
+                "before asking" in content
+                or "ask only" in content
+                or "do not ask" in content
+            ), path.name
+
+    def test_dependency_prompts_forbid_latest_versions(self):
+        for path in DEPENDENCY_VERSION_COMMANDS:
+            content = _read_text(path)
+            assert "`latest`" in content, path.name
+            assert "floating" in content.lower(), path.name
+
+    def test_ui_prompts_default_to_hamburger_sidebar_on_small_screens(self):
+        for path in (DESIGN_COMMAND, TASKS_COMMAND, FRONTEND_COMMAND):
+            content = _read_text(path).lower()
+            assert "left-side hamburger sidebar/drawer" in content, path.name
+            assert "small screens" in content, path.name
 
 
 class TestTasksTemplate:

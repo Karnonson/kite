@@ -28,6 +28,12 @@ coding assistant (Copilot, Claude, or Codex).
     cd my-app
     ```
 
+    Add `--profile minimal` to install only the guided workflow commands, or
+    `--profile full` to include every optional Kite command. The default
+    `standard` profile keeps Copilot's visible agent list focused while still
+    including `kite.research` for stack guidance. To change the profile later,
+    run `kite profile set <name>` (then `kite integration upgrade --force` to apply).
+
 2. **In your AI assistant**, run the orchestrator:
 
     ```
@@ -39,10 +45,29 @@ coding assistant (Copilot, Claude, or Codex).
     "approve and continue?" between each stage. You only ever
     answer plain-English yes/no questions.
 
-3. **If anything pauses or breaks, run** `kite resume` (in the terminal)
+    For an existing codebase, initialize Kite in that repository and describe
+    the change you want:
+
+    ```
+    /kite.start "Improve the existing dashboard filters."
+    ```
+
+    Kite treats this as brownfield work: the agent should read existing docs,
+    config, tests, source layout, and relevant implemented features before
+    asking you questions. You should only need to clarify the desired change,
+    missing evidence, or conflicts. Kite also writes `.kite/project-context.json`
+    with detected stack details and validation commands so later agents can
+    reuse that context instead of rediscovering the project.
+
+3. **Before or after implementation, run** `kite check` (in the terminal)
+   to refresh `.kite/project-context.json` and execute the validation commands
+   Kite detected for this project. Use `kite check --tools` when you only want
+   to check installed tools and agent CLIs.
+
+4. **If anything pauses or breaks, run** `kite resume` (in the terminal)
    to pick up exactly where you left off.
 
-4. **If you're not sure what's missing**, run `kite doctor` for a
+5. **If you're not sure what's missing**, run `kite doctor` for a
    plain-language report — it tells you which `/kite.*` command to run
    next.
 
@@ -52,6 +77,7 @@ That's it. The five commands you'll actually type are:
 | --- | --- | --- |
 | Once, to set up | Dev container script or `kite init my-app --integration copilot` | Terminal |
 | Every new feature | `/kite.start "<idea>"` | AI assistant |
+| To validate work | `kite check` | Terminal |
 | If a step stalls | `kite resume` | Terminal |
 | If you're lost | `kite doctor` | Terminal |
 | To pick up later | `/kite.start` (no idea) | AI assistant — auto-resumes |
@@ -158,7 +184,7 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --
 /kite.tasks
 ```
 
-Optionally, validate the plan with `/kite.analyze`:
+If your integration installs optional review commands, you can validate the plan with `/kite.analyze`:
 
 ```markdown
 /kite.analyze
@@ -169,6 +195,7 @@ Then, run the split implementation commands in order.
 ```markdown
 /kite.backend
 /kite.frontend
+/kite.docs
 /kite.qa
 ```
 
@@ -215,7 +242,7 @@ You can continue to refine the spec with more details using `/kite.clarify`:
 
 ### Step 4: Validate the Spec
 
-Validate the specification checklist using the `/kite.checklist` command:
+If your integration installs optional review commands, validate the specification checklist using the `/kite.checklist` command:
 
 ```bash
 /kite.checklist
@@ -239,7 +266,7 @@ Generate an actionable task list using the `/kite.tasks` command:
 
 ### Step 7: Validate and Implement
 
-Have your coding agent audit the implementation plan using `/kite.analyze`:
+If available, have your coding agent audit the implementation plan using `/kite.analyze`:
 
 ```bash
 /kite.analyze

@@ -59,11 +59,12 @@ You **MUST** consider the user input before proceeding (if not empty).
 1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
-   - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
-   - Note: Not all projects have all documents. Generate tasks based on what's available.
+    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
+    - Note: Not all projects have all documents. Generate tasks based on what's available.
+    - For brownfield projects, also read existing README/docs, package/build manifests, source layout, tests, and relevant implemented features so tasks extend the current system instead of recreating or re-questioning it.
 
-3. **Confirm task-shaping choices before writing**: If the loaded artifacts do not clearly answer implementation ownership, approved source layout, test expectations, dev-environment commands, accessibility checks, documentation needs, deployment/ops tasks, or tracer-bullet verification flow, ask the user one question at a time with a recommended default. Continue until the task list can be written without guessing, or stop if the user says to skip questions / proceed / stop.
+3. **Confirm task-shaping choices before writing**: If the loaded artifacts and brownfield evidence do not clearly answer implementation ownership, approved source layout, test expectations, dev-environment commands, accessibility checks, documentation needs, deployment/ops tasks, or tracer-bullet verification flow, ask the user one question at a time with a recommended default. Continue until the task list can be written without guessing, or stop if the user says to skip questions / proceed / stop. Do not ask about existing features that the repository already proves.
 
 4. **Execute task generation workflow**: Load `plan.md` and extract the tech stack, libraries, and Approved Source Layout. Load `spec.md` and extract user stories with their priorities. If `data-model.md` exists, map entities to user stories. If `contracts/` exists, map interface contracts to user stories. If `research.md` exists, extract the setup decisions. Then generate tasks organized by user story and tracer-bullet phase, split backend and frontend work into separate task groups whenever both are in scope, add explicit phase-verification tasks so every phase can be proven working before the next phase starts, generate the dependency graph and per-story parallel execution examples, and validate that each story is independently testable and phase-gated.
 
@@ -119,6 +120,10 @@ The tasks.md should be immediately executable - each task must be specific enoug
 **Documentation ownership is REQUIRED for user-visible features**: If a feature changes user-visible behavior, generate `[docs]` tasks. Use `README.md` only for project overview, setup, common commands, and quickstart. Use `docs/` for durable guides, architecture, deployment, operations, and troubleshooting. Use `specs/<feature>/` only for planning artifacts.
 
 **Approved Source Layout is REQUIRED**: Tasks MUST use only paths listed in plan.md's `## Approved Source Layout`. Framework-native root layouts are allowed only when the plan states why. The first setup phase MUST include a task that creates the approved structure.
+
+**Dependency versions must be pinned**: If a task adds or upgrades dependencies, the task MUST require verified concrete versions or project-approved ranges. NEVER generate install commands or manifest edits that use `latest` or floating dependency versions.
+
+**Small-screen navigation default**: For frontend tasks involving responsive navigation, use a left-side hamburger sidebar/drawer on small screens unless the spec/design explicitly chooses a different pattern.
 
 ### Checklist Format (REQUIRED)
 

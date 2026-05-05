@@ -343,7 +343,19 @@ class ExtensionManifest:
 
     @property
     def commands(self) -> List[Dict[str, Any]]:
-        """Get list of provided commands."""
+        """Get list of provided commands, excluding hook-only commands."""
+        all_cmds = self.data.get("provides", {}).get("commands", [])
+        return [c for c in all_cmds if not c.get("hook_only", False)]
+
+    @property
+    def hook_only_commands(self) -> List[Dict[str, Any]]:
+        """Get list of hook-only commands (not installed as agent files)."""
+        all_cmds = self.data.get("provides", {}).get("commands", [])
+        return [c for c in all_cmds if c.get("hook_only", False)]
+
+    @property
+    def all_commands(self) -> List[Dict[str, Any]]:
+        """Get all provided commands including hook-only ones."""
         return self.data.get("provides", {}).get("commands", [])
 
     @property
@@ -2272,8 +2284,28 @@ class HookExecutor:
             return ""
         return f"kite-{command_id[len('kite.'):].replace('.', '-')}"
 
-    def _render_hook_invocation(self, command: Any) -> str:
-        """Render an agent-specific invocation string for a hook command."""
+    def _render_hook_invocation(self, command: Any, hook: Optional[Dict[str, Any]] = None) -> str:
+        """Render an agent-specific invocation string for a hook command.
+
+        For hook-only commands (those with ``hook_only: true`` in the manifest),
+        the invocation is a direct shell-script call rather than an agent command.
+        """
+        # Hook-only: render as a script call so no agent file is needed
+        if hook and hook.get("hook_only"):
+            init_options = self._load_init_options()
+            script_type = init_options.get("script", "sh")
+            ext_id = hook.get("extension", "")
+            if script_type == "ps":
+                script_rel = hook.get("script_ps", "")
+                if script_rel and ext_id:
+                    return f"powershell -File .kite/extensions/{ext_id}/{script_rel}"
+            else:
+                script_rel = hook.get("script_sh", "")
+                if script_rel and ext_id:
+                    return f"bash .kite/extensions/{ext_id}/{script_rel}"
+            # Fallback: no script path recorded — should not happen for registered hooks
+            return ""
+
         if not isinstance(command, str):
             return ""
 
@@ -2349,23 +2381,39 @@ class HookExecutor:
         if "hooks" not in config:
             config["hooks"] = {}
 
+        # Build a lookup of all commands (including hook_only) for script path resolution
+        command_lookup: Dict[str, Dict[str, Any]] = {
+            cmd["name"]: cmd for cmd in manifest.all_commands
+        }
+
         # Register each hook
         for hook_name, hook_config in manifest.hooks.items():
             if hook_name not in config["hooks"]:
                 config["hooks"][hook_name] = []
 
+            command_name = hook_config.get("command")
+            cmd_meta = command_lookup.get(command_name, {})
+
             # Add hook entry
-            hook_entry = {
+            hook_entry: Dict[str, Any] = {
                 "extension": manifest.id,
-                "command": hook_config.get("command"),
+                "command": command_name,
                 "enabled": True,
                 "optional": hook_config.get("optional", True),
                 "prompt": hook_config.get(
-                    "prompt", f"Execute {hook_config.get('command')}?"
+                    "prompt", f"Execute {command_name}?"
                 ),
                 "description": hook_config.get("description", ""),
                 "condition": hook_config.get("condition"),
             }
+
+            # Persist hook_only metadata so _render_hook_invocation can use it
+            if cmd_meta.get("hook_only", False):
+                hook_entry["hook_only"] = True
+                if cmd_meta.get("script_sh"):
+                    hook_entry["script_sh"] = cmd_meta["script_sh"]
+                if cmd_meta.get("script_ps"):
+                    hook_entry["script_ps"] = cmd_meta["script_ps"]
 
             # Check if already registered
             existing = [
@@ -2542,7 +2590,7 @@ class HookExecutor:
         for hook in hooks:
             extension = hook.get("extension")
             command = hook.get("command")
-            invocation = self._render_hook_invocation(command)
+            invocation = self._render_hook_invocation(command, hook)
             command_text = command if isinstance(command, str) and command.strip() else "<missing command>"
             display_invocation = invocation or (
                 f"/{command_text}" if command_text != "<missing command>" else "/<missing command>"
@@ -2626,7 +2674,7 @@ class HookExecutor:
         """
         return {
             "command": hook.get("command"),
-            "invocation": self._render_hook_invocation(hook.get("command")),
+            "invocation": self._render_hook_invocation(hook.get("command"), hook),
             "extension": hook.get("extension"),
             "optional": hook.get("optional", True),
             "description": hook.get("description", ""),
