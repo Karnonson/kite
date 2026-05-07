@@ -113,7 +113,9 @@ class IntegrationBase(ABC):
     )
     """Command templates needed for the guided Kite workflow."""
 
-    standard_command_templates: frozenset[str] | None = None
+    standard_command_templates: frozenset[str] | None = (
+        core_command_templates | frozenset({"research"})
+    )
     """Default install profile for an integration. ``None`` means all templates."""
 
     # -- Markers for managed context section ------------------------------

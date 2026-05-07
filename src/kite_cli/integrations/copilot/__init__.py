@@ -107,7 +107,6 @@ class CopilotIntegration(IntegrationBase):
     # Mutable flag set by setup() — indicates the active scaffolding mode.
     _skills_mode: bool = False
     _default_agent_templates = {
-        "analyze",
         "backend",
         "clarify",
         "constitution",
@@ -123,7 +122,7 @@ class CopilotIntegration(IntegrationBase):
         "tasks",
     }
     _skill_only_templates = {"mastra"}
-    standard_command_templates = frozenset(_default_agent_templates | _skill_only_templates)
+    standard_command_templates = frozenset(_default_agent_templates)
 
     def effective_invoke_separator(
         self, parsed_options: dict[str, Any] | None = None

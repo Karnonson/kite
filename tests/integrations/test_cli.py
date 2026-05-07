@@ -103,7 +103,7 @@ class TestInitIntegrationFlag:
         opts = json.loads((project / ".kite" / "init-options.json").read_text(encoding="utf-8"))
         assert opts["profile"] == "minimal"
 
-    def test_integration_copilot_profile_standard_includes_analyze(self, tmp_path):
+    def test_integration_copilot_profile_standard_keeps_core_plus_research(self, tmp_path):
         from typer.testing import CliRunner
         from kite_cli import app
         runner = CliRunner()
@@ -120,8 +120,8 @@ class TestInitIntegrationFlag:
             os.chdir(old_cwd)
 
         assert result.exit_code == 0, f"init failed: {result.output}"
-        assert (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
         assert (project / ".github" / "agents" / "kite.research.agent.md").exists()
+        assert not (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
         assert not (project / ".github" / "agents" / "kite.implement.agent.md").exists()
 
     def test_integration_copilot_profile_full(self, tmp_path):
@@ -246,7 +246,11 @@ class TestInitIntegrationFlag:
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
-            result = runner.invoke(app, ["check", "--no-refresh-context"], catch_exceptions=False)
+            result = runner.invoke(
+                app,
+                ["check", "--run-validation", "--no-refresh-context"],
+                catch_exceptions=False,
+            )
         finally:
             os.chdir(old_cwd)
 
@@ -286,7 +290,11 @@ class TestInitIntegrationFlag:
         old_cwd = os.getcwd()
         try:
             os.chdir(project)
-            result = runner.invoke(app, ["check", "--no-refresh-context"], catch_exceptions=False)
+            result = runner.invoke(
+                app,
+                ["check", "--run-validation", "--no-refresh-context"],
+                catch_exceptions=False,
+            )
         finally:
             os.chdir(old_cwd)
 
@@ -294,6 +302,175 @@ class TestInitIntegrationFlag:
         normalized_output = _normalize_cli_output(result.output)
         assert "1 validation command(s) failed" in normalized_output
         assert "boom" in normalized_output
+
+    def test_project_check_rejects_string_validation_commands(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "check-string"
+        (project / ".kite").mkdir(parents=True)
+        (project / ".kite" / "project-context.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "validation_commands": [
+                        {
+                            "id": "shell",
+                            "label": "Shell command",
+                            "command": "echo unsafe",
+                            "source": "test",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                ["check", "--run-validation", "--no-refresh-context"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 1
+        normalized_output = _normalize_cli_output(result.output)
+        assert "array of strings" in normalized_output
+
+    def test_project_check_reports_missing_validation_executable(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "check-missing-exec"
+        (project / ".kite").mkdir(parents=True)
+        (project / ".kite" / "project-context.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "validation_commands": [
+                        {
+                            "id": "missing",
+                            "label": "Missing executable",
+                            "command": ["definitely-not-a-kite-test-command"],
+                            "source": "test",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                ["check", "--run-validation", "--no-refresh-context"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 1
+        normalized_output = _normalize_cli_output(result.output)
+        assert "Could not run validation command" in normalized_output
+
+    def test_project_check_refresh_preserves_existing_commands(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "check-refresh-merge"
+        (project / ".kite").mkdir(parents=True)
+        (project / "package.json").write_text(
+            json.dumps({"scripts": {"test": "node should-not-replace.js"}}),
+            encoding="utf-8",
+        )
+        context_path = project / ".kite" / "project-context.json"
+        context_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "brownfield": False,
+                    "custom_note": "keep me",
+                    "validation_commands": [
+                        {
+                            "id": "custom",
+                            "label": "Custom validation",
+                            "command": [sys.executable, "-c", "print('custom ok')"],
+                            "source": "test",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                ["check", "--run-validation"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        refreshed = json.loads(context_path.read_text(encoding="utf-8"))
+        assert refreshed["custom_note"] == "keep me"
+        assert refreshed["brownfield"] is False
+        assert [command["id"] for command in refreshed["validation_commands"]] == ["custom"]
+        assert refreshed["summary"]["package_manager"] == "npm"
+
+    def test_project_context_uses_package_manager_field(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "context-package-manager"
+        project.mkdir()
+        (project / "package.json").write_text(
+            json.dumps(
+                {
+                    "packageManager": "pnpm@9.12.0",
+                    "scripts": {"test": "vitest run"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                [
+                    "init",
+                    "--here",
+                    "--force",
+                    "--integration",
+                    "copilot",
+                    "--script",
+                    "sh",
+                    "--no-git",
+                ],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        context = json.loads((project / ".kite" / "project-context.json").read_text())
+        assert context["summary"]["package_manager"] == "pnpm"
+        assert context["validation_commands"][0]["command"] == ["pnpm", "run", "test"]
 
     def test_init_with_git_uses_main_branch(self, tmp_path):
         from typer.testing import CliRunner
@@ -1007,6 +1184,65 @@ class TestProfileCommands:
         assert opts["profile"] == "full"
         output = strip_ansi(result.output)
         assert "full" in output
+
+    def test_integration_upgrade_uses_saved_profile(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "upgrade-saved-profile"
+        project.mkdir()
+        self._init_project(runner, project, profile="standard")
+
+        assert not (project / ".github" / "agents" / "kite.implement.agent.md").exists()
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            set_result = runner.invoke(
+                app,
+                ["profile", "set", "full"],
+                catch_exceptions=False,
+            )
+            upgrade_result = runner.invoke(
+                app,
+                ["integration", "upgrade", "--force"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert set_result.exit_code == 0, set_result.output
+        assert upgrade_result.exit_code == 0, upgrade_result.output
+        assert (project / ".github" / "agents" / "kite.implement.agent.md").exists()
+        opts = json.loads((project / ".kite" / "init-options.json").read_text())
+        assert opts["profile"] == "full"
+
+    def test_profile_set_upgrade_applies_profile(self, tmp_path):
+        from typer.testing import CliRunner
+        from kite_cli import app
+
+        runner = CliRunner()
+        project = tmp_path / "set-upgrade"
+        project.mkdir()
+        self._init_project(runner, project, profile="standard")
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(project)
+            result = runner.invoke(
+                app,
+                ["profile", "set", "full", "--upgrade"],
+                catch_exceptions=False,
+            )
+        finally:
+            os.chdir(old_cwd)
+
+        assert result.exit_code == 0, result.output
+        assert (project / ".github" / "agents" / "kite.implement.agent.md").exists()
+        output = strip_ansi(result.output)
+        assert "Profile updated" in output
+        assert "upgraded successfully" in output
 
     def test_profile_set_rejects_unknown_profile(self, tmp_path):
         from typer.testing import CliRunner

@@ -35,7 +35,7 @@ Execution steps:
 
 2. Read the current planning context:
    - Required: `FEATURE_SPEC`
-   - Optional: `FEATURE_DIR/design.md`, `FEATURE_DIR/discovery.md`, `kite.config.yml`, `.kite/memory/constitution.md`, existing `FEATURE_DIR/research.md`
+   - Optional: `FEATURE_DIR/design.md`, `FEATURE_DIR/design-system.md`, `FEATURE_DIR/discovery.md`, `kite.config.yml`, `.kite/memory/constitution.md`, existing `FEATURE_DIR/research.md`
    - If `FEATURE_SPEC` is missing, instruct the user to run `__KITE_COMMAND_SPECIFY__` first.
 
 3. Treat the calling agent as the owner of user interaction:
@@ -52,6 +52,7 @@ Execution steps:
 5. Research loop for every shortlisted or selected tool:
    - **Official docs first.** Use the vendor's official docs, install guide, release notes, or package registry page before any blog post or secondary source.
    - Verify the **current stable version** or the official install target.
+   - Never recommend `latest` or floating dependency versions when an exact verified version or install target is available.
    - Capture the canonical quickstart or installation URL.
    - Record compatibility notes with the rest of the chosen stack.
    - For AI SDKs / agent frameworks, explicitly check the official docs for:

@@ -43,6 +43,7 @@ Required:
 Optional but useful:
 
 - `FEATURE_DIR/design.md` — user-visible screen names and flows.
+- `FEATURE_DIR/design-system.md` — reusable component names and approved style terminology.
 - `FEATURE_DIR/contract.md` — public API or integration behavior.
 - `FEATURE_DIR/quickstart.md` — commands and demo flow to reflect in docs.
 - `README.md` and `docs/` — existing documentation conventions.

@@ -486,24 +486,19 @@ class TomlIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     COMMAND_STEMS = [
-        "analyze",
         "backend",
-        "checklist",
         "clarify",
         "constitution",
         "design",
         "discover",
         "docs",
         "frontend",
-        "implement",
-        "mastra",
         "plan",
         "qa",
         "research",
         "specify",
         "start",
         "tasks",
-        "taskstoissues",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:

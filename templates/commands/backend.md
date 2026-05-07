@@ -76,8 +76,11 @@ Required:
 
 Optional:
 - `FEATURE_DIR/design.md` — used only to understand which screens consume which data.
+- `FEATURE_DIR/design-system.md` — optional reference for shared UI terminology only; never use it to invent frontend behavior.
 - `kite.config.yml` — read `persona`, `stack`, `default_integration`.
 - `.kite/state.yml` — confirm previous stage was `tasks`.
+
+For a **brownfield** or otherwise **existing** project, inspect the implemented backend, current contract, and existing feature behavior **before asking** new questions. **Ask only** about missing evidence, contradictions, or blockers.
 
 If any required artifact is missing, abort and tell the user which command produces it.
 
@@ -101,7 +104,7 @@ Read `kite.config.yml`:
       datastore: <sqlite|postgres|...>
   ```
 
-    After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen framework and any AI SDK or agent framework that appears in scope.
+    After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen framework and any AI SDK or agent framework that appears in scope. Never use `latest` or floating dependency versions.
 
 ### Step 3 — Filter tasks
 
@@ -184,6 +187,7 @@ For each filtered `[backend]` task:
 2. Make the change.
 3. If the change adds, removes, or alters an endpoint, **immediately update** the relevant section in `contract.md`.
 4. If the task is a backend verification task, run the exact terminal command or framework dev-environment flow written in `tasks.md` before marking it done. For frameworks that ship an integrated developer environment or studio, use it when the task tells you to.
+    - If your change causes a validation or verification failure and the fix is still inside backend scope, fix it before continuing.
 5. Update `tasks.md`: change `[ ]` to `[x]` for the completed task. Do not edit other tasks.
 6. After every 3 tasks, print a one-line progress summary.
 

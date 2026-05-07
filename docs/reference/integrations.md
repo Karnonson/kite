@@ -116,7 +116,7 @@ kite integration upgrade [<key>]
 | `--script sh\|ps`        | Script type: `sh` (bash/zsh) or `ps` (PowerShell)                        |
 | `--integration-options`  | Options for the integration                                              |
 
-Reinstalls the current integration with updated templates and commands (e.g., after upgrading Kite). Defaults to the currently installed integration; if a key is provided, it must match the installed one — otherwise the command fails and suggests using `switch` instead. Detects locally modified files and blocks the upgrade unless `--force` is used. Stale files from the previous install that are no longer needed are removed automatically.
+Reinstalls the current integration with updated templates and commands (e.g., after upgrading Kite). Defaults to the currently installed integration; if a key is provided, it must match the installed one — otherwise the command fails and suggests using `switch` instead. Detects locally modified files and blocks the upgrade unless `--force` is used. Stale managed files from the previous install that are no longer needed are removed automatically.
 
 ## Integration-Specific Options
 

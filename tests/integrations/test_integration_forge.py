@@ -77,7 +77,7 @@ class TestForgeIntegration:
         from kite_cli.integrations.forge import ForgeIntegration
         forge = ForgeIntegration()
         m = IntegrationManifest("forge", tmp_path)
-        forge.setup(tmp_path, m)
+        forge.setup(tmp_path, m, parsed_options={"profile": "full"})
         ctx_path = tmp_path / forge.context_file
         assert ctx_path.exists()
         content = ctx_path.read_text(encoding="utf-8")

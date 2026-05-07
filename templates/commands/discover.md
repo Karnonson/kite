@@ -4,7 +4,6 @@ handoffs:
   - label: Write the Specification
     agent: kite.specify
     prompt: Use the discovery brief to draft the feature specification.
-    send: true
   - label: Refine Discovery
     agent: kite.discover
     prompt: I want to revise the discovery brief.
@@ -66,6 +65,7 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
 4. **Default loudly.** Every question proposes a sensible default in square brackets. The user can answer "ok" / "yes" / Enter to accept it.
 5. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
 6. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
+7. **Brownfield first.** In a **brownfield** or otherwise **existing** feature directory, inspect any existing discovery artifact **before asking** new questions. **Ask only** about missing evidence, contradictions, or scope changes.
 
 ### Step 1 — Locate or create the project marker
 

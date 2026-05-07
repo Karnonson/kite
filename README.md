@@ -95,10 +95,10 @@ kite init --integration copilot
 kite init <PROJECT_NAME> --integration copilot
 
 # Run detected project checks from .kite/project-context.json
-kite check
+kite check --run-validation
 
 # Check installed tools and agent CLIs
-kite check --tools
+kite check
 ```
 
 To upgrade Kite, see the [Upgrade Guide](./docs/upgrade.md) for detailed instructions. Safe dry-run:
@@ -146,7 +146,7 @@ If you just want Kite to walk you through the whole lifecycle in plain English, 
 /kite.start "Build a tool that <one-sentence description of your idea>."
 ```
 
-`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, `kite doctor` for a plain-language status report, or `kite check` to run the validation commands Kite detected for the project.
+`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, `kite doctor` for a plain-language status report, or `kite check --run-validation` to run the validation commands Kite detected for the project.
 
 Prefer to drive each stage manually? The classic step-by-step flow is below.
 
@@ -176,7 +176,7 @@ Use the **`/kite.specify`** command to describe what you want to build. Focus on
 
 ### 6. Create a design brief
 
-Use the **`/kite.design`** command to define the user experience, information hierarchy, and page-level behavior before implementation.
+Use the **`/kite.design`** command to define the user experience, information hierarchy, and page-level behavior before implementation. It now writes two coordinated artifacts in the active feature directory: `design.md` for the founder-facing page and flow brief, and `design-system.md` for the AI-facing style system, tokens, and reusable component rules.
 
 ```bash
 /kite.design persona=founder
@@ -240,11 +240,7 @@ Run `kite integration list` to see all available integrations in your installed 
 
 ## Available Slash Commands
 
-<<<<<<< HEAD
-After running `kite init`, your AI coding agent will have access to slash commands for structured development. Use `--profile minimal`, `--profile standard` (default), or `--profile full` to control how many commands are installed. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
-=======
-After running `kite init`, your AI coding agent will have access to these workflow commands for structured development. Some integrations install them as slash-command prompt files; skills-based integrations install `kite-<command>/SKILL.md` skills and may use agent-native invocation syntax.
->>>>>>> 44c835fea6714e0882fd74d4ac69ce0f42089919
+After running `kite init`, your AI coding agent will have access to these workflow commands for structured development. Use `--profile minimal`, `--profile standard` (default), or `--profile full` to control how many commands are installed. Some integrations install them as slash-command prompt files; skills-based integrations install `kite-<command>/SKILL.md` skills and may use agent-native invocation syntax. For integrations that support skills mode, passing `--integration <agent> --integration-options="--skills"` installs agent skills instead of slash-command prompt files.
 
 ### Core Commands
 
@@ -256,7 +252,7 @@ Essential commands for the founder-first Kite workflow:
 | `/kite.constitution`  | `kite-constitution` | Create or update project governing principles and development guidelines   |
 | `/kite.discover`      | `kite-discover`     | Turn a one-line idea into a discovery brief in plain English               |
 | `/kite.specify`       | `kite-specify`      | Define what you want to build (requirements and user stories)              |
-| `/kite.design`        | `kite-design`       | Produce a text-only UX and page-layout brief                               |
+| `/kite.design`        | `kite-design`       | Produce `design.md` for pages/flow plus `design-system.md` for style rules |
 | `/kite.clarify`       | `kite-clarify`      | Run a post-design clarification pass before technical planning             |
 | `/kite.plan`          | `kite-plan`         | Create technical implementation plans with your chosen tech stack          |
 | `/kite.tasks`         | `kite-tasks`        | Generate actionable task lists for implementation                          |
@@ -302,14 +298,15 @@ kite profile set minimal --upgrade   # change and immediately regenerate agents
 ### Project context and validation
 
 During `kite init`, Kite writes `.kite/project-context.json` with detected
-stack details, repository evidence, and validation commands such as package
-scripts, `pytest`, `go test ./...`, or `cargo test`. Agents are instructed to
-read this file before asking brownfield questions about existing behavior.
+stack details, repository evidence, and validation commands inferred from
+recognized `package.json` scripts. Agents are instructed to read this file
+before asking brownfield questions about existing behavior.
 
-Run `kite check` from a Kite project to refresh that context and execute the
-detected validation pipeline. Use `kite check --no-refresh-context` to run the
-saved commands exactly as-is, or `kite check --tools` for the older environment
-check that reports installed tools and agent CLIs.
+Run `kite check --run-validation` from a Kite project to refresh that context
+and execute the detected validation pipeline. Use `kite check --run-validation
+--no-refresh-context` to run the saved commands exactly as-is. Plain
+`kite check` (or `kite check --tools`) reports installed tools and agent CLIs
+without running project scripts.
 
 ## 📚 Core Philosophy
 
@@ -422,7 +419,7 @@ Go to the project folder and run your coding agent. In our example, we're using 
 
 ![Bootstrapping Claude Code environment](./media/bootstrap-claude-code.gif)
 
-You will know that things are configured correctly if you see the `/kite.constitution`, `/kite.discover`, `/kite.design`, `/kite.plan`, `/kite.tasks`, `/kite.backend`, `/kite.frontend`, and `/kite.qa` commands available.
+You will know that things are configured correctly if you see the `/kite.constitution`, `/kite.discover`, `/kite.design`, `/kite.plan`, `/kite.tasks`, `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa` commands available.
 
 The first step should be establishing your project's governing principles using the `/kite.constitution` command. This helps ensure consistent decision-making throughout all subsequent development phases:
 
@@ -619,15 +616,16 @@ This step creates a `tasks.md` file in your feature specification directory that
 - **Test-driven development structure** - If tests are requested, test tasks are included and ordered to be written before implementation
 - **Checkpoint validation** - Each user story phase includes checkpoints to validate independent functionality
 
-The generated tasks.md provides a clear roadmap for `/kite.backend`, `/kite.frontend`, and `/kite.qa`, ensuring each slice can be implemented and checked before the next handoff.
+The generated tasks.md provides a clear roadmap for `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa`, ensuring each slice can be implemented and checked before the next handoff.
 
-### **STEP 7:** Backend, frontend, and QA
+### **STEP 7:** Backend, frontend, docs, and QA
 
 Once ready, run the split implementation commands in order:
 
 ```text
 /kite.backend
 /kite.frontend
+/kite.docs
 /kite.qa
 ```
 
@@ -637,6 +635,7 @@ The split implementation flow will:
 - Parse the task breakdown from `tasks.md`
 - Complete backend-tagged tasks and publish `contract.md`
 - Complete frontend-tagged tasks against that contract
+- Complete docs-tagged tasks before final validation
 - Run QA-tagged tasks and append a plain-English report
 
 > [!IMPORTANT]

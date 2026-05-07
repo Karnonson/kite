@@ -59,11 +59,12 @@ This command runs **after** `kite.docs` (or after `kite.frontend`/`kite.backend`
 
 1. **Only `[qa]` tasks for implementation work.** Filter `tasks.md` to tasks tagged `[qa]` for new test authoring. Running existing tests is always allowed.
 2. **Coverage minimums.**
-   - Backend: every endpoint in `contract.md` Section 2 has at least one **integration test** (request in → response out, with a real or fake datastore — not a unit test of the handler).
+    - Backend: every endpoint in `contract.md` Section 2 has at least one **integration test** (request in → response out, with a real or fake datastore — not a unit test of the handler).
     - Frontend: every page in `design.md` Section 2.1 has at least one **smoke test** (renders without crashing, primary action is reachable).
+    - Frontend design system: if `design-system.md` exists, you may cross-check reusable component names there, but page coverage still comes from `design.md`.
     - Accessibility: user-visible flows verify keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
     - Docs: if `[docs]` tasks or docs files changed, verify relevant links, setup commands, and user-facing instructions.
-   - If a coverage minimum is not met, mark a follow-up `[qa]` task in `tasks.md` and add it to today's report.
+    - If a coverage minimum is not met, mark a follow-up `[qa]` task in `tasks.md` and add it to today's report.
 3. **Never modify production code.** Test fixtures and test-only helpers under `tests/` are allowed. If a failure clearly requires a code fix, **stop**, mark the task blocked, and recommend `kite.backend` or `kite.frontend`.
 4. **Plain English report.** The report appended to `tasks.md` is for the founder to read. Keep it short, no stack traces, no file paths longer than the project root.
 5. **Honest pass/fail.** Never tweak a test to make it pass. If a test is genuinely wrong, mark it `[~]` (in-progress) and explain why in the report.
@@ -79,9 +80,10 @@ Required:
 Optional but used:
 - `specs/<latest>/contract.md` — for backend coverage check.
 - `specs/<latest>/design.md` — for frontend coverage check.
+- `specs/<latest>/design-system.md` — optional reusable component inventory for cross-checking shared component names.
 - `README.md` and `docs/` — for docs verification when docs changed.
 - `kite.config.yml` — read `persona`, `stack`.
-- `.kite/state.yml` — confirm previous stage was `backend` or `frontend`.
+- `.kite/state.yml` — confirm previous stage was `docs`; `frontend` or `backend` is acceptable only when docs or frontend work was out of scope.
 
 If `tasks.md` is missing, abort and tell the user to run `kite.tasks` first.
 
@@ -183,7 +185,7 @@ Append a section at the end of `specs/<latest>/tasks.md` (do not overwrite — a
    stage: qa
    updated_at: "<ISO-8601 timestamp now>"
    artifacts:
-     qa_report: specs/<latest>/tasks.md
+     tasks: specs/<latest>/tasks.md
    ```
 2. Print a **5-bullet** summary:
    - Total tests run

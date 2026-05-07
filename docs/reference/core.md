@@ -73,6 +73,14 @@ kite check
 
 Checks that required tools are available on your system: `git` and any CLI-based AI coding agents. IDE-based agents are skipped since they don't require a CLI tool.
 
+To run project validation commands recorded in `.kite/project-context.json`, opt in explicitly:
+
+```bash
+kite check --run-validation
+```
+
+Use `kite check --run-validation --no-refresh-context` to run the saved validation commands without refreshing detected context first.
+
 ## Version Information
 
 ```bash
@@ -117,9 +125,9 @@ kite profile set <name>
 | Argument / Option | Description                                                          |
 | ----------------- | -------------------------------------------------------------------- |
 | `<name>`          | Target profile: `minimal`, `standard`, or `full`                     |
-| `--upgrade`       | Immediately run `kite integration upgrade --force` to apply changes  |
+| `--upgrade`       | Immediately run `kite integration upgrade` to apply changes          |
 
-Updates `.kite/init-options.json` with the new profile. Without `--upgrade`, the profile is persisted but agent files are not regenerated until you run:
+Updates `.kite/init-options.json` with the new profile. Without `--upgrade`, agent files are not regenerated until you run:
 
 ```bash
 kite integration upgrade --force

@@ -131,10 +131,15 @@ class TestBasePrimitives:
         assert len(templates) > 0
         assert all(t.suffix == ".md" for t in templates)
 
-    def test_standard_profile_keeps_all_templates_by_default(self):
+    def test_standard_profile_keeps_core_plus_research_templates(self):
         i = StubIntegration()
         templates = i.list_command_templates()
-        assert i.filter_command_templates(templates, {"profile": "standard"}) == templates
+        filtered = i.filter_command_templates(templates, {"profile": "standard"})
+        filtered_stems = {template.stem for template in filtered}
+        assert "research" in filtered_stems
+        assert "start" in filtered_stems
+        assert "implement" not in filtered_stems
+        assert filtered_stems <= (i.core_command_templates | {"research"})
 
     def test_minimal_profile_keeps_guided_workflow_templates(self):
         i = StubIntegration()

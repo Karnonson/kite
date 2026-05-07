@@ -40,10 +40,10 @@ coding assistant (Copilot, Claude, or Codex).
     /kite.start "Build a tool that does <one sentence about your idea>."
     ```
 
-    Kite will walk you through one stage at a time — Constitution →
-    Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA — and ask
-    "approve and continue?" between each stage. You only ever
-    answer plain-English yes/no questions.
+   Kite will walk you through one stage at a time — Constitution →
+   Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA — and ask
+   "approve and continue?" between each stage. You only ever
+   answer plain-English yes/no questions.
 
     For an existing codebase, initialize Kite in that repository and describe
     the change you want:
@@ -59,10 +59,10 @@ coding assistant (Copilot, Claude, or Codex).
     with detected stack details and validation commands so later agents can
     reuse that context instead of rediscovering the project.
 
-3. **Before or after implementation, run** `kite check` (in the terminal)
+3. **Before or after implementation, run** `kite check --run-validation` (in the terminal)
    to refresh `.kite/project-context.json` and execute the validation commands
-   Kite detected for this project. Use `kite check --tools` when you only want
-   to check installed tools and agent CLIs.
+   Kite detected for this project. Use plain `kite check` or `kite check --tools`
+   when you only want to check installed tools and agent CLIs.
 
 4. **If anything pauses or breaks, run** `kite resume` (in the terminal)
    to pick up exactly where you left off.
@@ -154,7 +154,7 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --
 
 ### Step 4: Create the Design Brief
 
-**In the chat**, use the `/kite.design` slash command to define the product's screens, interaction shape, and design direction before planning.
+**In the chat**, use the `/kite.design` slash command to define the product's screens, interaction shape, and design direction before planning. The command writes both `design.md` for the page and navigation brief and `design-system.md` for the AI-facing style system and reusable component rules.
 
 ```bash
 /kite.design persona=founder

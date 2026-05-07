@@ -4,7 +4,7 @@ workflow:
   name: "Kite Full SDLC"
   version: "0.5.0"
   author: "Kite"
-  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → qa."
+  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → docs → qa."
 
 requires:
   kite_version: ">=0.7.2"
@@ -28,7 +28,7 @@ inputs:
   auto_approve:
     type: boolean
     default: false
-    prompt: "Auto-approve gates between stages? (skip the human review prompts)"
+    prompt: "Auto-approve early review gates? (task and contract gates still require approval/pass)"
 
 steps:
   # 1. Constitution --------------------------------------------------
@@ -95,7 +95,7 @@ steps:
     then:
       - id: gate-design
         type: gate
-        message: "Approve the design brief before clarification?"
+        message: "Approve design.md and design-system.md before clarification?"
         options: [approve, reject]
         on_reject: abort
 
@@ -140,15 +140,11 @@ steps:
     input:
       args: "persona={{ inputs.persona }}"
 
-  - id: skip-or-gate-tasks
-    type: if
-    condition: "{{ not inputs.auto_approve }}"
-    then:
-      - id: gate-tasks
-        type: gate
-        message: "Approve the task list before backend implementation?"
-        options: [approve, reject]
-        on_reject: abort
+  - id: gate-tasks
+    type: gate
+    message: "Approve the task list in specs/<feature>/tasks.md before backend implementation?"
+    options: [approve, reject]
+    on_reject: abort
 
   # 8. Backend implementation ---------------------------------------
   - id: backend
@@ -189,7 +185,14 @@ steps:
     input:
       args: "persona={{ inputs.persona }}"
 
-  # 11. QA -----------------------------------------------------------
+  # 11. Docs ---------------------------------------------------------
+  - id: docs
+    command: kite.docs
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "persona={{ inputs.persona }}"
+
+  # 12. QA -----------------------------------------------------------
   - id: qa
     command: kite.qa
     integration: "{{ inputs.integration }}"

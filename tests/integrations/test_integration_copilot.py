@@ -56,11 +56,11 @@ class TestCopilotIntegration:
         prompts = [f for f in created if ".prompt.md" in f.name]
         assert len(agents) == len(prompts)
 
-    def test_mastra_is_skill_only_in_default_mode(self, tmp_path):
+    def test_mastra_is_skill_only_in_full_default_mode(self, tmp_path):
         from kite_cli.integrations.copilot import CopilotIntegration
         copilot = CopilotIntegration()
         m = IntegrationManifest("copilot", tmp_path)
-        copilot.setup(tmp_path, m)
+        copilot.setup(tmp_path, m, parsed_options={"profile": "full"})
 
         mastra_skill = tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md"
         assert mastra_skill.exists()
@@ -136,9 +136,9 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 14
+        assert len(agent_files) == 13
         expected_commands = {
-            "analyze", "backend", "clarify", "constitution", "design", "discover", "docs",
+            "backend", "clarify", "constitution", "design", "discover", "docs",
             "frontend", "plan", "qa", "research", "specify", "start", "tasks",
         }
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
@@ -230,7 +230,6 @@ class TestCopilotIntegration:
         assert result.exit_code == 0
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
-            ".github/agents/kite.analyze.agent.md",
             ".github/agents/kite.backend.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
@@ -244,7 +243,6 @@ class TestCopilotIntegration:
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
-            ".github/prompts/kite.analyze.prompt.md",
             ".github/prompts/kite.backend.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
@@ -258,7 +256,6 @@ class TestCopilotIntegration:
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
-            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -303,7 +300,6 @@ class TestCopilotIntegration:
         assert result.exit_code == 0
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
-            ".github/agents/kite.analyze.agent.md",
             ".github/agents/kite.backend.agent.md",
             ".github/agents/kite.clarify.agent.md",
             ".github/agents/kite.constitution.agent.md",
@@ -317,7 +313,6 @@ class TestCopilotIntegration:
             ".github/agents/kite.specify.agent.md",
             ".github/agents/kite.start.agent.md",
             ".github/agents/kite.tasks.agent.md",
-            ".github/prompts/kite.analyze.prompt.md",
             ".github/prompts/kite.backend.prompt.md",
             ".github/prompts/kite.clarify.prompt.md",
             ".github/prompts/kite.constitution.prompt.md",
@@ -331,7 +326,6 @@ class TestCopilotIntegration:
             ".github/prompts/kite.specify.prompt.md",
             ".github/prompts/kite.start.prompt.md",
             ".github/prompts/kite.tasks.prompt.md",
-            ".github/skills/kite-mastra/SKILL.md",
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -374,7 +368,7 @@ class TestCopilotSkillsMode:
 
     def _setup_skills(self, copilot, tmp_path):
         m = IntegrationManifest("copilot", tmp_path)
-        created = copilot.setup(tmp_path, m, parsed_options={"skills": True})
+        created = copilot.setup(tmp_path, m, parsed_options={"skills": True, "profile": "full"})
         return created, m
 
     # -- Options ----------------------------------------------------------
@@ -582,7 +576,7 @@ class TestCopilotSkillsMode:
     def test_install_uninstall_roundtrip(self, tmp_path):
         copilot = self._make_copilot()
         m = IntegrationManifest("copilot", tmp_path)
-        created = copilot.install(tmp_path, m, parsed_options={"skills": True})
+        created = copilot.install(tmp_path, m, parsed_options={"skills": True, "profile": "full"})
         assert len(created) > 0
         m.save()
         for f in created:
@@ -594,7 +588,7 @@ class TestCopilotSkillsMode:
     def test_modified_file_survives_uninstall(self, tmp_path):
         copilot = self._make_copilot()
         m = IntegrationManifest("copilot", tmp_path)
-        created = copilot.install(tmp_path, m, parsed_options={"skills": True})
+        created = copilot.install(tmp_path, m, parsed_options={"skills": True, "profile": "full"})
         m.save()
         modified_file = created[0]
         modified_file.write_text("user modified this", encoding="utf-8")

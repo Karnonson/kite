@@ -7,7 +7,6 @@ handoffs:
   - label: Clarify Spec Requirements
     agent: kite.clarify
     prompt: Clarify specification requirements
-    send: true
 ---
 
 ## User Input
@@ -74,11 +73,13 @@ Given that feature description, do this:
 
    If a `before_specify` hook ran successfully in the Pre-Execution Checks above, it will have created/switched to a git branch and output JSON containing `BRANCH_NAME` and `FEATURE_NUM`. Note these values for reference, but the branch name does **not** dictate the spec directory name.
 
+   For a **brownfield** or otherwise **existing** feature directory, inspect the existing discovery/spec artifacts **before asking** new questions. **Ask only** about missing evidence, conflicts, or scope changes.
+
    If the user explicitly provided `GIT_BRANCH_NAME`, pass it through to the hook so the branch script uses the exact value as the branch name (bypassing all prefix/suffix generation).
 
 3. **Create or reuse the spec feature directory**:
 
-   Specs live under the default `specs/` directory unless the user explicitly provides `SPECIFY_FEATURE_DIRECTORY`. If `kite.discover` already created a feature directory, reuse it so `discovery.md`, `spec.md`, `design.md`, `plan.md`, and `tasks.md` stay together.
+   Specs live under the default `specs/` directory unless the user explicitly provides `SPECIFY_FEATURE_DIRECTORY`. If `kite.discover` already created a feature directory, reuse it so `discovery.md`, `spec.md`, `design.md`, `design-system.md`, `plan.md`, and `tasks.md` stay together.
 
    **Resolution order for `SPECIFY_FEATURE_DIRECTORY`**:
    1. If the user explicitly provided `SPECIFY_FEATURE_DIRECTORY` (e.g., via environment variable, argument, or configuration), use it as-is

@@ -941,6 +941,16 @@ def ensure_constitution_from_template(project_path: Path, tracker: StepTracker |
 
 
 INIT_OPTIONS_FILE = ".kite/init-options.json"
+PROJECT_CONTEXT_FILE = ".kite/project-context.json"
+INSTALL_PROFILES = frozenset({"minimal", "standard", "full"})
+
+_GENERATED_PROJECT_ROOT_ENTRIES = frozenset({
+    ".git",
+    ".gitignore",
+    ".kite",
+    "AGENTS.md",
+    "kite.config.yml",
+})
 
 
 def save_init_options(project_path: Path, options: dict[str, Any]) -> None:
@@ -953,6 +963,337 @@ def save_init_options(project_path: Path, options: dict[str, Any]) -> None:
     dest = project_path / INIT_OPTIONS_FILE
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(options, indent=2, sort_keys=True))
+
+
+def _normalize_install_profile(profile: str) -> str:
+    """Normalize and validate an install profile name."""
+    normalized = profile.strip().lower()
+    if normalized in INSTALL_PROFILES:
+        return normalized
+    console.print(
+        f"[red]Error:[/red] Unknown install profile '{profile}'. "
+        "Valid values: minimal, standard, full."
+    )
+    raise typer.Exit(1)
+
+
+def _require_kite_project(project_root: Path) -> None:
+    """Ensure the current directory is a Kite project."""
+    if not (project_root / ".kite").exists():
+        console.print("[red]Error:[/red] Not a Kite project (no .kite/ directory)")
+        raise typer.Exit(1)
+
+
+def _project_root_entries(project_root: Path) -> list[str]:
+    """Return current top-level entry names for lightweight project detection."""
+    return sorted(entry.name for entry in project_root.iterdir())
+
+
+def _load_package_json(project_path: Path) -> dict[str, Any]:
+    """Load package.json when present and valid."""
+    package_json_path = project_path / "package.json"
+    if not package_json_path.exists():
+        return {}
+    try:
+        data = json.loads(package_json_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _detect_package_manager(
+    project_path: Path,
+    package_json: dict[str, Any] | None = None,
+) -> str | None:
+    """Return the dominant package manager for the repository when recognizable."""
+    indicators = [
+        ("pnpm-lock.yaml", "pnpm"),
+        ("yarn.lock", "yarn"),
+        ("bun.lockb", "bun"),
+        ("bun.lock", "bun"),
+        ("package-lock.json", "npm"),
+        ("uv.lock", "uv"),
+        ("poetry.lock", "poetry"),
+        ("pyproject.toml", "uv"),
+        ("requirements.txt", "pip"),
+    ]
+    for relative_path, package_manager in indicators:
+        if (project_path / relative_path).exists():
+            return package_manager
+
+    package_json = package_json if package_json is not None else _load_package_json(project_path)
+    package_manager_field = package_json.get("packageManager")
+    if isinstance(package_manager_field, str):
+        package_manager = package_manager_field.split("@", 1)[0].strip().lower()
+        if package_manager in {"npm", "pnpm", "yarn", "bun"}:
+            return package_manager
+
+    if (project_path / "package.json").exists():
+        return "npm"
+    return None
+
+
+def _detect_frameworks(package_json: dict[str, Any]) -> list[str]:
+    """Detect a small set of common frontend frameworks from package.json."""
+    package_names: set[str] = set()
+    for section in ("dependencies", "devDependencies"):
+        value = package_json.get(section)
+        if isinstance(value, dict):
+            package_names.update(name for name in value if isinstance(name, str))
+
+    framework_map = {
+        "@angular/core": "angular",
+        "astro": "astro",
+        "next": "next",
+        "nuxt": "nuxt",
+        "react": "react",
+        "remix": "remix",
+        "solid-js": "solid",
+        "svelte": "svelte",
+        "vite": "vite",
+        "vue": "vue",
+    }
+    return sorted({label for package_name, label in framework_map.items() if package_name in package_names})
+
+
+def _build_validation_commands(
+    package_manager: str | None,
+    package_json: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Infer a small validation command set from well-known package.json scripts."""
+    scripts = package_json.get("scripts")
+    if not isinstance(scripts, dict) or package_manager not in {"npm", "pnpm", "yarn", "bun"}:
+        return []
+
+    script_commands: dict[str, list[str]] = {
+        "npm": ["npm", "run"],
+        "pnpm": ["pnpm", "run"],
+        "bun": ["bun", "run"],
+        "yarn": ["yarn"],
+    }
+    command_prefix = script_commands[package_manager]
+    known_scripts = [
+        ("lint", "Lint"),
+        ("test", "Tests"),
+        ("build", "Build"),
+    ]
+
+    validation_commands: list[dict[str, Any]] = []
+    for script_name, label in known_scripts:
+        script_value = scripts.get(script_name)
+        if not isinstance(script_value, str) or not script_value.strip():
+            continue
+        validation_commands.append(
+            {
+                "id": f"package-{script_name}",
+                "label": label,
+                "command": [*command_prefix, script_name],
+                "source": "package.json",
+            }
+        )
+    return validation_commands
+
+
+def _build_project_context(
+    project_path: Path,
+    preexisting_root_entries: list[str],
+) -> dict[str, Any]:
+    """Build a lightweight repository summary for validation and prompting."""
+    package_json = _load_package_json(project_path)
+    package_manager = _detect_package_manager(project_path, package_json)
+    frameworks = _detect_frameworks(package_json)
+    validation_commands = _build_validation_commands(package_manager, package_json)
+
+    brownfield = any(
+        entry not in _GENERATED_PROJECT_ROOT_ENTRIES
+        for entry in preexisting_root_entries
+    )
+    if not brownfield:
+        brownfield = bool(package_manager or frameworks or validation_commands)
+
+    return {
+        "schema_version": 1,
+        "brownfield": brownfield,
+        "summary": {
+            "package_manager": package_manager,
+            "frameworks": frameworks,
+        },
+        "validation_commands": validation_commands,
+    }
+
+
+def _write_project_context(project_path: Path, context: dict[str, Any]) -> None:
+    """Write `.kite/project-context.json` without following symlink escapes."""
+    destination = project_path / PROJECT_CONTEXT_FILE
+    destination.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        project_root = project_path.resolve()
+        destination.resolve(strict=False).relative_to(project_root)
+    except (OSError, ValueError):
+        console.print(
+            f"[red]Error:[/red] Refusing to write {PROJECT_CONTEXT_FILE} outside the project."
+        )
+        raise typer.Exit(1)
+
+    if destination.exists() and destination.is_symlink():
+        console.print(
+            f"[red]Error:[/red] Refusing to overwrite symlinked {PROJECT_CONTEXT_FILE}."
+        )
+        raise typer.Exit(1)
+
+    destination.write_text(
+        json.dumps(context, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_project_context(project_path: Path, preexisting_root_entries: list[str]) -> None:
+    """Persist a lightweight repository summary for later validation and prompting."""
+    _write_project_context(
+        project_path,
+        _build_project_context(project_path, preexisting_root_entries),
+    )
+
+
+def _read_project_context(project_root: Path) -> dict[str, Any] | None:
+    """Read `.kite/project-context.json` when present."""
+    context_path = project_root / PROJECT_CONTEXT_FILE
+    if not context_path.exists():
+        return None
+
+    try:
+        data = json.loads(context_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        console.print(f"[red]Error:[/red] Could not read {PROJECT_CONTEXT_FILE}: {exc}")
+        raise typer.Exit(1)
+
+    if not isinstance(data, dict):
+        console.print(
+            f"[red]Error:[/red] {PROJECT_CONTEXT_FILE} must contain a JSON object."
+        )
+        raise typer.Exit(1)
+    return data
+
+
+def _merge_project_context(
+    existing: dict[str, Any] | None,
+    detected: dict[str, Any],
+) -> dict[str, Any]:
+    """Merge refreshed detection into existing context without dropping custom data."""
+    if existing is None:
+        return detected
+
+    merged = dict(existing)
+    merged["schema_version"] = detected["schema_version"]
+    merged["summary"] = detected["summary"]
+
+    if not isinstance(merged.get("brownfield"), bool):
+        merged["brownfield"] = detected["brownfield"]
+    if not isinstance(merged.get("validation_commands"), list):
+        merged["validation_commands"] = detected["validation_commands"]
+    return merged
+
+
+def _load_project_context(
+    project_root: Path,
+    *,
+    refresh_context: bool,
+) -> dict[str, Any] | None:
+    """Load the persisted project context, optionally refreshing it first."""
+    existing = _read_project_context(project_root)
+    if refresh_context and (project_root / ".kite").exists():
+        detected = _build_project_context(
+            project_root,
+            _project_root_entries(project_root),
+        )
+        refreshed = _merge_project_context(existing, detected)
+        _write_project_context(project_root, refreshed)
+        return refreshed
+
+    return existing
+
+
+def _run_project_validation(
+    project_root: Path,
+    *,
+    refresh_context: bool,
+) -> bool:
+    """Run project validation commands from `.kite/project-context.json` when present."""
+    context = _load_project_context(project_root, refresh_context=refresh_context)
+    if not context:
+        return False
+
+    commands = context.get("validation_commands")
+    if not isinstance(commands, list) or not commands:
+        return False
+
+    show_banner()
+    console.print("[bold]Running project validation...[/bold]\n")
+
+    failures = 0
+    for item in commands:
+        if not isinstance(item, dict):
+            continue
+
+        label = item.get("label") or item.get("id") or "Validation"
+        command = item.get("command")
+        if not (isinstance(command, list) and all(isinstance(part, str) for part in command)):
+            console.print(f"[red]✗[/red] {label}")
+            console.print("Invalid validation command entry in project context; use an array of strings.")
+            failures += 1
+            continue
+
+        try:
+            result = subprocess.run(
+                command,
+                cwd=project_root,
+                capture_output=True,
+                text=True,
+            )
+        except OSError as exc:
+            failures += 1
+            console.print(f"[red]✗[/red] {label}")
+            console.print(f"Could not run validation command: {exc}")
+            continue
+
+        if result.returncode == 0:
+            console.print(f"[green]✓[/green] {label}")
+        else:
+            failures += 1
+            console.print(f"[red]✗[/red] {label}")
+
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        if stdout:
+            console.print(stdout)
+        if stderr:
+            console.print(stderr)
+
+    if failures:
+        console.print(f"\n[red]{failures} validation command(s) failed[/red]")
+        raise typer.Exit(1)
+
+    console.print("\n[bold green]Project validation passed[/bold green]")
+    return True
+
+
+def _current_install_profile(project_root: Path) -> str:
+    """Return the current install profile for a Kite project."""
+    options = load_init_options(project_root)
+    profile = options.get("profile", "standard")
+    if not isinstance(profile, str):
+        return "standard"
+    return _normalize_install_profile(profile)
+
+
+def _set_install_profile(project_root: Path, profile: str) -> str:
+    """Persist a validated install profile into init-options.json."""
+    normalized = _normalize_install_profile(profile)
+    options = load_init_options(project_root)
+    options["profile"] = normalized
+    save_init_options(project_root, options)
+    return normalized
 
 
 def ensure_project_gitignore(project_path: Path) -> None:
@@ -1030,6 +1371,7 @@ def init(
     branch_numbering: str = typer.Option(None, "--branch-numbering", help="Branch numbering strategy: 'sequential' (001, 002, …, 1000, … — expands past 999 automatically) or 'timestamp' (YYYYMMDD-HHMMSS)"),
     integration: str = typer.Option(None, "--integration", help="Use the new integration system (e.g. --integration copilot). Mutually exclusive with --ai."),
     integration_options: str = typer.Option(None, "--integration-options", help='Options for the integration (e.g. --integration-options="--commands-dir .myagent/cmds")'),
+    profile: str = typer.Option("standard", "--profile", help="Install profile: minimal, standard, or full"),
     persona: str = typer.Option("founder", "--persona", help="Default persona for this project: 'founder' (non-technical) or 'junior' (junior engineer). Written to kite.config.yml."),
 ):
     """
@@ -1167,7 +1509,10 @@ def init(
         console.print(f"[red]Error:[/red] Invalid --branch-numbering value '{branch_numbering}'. Choose from: {', '.join(sorted(BRANCH_NUMBERING_CHOICES))}")
         raise typer.Exit(1)
 
+    profile = _normalize_install_profile(profile)
+
     dir_existed_before = False
+    existing_items: list[Path] = []
     if here:
         project_name = Path.cwd().name
         project_path = Path.cwd()
@@ -1335,6 +1680,7 @@ def init(
                 integration_parsed_options["commands_dir"] = ai_commands_dir
             if ai_skills:
                 integration_parsed_options["skills"] = True
+            integration_parsed_options["profile"] = profile
             # Parse --integration-options and merge into parsed_options so
             # flags like --skills reach the integration's setup().
             if integration_options:
@@ -1462,6 +1808,7 @@ def init(
                 "branch_numbering": branch_numbering or "sequential",
                 "context_file": resolved_integration.context_file,
                 "here": here,
+                "profile": profile,
                 "script": selected_script,
                 "kite_version": get_kite_version(),
             }
@@ -1536,6 +1883,8 @@ def init(
                     f"# Kite project configuration. Edit freely.\npersona: {persona}\n",
                     encoding="utf-8",
                 )
+
+            write_project_context(project_path, [item.name for item in existing_items])
 
             tracker.complete("final", "project ready")
         except (typer.Exit, SystemExit):
@@ -1633,7 +1982,7 @@ def init(
 
     steps_lines.append(f"{step_num}. Start using {usage_label} with your coding agent:")
 
-    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → QA")
+    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA")
     steps_lines.append("")
     steps_lines.append("   Or run each persona stage manually:")
     steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
@@ -1672,8 +2021,36 @@ def init(
     console.print(enhancements_panel)
 
 @app.command()
-def check():
-    """Check that all required tools are installed."""
+def check(
+    run_validation: bool = typer.Option(
+        False,
+        "--run-validation",
+        help="Run validation commands from .kite/project-context.json.",
+    ),
+    tools: bool = typer.Option(
+        False,
+        "--tools",
+        help="Run the environment/tool check (default behavior).",
+    ),
+    refresh_context: bool = typer.Option(
+        True,
+        "--refresh-context/--no-refresh-context",
+        help="Refresh .kite/project-context.json before project validation.",
+    ),
+):
+    """Check project validation commands or required tools."""
+    project_root = Path.cwd()
+    if run_validation and tools:
+        console.print("[red]Error:[/red] Choose either --run-validation or --tools, not both.")
+        raise typer.Exit(1)
+
+    if run_validation:
+        _require_kite_project(project_root)
+        if _run_project_validation(project_root, refresh_context=refresh_context):
+            return
+        console.print("[yellow]No project validation commands found.[/yellow]")
+        return
+
     show_banner()
     console.print("[bold]Checking for installed tools...[/bold]\n")
 
@@ -1714,6 +2091,62 @@ def check():
 
     if not any(agent_results.values()):
         console.print("[dim]Tip: Install a coding agent for the best experience[/dim]")
+
+
+profile_app = typer.Typer(
+    name="profile",
+    help="Show or update the project's install profile.",
+    add_completion=False,
+    invoke_without_command=True,
+)
+app.add_typer(profile_app, name="profile")
+
+
+@profile_app.callback(invoke_without_command=True)
+def profile_callback(ctx: typer.Context) -> None:
+    """Show the current profile when no subcommand is provided."""
+    if ctx.invoked_subcommand is None:
+        profile_show()
+
+
+@profile_app.command("show")
+def profile_show() -> None:
+    """Display the current install profile for this project."""
+    project_root = Path.cwd()
+    _require_kite_project(project_root)
+    profile = _current_install_profile(project_root)
+    console.print(f"Profile: [cyan]{profile}[/cyan]")
+
+
+@profile_app.command("set")
+def profile_set(
+    profile: str = typer.Argument(..., help="Install profile to persist: minimal, standard, or full"),
+    upgrade: bool = typer.Option(
+        False,
+        "--upgrade",
+        help="Immediately run integration upgrade with the saved profile",
+    ),
+) -> None:
+    """Persist a new install profile for this project."""
+    project_root = Path.cwd()
+    _require_kite_project(project_root)
+
+    current = _current_install_profile(project_root)
+    normalized = _normalize_install_profile(profile)
+    if normalized == current:
+        console.print(f"Profile is already set to [cyan]{normalized}[/cyan].")
+    else:
+        _set_install_profile(project_root, normalized)
+        console.print(f"Profile updated to [cyan]{normalized}[/cyan].")
+
+    if upgrade:
+        integration_upgrade(
+            key=None,
+            force=False,
+            script=None,
+            profile=normalized,
+            integration_options=None,
+        )
 
 @app.command()
 def version():
@@ -1829,6 +2262,26 @@ def _fetch_latest_release_tag() -> tuple[str | None, str | None]:
         return None, "offline or timeout"
 
 
+def _detect_self_install_method(executable: str) -> str:
+    """Best-effort detection of how kite-cli was installed."""
+    normalized = executable.replace("\\", "/").lower()
+    if "/uv/tools/" in normalized and "/kite-cli/" in normalized:
+        return "uv tool"
+    if "/pipx/venvs/" in normalized and "/kite-cli/" in normalized:
+        return "pipx"
+    return "unknown"
+
+
+def _self_upgrade_command(install_method: str, tag: str) -> list[str] | None:
+    """Return the installer command for the detected install method."""
+    repo_ref = f"git+https://github.com/Karnonson/kite.git@{tag}"
+    if install_method == "uv tool":
+        return ["uv", "tool", "install", "kite-cli", "--force", "--from", repo_ref]
+    if install_method == "pipx":
+        return ["pipx", "install", "--force", repo_ref]
+    return None
+
+
 # ===== Self Commands =====
 self_app = typer.Typer(
     name="self",
@@ -1887,20 +2340,74 @@ def self_check() -> None:
 
 
 @self_app.command("upgrade")
-def self_upgrade() -> None:
-    """Reserved command surface for self-upgrade; not implemented in this release.
+def self_upgrade(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview the upgrade command without running it."),
+    apply: bool = typer.Option(False, "--apply", help="Run the detected installer command."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip the confirmation prompt when used with --apply."),
+) -> None:
+    """Plan or run a kite-cli self-upgrade based on the install method."""
+    installed = _get_installed_version()
+    tag, failure_reason = _fetch_latest_release_tag()
 
-    This command is a documented non-destructive stub in this release: it
-    performs no outbound network request, no install-method detection, and
-    invokes no installer. It prints a three-line guidance message and exits 0.
-    Actual self-upgrade is planned as follow-up work.
+    if tag is None:
+        assert failure_reason is not None
+        console.print(f"Installed: {installed}")
+        console.print(f"[yellow]Could not check latest release:[/yellow] {failure_reason}")
+        raise typer.Exit(1)
 
-    Use `kite self check` today to see whether a newer release is available
-    and to get a copy-pasteable reinstall command.
-    """
-    console.print("kite self upgrade is not implemented yet.")
-    console.print("Run 'kite self check' to see whether a newer release is available.")
-    console.print("Actual self-upgrade is planned as follow-up work.")
+    latest_normalized = _normalize_tag(tag)
+    install_method = _detect_self_install_method(sys.executable)
+    command = _self_upgrade_command(install_method, tag)
+    should_apply = apply and not dry_run
+
+    console.print(f"Installed: {installed}")
+    console.print(f"Latest release: {latest_normalized}")
+    console.print(f"Install method: {install_method}")
+
+    if installed != "unknown" and not _is_newer(latest_normalized, installed):
+        console.print(f"[green]Up to date:[/green] {installed}")
+        return
+
+    if installed == "unknown":
+        console.print("Current version could not be determined.")
+    else:
+        console.print(f"[green]Update available:[/green] {installed} → {latest_normalized}")
+
+    if command is None:
+        console.print("[yellow]Install method could not safely detect an automatic upgrade path.[/yellow]")
+        console.print("Try one of these manual commands:")
+        console.file.write(
+            "  uv tool install kite-cli --force --from "
+            f"git+https://github.com/Karnonson/kite.git@{tag}\n"
+        )
+        console.file.write(
+            "  pipx install --force "
+            f"git+https://github.com/Karnonson/kite.git@{tag}\n"
+        )
+        console.file.flush()
+        raise typer.Exit(1 if should_apply else 0)
+
+    command_str = shlex.join(command)
+    console.print("Upgrade command:")
+    console.file.write(f"  {command_str}\n")
+    console.file.flush()
+
+    if not should_apply:
+        console.print("Dry run only. Re-run with --apply to execute this command.")
+        return
+
+    if not yes:
+        confirmed = typer.confirm("Run this command now?", default=False, abort=False)
+        if not confirmed:
+            console.print("Upgrade cancelled.")
+            raise typer.Exit(1)
+
+    result = subprocess.run(command, check=False)
+    if result.returncode != 0:
+        console.print(f"[red]Upgrade command failed with exit code {result.returncode}.[/red]")
+        raise typer.Exit(result.returncode)
+
+    console.print("[green]Self upgrade command completed.[/green]")
 
 
 # ===== Extension Commands =====
@@ -2035,6 +2542,25 @@ def _resolve_script_type(project_root: Path, script_type: str | None) -> str:
     return "ps" if os.name == "nt" else "sh"
 
 
+def _resolve_integration_profile(project_root: Path, profile: str | None) -> str:
+    """Resolve the integration install profile from CLI input or project options."""
+    if profile is not None:
+        return _normalize_install_profile(profile)
+    return _current_install_profile(project_root)
+
+
+def _integration_options_with_profile(
+    integration: Any,
+    raw_options: str | None,
+    profile: str,
+) -> dict[str, Any]:
+    """Parse integration options and inject the resolved install profile."""
+    parsed_options = _parse_integration_options(integration, raw_options) if raw_options else None
+    options = dict(parsed_options or {})
+    options["profile"] = profile
+    return options
+
+
 @integration_app.command("list")
 def integration_list(
     catalog: bool = typer.Option(False, "--catalog", help="Browse full catalog (built-in + community)"),
@@ -2130,6 +2656,7 @@ def integration_list(
 def integration_install(
     key: str = typer.Argument(help="Integration key to install (e.g. claude, copilot)"),
     script: str | None = typer.Option(None, "--script", help="Script type: sh or ps (default: from init-options.json or platform default)"),
+    profile: str | None = typer.Option(None, "--profile", help="Install profile: minimal, standard, or full"),
     integration_options: str | None = typer.Option(None, "--integration-options", help='Options for the integration (e.g. --integration-options="--commands-dir .myagent/cmds")'),
 ):
     """Install an integration into an existing project."""
@@ -2165,13 +2692,16 @@ def integration_install(
         raise typer.Exit(1)
 
     selected_script = _resolve_script_type(project_root, script)
+    effective_profile = _resolve_integration_profile(project_root, profile)
 
     # Build parsed options from --integration-options so the integration
     # can determine its effective invoke separator before shared infra
     # is installed.
-    parsed_options: dict[str, Any] | None = None
-    if integration_options:
-        parsed_options = _parse_integration_options(integration, integration_options)
+    parsed_options = _integration_options_with_profile(
+        integration,
+        integration_options,
+        effective_profile,
+    )
 
     # Ensure shared infrastructure is present (safe to run unconditionally;
     # _install_shared_infra merges missing files without overwriting).
@@ -2192,7 +2722,12 @@ def integration_install(
         )
         manifest.save()
         _write_integration_json(project_root, integration.key)
-        _update_init_options_for_integration(project_root, integration, script_type=selected_script)
+        _update_init_options_for_integration(
+            project_root,
+            integration,
+            script_type=selected_script,
+            profile=effective_profile,
+        )
 
     except Exception as e:
         # Attempt rollback of any files written by setup
@@ -2262,6 +2797,7 @@ def _update_init_options_for_integration(
     project_root: Path,
     integration: Any,
     script_type: str | None = None,
+    profile: str | None = None,
 ) -> None:
     """Update ``init-options.json`` to reflect *integration* as the active one."""
     from .integrations.base import SkillsIntegration
@@ -2271,6 +2807,8 @@ def _update_init_options_for_integration(
     opts["context_file"] = integration.context_file
     if script_type:
         opts["script"] = script_type
+    if profile:
+        opts["profile"] = profile
     if isinstance(integration, SkillsIntegration) or getattr(integration, "_skills_mode", False):
         opts["ai_skills"] = True
     else:
@@ -2370,6 +2908,7 @@ def integration_switch(
     target: str = typer.Argument(help="Integration key to switch to"),
     script: str | None = typer.Option(None, "--script", help="Script type: sh or ps (default: from init-options.json or platform default)"),
     force: bool = typer.Option(False, "--force", help="Force removal of modified files during uninstall"),
+    profile: str | None = typer.Option(None, "--profile", help="Install profile: minimal, standard, or full"),
     integration_options: str | None = typer.Option(None, "--integration-options", help='Options for the target integration'),
 ):
     """Switch from the current integration to a different one."""
@@ -2399,6 +2938,7 @@ def integration_switch(
         raise typer.Exit(0)
 
     selected_script = _resolve_script_type(project_root, script)
+    effective_profile = _resolve_integration_profile(project_root, profile)
 
     # Phase 1: Uninstall current integration (if any)
     if installed_key:
@@ -2455,9 +2995,11 @@ def integration_switch(
     # Build parsed options from --integration-options so the integration
     # can determine its effective invoke separator before shared infra
     # is installed.
-    parsed_options: dict[str, Any] | None = None
-    if integration_options:
-        parsed_options = _parse_integration_options(target_integration, integration_options)
+    parsed_options = _integration_options_with_profile(
+        target_integration,
+        integration_options,
+        effective_profile,
+    )
 
     # Ensure shared infrastructure is present (safe to run unconditionally;
     # _install_shared_infra merges missing files without overwriting).
@@ -2480,7 +3022,12 @@ def integration_switch(
         )
         manifest.save()
         _write_integration_json(project_root, target_integration.key)
-        _update_init_options_for_integration(project_root, target_integration, script_type=selected_script)
+        _update_init_options_for_integration(
+            project_root,
+            target_integration,
+            script_type=selected_script,
+            profile=effective_profile,
+        )
 
     except Exception as e:
         # Attempt rollback of any files written by setup
@@ -2502,6 +3049,7 @@ def integration_upgrade(
     key: str | None = typer.Argument(None, help="Integration key to upgrade (default: current integration)"),
     force: bool = typer.Option(False, "--force", help="Force upgrade even if files are modified"),
     script: str | None = typer.Option(None, "--script", help="Script type: sh or ps (default: from init-options.json or platform default)"),
+    profile: str | None = typer.Option(None, "--profile", help="Install profile: minimal, standard, or full"),
     integration_options: str | None = typer.Option(None, "--integration-options", help="Options for the integration"),
 ):
     """Upgrade an integration by reinstalling with diff-aware file handling.
@@ -2563,13 +3111,16 @@ def integration_upgrade(
         raise typer.Exit(1)
 
     selected_script = _resolve_script_type(project_root, script)
+    effective_profile = _resolve_integration_profile(project_root, profile)
 
     # Build parsed options from --integration-options so the integration
     # can determine its effective invoke separator before shared infra
     # is installed.
-    parsed_options: dict[str, Any] | None = None
-    if integration_options:
-        parsed_options = _parse_integration_options(integration, integration_options)
+    parsed_options = _integration_options_with_profile(
+        integration,
+        integration_options,
+        effective_profile,
+    )
 
     # Ensure shared infrastructure is up to date; --force overwrites existing files.
     _install_shared_infra(project_root, selected_script, force=force, invoke_separator=integration.effective_invoke_separator(parsed_options))
@@ -2590,7 +3141,12 @@ def integration_upgrade(
         )
         new_manifest.save()
         _write_integration_json(project_root, key)
-        _update_init_options_for_integration(project_root, integration, script_type=selected_script)
+        _update_init_options_for_integration(
+            project_root,
+            integration,
+            script_type=selected_script,
+            profile=effective_profile,
+        )
     except Exception as exc:
         # Don't teardown — setup overwrites in-place, so teardown would
         # delete files that were working before the upgrade.  Just report.

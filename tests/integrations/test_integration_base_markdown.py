@@ -255,8 +255,8 @@ class MarkdownIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     COMMAND_STEMS = [
-        "analyze", "backend", "checklist", "clarify", "constitution", "design", "discover",
-        "docs", "frontend", "implement", "mastra", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        "backend", "clarify", "constitution", "design", "discover", "docs",
+        "frontend", "plan", "qa", "research", "specify", "start", "tasks",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
