@@ -62,10 +62,16 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
     assert "ghcr.io/devcontainers/features/common-utils:2" not in data["features"]
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"
     assert data["postStartCommand"] == "bash .devcontainer/post-start.sh"
+    assert data["remoteEnv"]["KITE_DEV_ENV"] == "1"
     assert data["remoteEnv"]["KITE_DEFAULT_INTEGRATION"] == "copilot"
     # Until kite-cli is on PyPI, the default install source must be a git ref.
     assert data["remoteEnv"]["KITE_INSTALL_SPEC"].startswith("git+")
     assert data["remoteEnv"]["KITE_PNPM_VERSION"] == "10.10.0"
+    recommendations = data["customizations"]["vscode"]["settings"]["chat.promptFilesRecommendations"]
+    assert recommendations["kite.analyze"] is True
+    assert recommendations["kite.browser"] is True
+    assert recommendations["kite.checklist"] is True
+    assert recommendations["kite.docs"] is True
     assert "chat.tools.terminal.autoApprove" not in data["customizations"]["vscode"].get("settings", {})
 
 

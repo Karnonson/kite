@@ -84,6 +84,17 @@
 
 ### Functional Requirements
 
+<!--
+  ACTION REQUIRED: Functional requirements must honor any relevant principles
+  from `.kite/memory/constitution.md`.
+
+  Examples:
+  - Test-first or verification-first rules should appear as explicit
+    requirements or acceptance scenarios when they affect delivery.
+  - AI-agent features should reflect official-doc or approved-framework rules.
+  - Host-safety or ops rules should appear when the feature requires them.
+-->
+
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
 - **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
@@ -114,6 +125,19 @@
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+
+## Constitutional Constraints
+
+<!--
+  ACTION REQUIRED: Copy only the constitution rules that materially shape this
+  feature.
+
+  Examples: required verification depth, accessibility defaults, official-doc-first AI guidance,
+  host-environment safety, subagent-first workflow, or other
+  project-level rules.
+-->
+
+- [Relevant constitution-derived constraint, or N/A if none apply beyond the requirements above]
 
 ## Assumptions
 

@@ -20,6 +20,7 @@
 **Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
 **AI SDK / Agent Framework**: [e.g., none, Mastra, Google ADK, Vercel AI SDK or NEEDS CLARIFICATION]  
+**Constitutional Constraints**: [project-level rules from `.kite/memory/constitution.md` that materially shape this plan, or N/A]  
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
 **Testing/Verification**: [required; e.g., pytest, XCTest, cargo test, browser smoke flow, framework-native validation, or NEEDS CLARIFICATION]  
 **Deployment/Hosting**: [e.g., Vercel, Fly.io, Cloud Run, self-hosted or NEEDS CLARIFICATION]  
@@ -33,7 +34,27 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Read `.kite/memory/constitution.md` and record only the principles that materially constrain this feature.
+
+**Applicable principles**:
+
+- [Principle name] — [how it changes stack, scope, verification, workflow, or operations]
+
+**Constitution-driven checks**:
+
+- Verification obligations are reflected in `Testing/Verification` and later phase gates.
+- AI-agent or framework-specific obligations are reflected in `AI SDK / Agent Framework`, `Primary Dependencies`, and Phase 0 research.
+- Host-environment safety obligations are reflected in tooling, dev-environment, or ops choices.
+- Workflow rules such as subagent-first execution are reflected in the implementation strategy and task shaping.
+- Browser validation is frontend-owned: only `kite.frontend` invokes the browser validation helper, and QA consumes `browser-report.md`.
+
+**Violations (if any)**:
+
+| Violation | Justification | Risk |
+|-----------|---------------|------|
+| [e.g., no framework-native verification tool] | [why still acceptable] | [what risk is accepted] |
+
+**Approval**: Constitution Check ✅ PASS / ⚠ VIOLATIONS JUSTIFIED / ❌ FAIL
 
 ## Project Structure
 

@@ -96,8 +96,10 @@ class TestInitIntegrationFlag:
 
         assert result.exit_code == 0, f"init failed: {result.output}"
         assert (project / ".github" / "agents" / "kite.start.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.browser.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.checklist.agent.md").exists()
         assert not (project / ".github" / "agents" / "kite.research.agent.md").exists()
-        assert not (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
         assert not (project / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
 
         opts = json.loads((project / ".kite" / "init-options.json").read_text(encoding="utf-8"))
@@ -121,7 +123,9 @@ class TestInitIntegrationFlag:
 
         assert result.exit_code == 0, f"init failed: {result.output}"
         assert (project / ".github" / "agents" / "kite.research.agent.md").exists()
-        assert not (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.analyze.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.browser.agent.md").exists()
+        assert (project / ".github" / "agents" / "kite.checklist.agent.md").exists()
         assert not (project / ".github" / "agents" / "kite.implement.agent.md").exists()
 
     def test_integration_copilot_profile_full(self, tmp_path):

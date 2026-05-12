@@ -128,9 +128,9 @@ class TestForgeIntegration:
         commands_dir = tmp_path / ".forge" / "commands"
         assert commands_dir.is_dir()
 
-        # Derive expected command names from the Forge command templates so the test
-        # stays in sync if templates are added/removed.
-        templates = forge.list_command_templates()
+        # Derive expected command names from the default profile filter so the test
+        # stays in sync with install profile behavior.
+        templates = forge.filter_command_templates(forge.list_command_templates())
         expected_commands = {t.stem for t in templates}
         assert len(expected_commands) > 0, "No command templates found"
 

@@ -29,6 +29,7 @@ else
   pipx install --force "$KITE_INSTALL_SPEC"
 fi
 ok "kite $(kite --version 2>/dev/null || echo 'installed')"
+ok "KITE_DEV_ENV=${KITE_DEV_ENV:-unset}"
 
 # --- Optional: pnpm for TypeScript projects ----------------------------------
 if command -v npm >/dev/null 2>&1; then

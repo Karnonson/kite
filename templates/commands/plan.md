@@ -1,6 +1,9 @@
 ---
 description: Execute the implementation planning workflow using the plan template, after asking the user about architecture, hosting, and key technical preferences.
 handoffs: 
+  - label: Verify with Research
+    agent: kite.research
+    prompt: Verify framework, hosting, dependency, or AI SDK guidance from official docs before finalizing the plan.
   - label: Create Tasks
     agent: kite.tasks
     prompt: Break the plan into tasks
@@ -23,6 +26,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before planning)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_plan` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -32,7 +36,8 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -42,8 +47,10 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -52,13 +59,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Outline
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC, `SPECS_DIR/discovery.md` if present, `SPECS_DIR/design.md` if present, `SPECS_DIR/design-system.md` if present, `SPECS_DIR/research.md` if present, `kite.config.yml` if present, and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Load context**: Read FEATURE_SPEC, `SPECS_DIR/discovery.md` if present, `SPECS_DIR/design.md` if present, `SPECS_DIR/design-system.md` if present, `SPECS_DIR/research.md` if present, `kite.config.yml` if present, and `.kite/memory/constitution.md`. Load IMPL_PLAN template (already copied).
     - In a **brownfield** or otherwise **existing** feature directory, inspect those existing artifacts **before asking** new questions. **Ask only** about missing evidence, conflicts, or unresolved choices that materially affect the plan.
 
 3. **Interview before planning**: Before filling the plan, check whether the current artifacts and `kite.config.yml` already answer the planning-critical decisions. If anything material is missing, ask the user yourself.
@@ -67,7 +75,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Ask about project architecture / shape, backend and frontend framework preferences, storage, hosting or deployment target, budget / operations posture, testing expectations, and AI SDK / agent framework only if the product needs AI behavior.
    - Keep asking until the plan can be written without guessing. Stop early only if the user says to skip questions / proceed / stop, or an answer remains unhelpful after one follow-up.
    - Reflect each answer back in one sentence and persist accepted choices into `kite.config.yml` before writing the plan.
-   - After the user accepts candidate choices, invoke the `kite.research` subagent to verify current official docs, stable versions, hosting fit, and MCP / skill support for any AI SDK or agent framework. The research subagent is a helper; this command still owns workflow state and the final plan.
+   - After the user accepts candidate choices, invoke the `kite.research` subagent when it is installed to verify current official docs, stable versions, hosting fit, and MCP / skill support for any AI SDK or agent framework. If it is not installed, add an explicit blocking research task instead of guessing. The research subagent is a helper; this command still owns workflow state and the final plan.
+   - Use subagent-first execution before widening your own context: delegate focused official-doc research, artifact scans, draft-only analysis, or evidence gathering to installed Kite subagents when available. When the integration supports it, run independent subagent tasks in parallel. The parent planner remains the only final writer of `plan.md`, `research.md`, `data-model.md`, `contracts/`, and `quickstart.md`. Browser validation is frontend-owned; do not run browser tooling here.
 
 4. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
     - Fill Technical Context from user-approved answers, `kite.config.yml`, and `research.md`; mark skipped or unresolved choices as `NEEDS CLARIFICATION`
@@ -78,7 +87,7 @@ You **MUST** consider the user input before proceeding (if not empty).
     - Evaluate gates (ERROR if violations unjustified)
     - Phase 0: Generate or refresh `research.md` with official-doc verification for chosen dependencies, frameworks, hosting targets, and any AI SDK / agent framework
     - Phase 1: Generate data-model.md, contracts/, quickstart.md
-    - Phase 1: Update agent context by running the agent script
+    - Phase 1: Refresh managed agent context through the active integration when supported; otherwise rely on Kite setup's managed context section
     - Re-evaluate Constitution Check post-design
 
 5. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
@@ -92,7 +101,8 @@ You **MUST** consider the user input before proceeding (if not empty).
      - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
    - For each executable hook, output the following based on its `optional` flag:
      - **Optional hook** (`optional: true`):
-       ```
+
+       ```text
        ## Extension Hooks
 
        **Optional Hook**: {extension}
@@ -102,14 +112,17 @@ You **MUST** consider the user input before proceeding (if not empty).
        Prompt: {prompt}
        To execute: `/{command}`
        ```
+
      - **Mandatory hook** (`optional: false`):
-       ```
+
+       ```text
        ## Extension Hooks
 
        **Automatic Hook**: {extension}
        Executing: `/{command}`
        EXECUTE_COMMAND: {command}
        ```
+
    - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Phases
@@ -121,7 +134,7 @@ You **MUST** consider the user input before proceeding (if not empty).
     - For each `NEEDS CLARIFICATION` left after the interview → explicit deferred decision
     - For each integration → patterns task
 
-2. **Use the `kite.research` subagent or targeted research tasks**:
+2. **Use the `kite.research` subagent, when installed, or targeted research tasks**:
 
    ```text
    For each unknown in Technical Context:
@@ -131,6 +144,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    For each AI SDK or agent framework:
      Task: "Check official docs for MCP servers, MCP integrations, skills, templates, and recommended setup for {tech}"
    ```
+
+   When the selected integration supports it, run independent research or draft-only tasks in parallel, then reconcile them in the parent planner. Do not let subagents write the final plan artifacts directly.
 
 3. **Consolidate findings** in `research.md` using format:
     - Decision: [what was chosen]

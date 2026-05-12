@@ -255,8 +255,9 @@ class MarkdownIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     COMMAND_STEMS = [
-        "backend", "clarify", "constitution", "design", "discover", "docs",
-        "frontend", "plan", "qa", "research", "specify", "start", "tasks",
+        "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+        "design", "discover", "docs", "frontend", "plan", "qa", "research",
+        "specify", "start", "tasks",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -280,11 +281,11 @@ class MarkdownIntegrationTests:
         files.append("kite.config.yml")
 
         if script_variant == "sh":
-            for name in ["check-prerequisites.sh", "common.sh", "create-new-feature.sh",
+            for name in ["check-dev-environment.sh", "check-prerequisites.sh", "common.sh", "create-new-feature.sh",
                          "setup-plan.sh"]:
                 files.append(f".kite/scripts/bash/{name}")
         else:
-            for name in ["check-prerequisites.ps1", "common.ps1", "create-new-feature.ps1",
+            for name in ["check-dev-environment.ps1", "check-prerequisites.ps1", "common.ps1", "create-new-feature.ps1",
                          "setup-plan.ps1"]:
                 files.append(f".kite/scripts/powershell/{name}")
 

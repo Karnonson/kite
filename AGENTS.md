@@ -10,11 +10,26 @@ The toolkit supports multiple AI coding assistants, allowing teams to use their 
 
 ---
 
+## Workflow Invariants
+
+These rules keep command prompts, generated agent files, and the bundled workflow aligned:
+
+- Resolve the active feature through Kite scripts, `SPECIFY_FEATURE_DIRECTORY`, or `.kite/feature.json` before touching feature artifacts. Use highest-numbered `specs/` only as a fallback when no active feature context exists.
+- The guided workflow order is constitution → discover → specify → design → clarify → plan → tasks → analyze → task gate → backend → contract gate → frontend → docs → qa.
+- Workflow runs and implementation prompts must stop on `main` or `master` before writing feature artifacts when a git repository is present.
+- Subagent-first execution is a workflow invariant: parent commands delegate bounded research, artifact scanning, contract review, codebase evidence gathering, and validation evidence to focused subagents before widening their own context. Parent commands remain final writers for their owned artifacts, state, and product code.
+- `kite.backend` owns backend code and `contract.md`; `kite.frontend` owns frontend code and consumes only the published contract; `kite.docs` owns docs; `kite.qa` owns tests and QA reports.
+- The contract gate must validate `FEATURE_DIR/contract.md`, not an unrelated latest feature. A complete contract includes Base URL/auth, endpoint Method + path entries, an Error contract, a Frontend usage map, and Local verification commands.
+- `kite.browser` is a frontend-only validation helper. Only `kite.frontend` may invoke it, and only as a focused subagent; QA and other agents consume `browser-report.md` instead of invoking browser tooling directly.
+- Follow-up tasks appended by any command must use the full task format: checkbox, `T###` ID, optional `[P]`, optional story label, exactly one persona label, and an exact path or command.
+
+---
+
 ## Integration Architecture
 
 Each AI agent is a self-contained **integration subpackage** under `src/kite_cli/integrations/<key>/`. The subpackage exposes a single class that declares all metadata and inherits setup/teardown logic from a base class. Built-in integrations are then instantiated and added to the global `INTEGRATION_REGISTRY` by `src/kite_cli/integrations/__init__.py` via `_register_builtins()`.
 
-```
+```text
 src/kite_cli/integrations/
 ├── __init__.py            # INTEGRATION_REGISTRY + _register_builtins()
 ├── base.py                # IntegrationBase, MarkdownIntegration, TomlIntegration, YamlIntegration, SkillsIntegration
@@ -36,7 +51,7 @@ src/kite_cli/integrations/
 └── ...                    # One subpackage per supported agent
 ```
 
-The registry is the **single source of truth for Python integration metadata**. Supported agents, their directories, formats, and capabilities are derived from the integration classes for the Python integration layer. However, context-update behavior still requires explicit cases in the shared dispatcher scripts (`scripts/bash/update-agent-context.sh` and `scripts/powershell/update-agent-context.ps1`), which currently maintain their own supported-agent lists and agent-key→context-file mappings until they are migrated to registry-based dispatch.
+The registry is the **single source of truth for Python integration metadata**. Supported agents, their directories, formats, capabilities, and generated context files are derived from the integration classes for the Python integration layer. Cross-agent workflow rules belong in `IntegrationBase._build_context_section()` so every integration receives the same managed context section during setup.
 
 ---
 
@@ -311,6 +326,15 @@ echo "✅ Done"
 
 ## Command File Formats
 
+Source command templates may use the following frontmatter fields before integration-specific processing:
+
+- `description`: required discovery text for the command.
+- `handoffs`: optional UI handoffs to other Kite commands. Every handoff target used by the standard profile must be installed by that profile.
+- `scripts`: optional `sh`/`ps` script mappings. The integration pipeline replaces `{SCRIPT}` in the body and strips this field from generated command files.
+- `context_hint`: optional text consumed by generated agent context files and stripped from generated command files.
+
+Integrations may transform or strip frontmatter for their native format. For example, Forge strips unsupported collaboration metadata, Copilot default mode creates companion prompt files, and skills-based integrations rebuild frontmatter for `SKILL.md`.
+
 ### Markdown Format
 
 **Standard format:**
@@ -381,18 +405,22 @@ Some agents require custom processing beyond the standard template transformatio
 ### Copilot Integration
 
 GitHub Copilot has unique requirements:
+
 - Commands use `.agent.md` extension (not `.md`)
+
 - Each command gets a companion `.prompt.md` file in `.github/prompts/`
 - Installs `.vscode/settings.json` with prompt file recommendations
 - Context file lives at `.github/copilot-instructions.md`
 
 Implementation: Extends `IntegrationBase` with custom `setup()` method that:
+
 1. Processes templates with `process_template()`
 2. Generates companion `.prompt.md` files
 3. Merges VS Code settings
 
 **Skills mode (`--skills`):** Copilot also supports an alternative skills-based layout
 via `--integration-options="--skills"`. When enabled:
+
 - Commands are scaffolded as `kite-<name>/SKILL.md` under `.github/skills/`
 - No companion `.prompt.md` files are generated
 - No `.vscode/settings.json` merge
@@ -412,11 +440,13 @@ kite init my-project --integration copilot --integration-options="--skills"
 ### Forge Integration
 
 Forge has special frontmatter and argument requirements:
+
 - Uses `{{parameters}}` instead of `$ARGUMENTS`
 - Strips `handoffs` frontmatter key (Forge-specific collaboration feature)
 - Injects `name` field into frontmatter when missing
 
 Implementation: Extends `MarkdownIntegration` with custom `setup()` method that:
+
 1. Inherits standard template processing from `MarkdownIntegration`
 2. Adds extra `$ARGUMENTS` → `{{parameters}}` replacement after template processing
 3. Applies Forge-specific transformations via `_apply_forge_transformations()`
@@ -427,11 +457,13 @@ Implementation: Extends `MarkdownIntegration` with custom `setup()` method that:
 ### Goose Integration
 
 Goose is a YAML-format agent using Block's recipe system:
+
 - Uses `.goose/recipes/` directory for YAML recipe files
 - Uses `{{args}}` argument placeholder
 - Produces YAML with `prompt: |` block scalar for command content
 
 Implementation: Extends `YamlIntegration` (parallel to `TomlIntegration`):
+
 1. Processes templates through the standard placeholder pipeline
 2. Extracts title and description from frontmatter
 3. Renders output as Goose recipe YAML (version, title, description, author, extensions, activities, prompt)

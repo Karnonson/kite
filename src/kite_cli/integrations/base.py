@@ -97,7 +97,10 @@ class IntegrationBase(ABC):
 
     core_command_templates: frozenset[str] = frozenset(
         {
+            "analyze",
             "backend",
+            "browser",
+            "checklist",
             "clarify",
             "constitution",
             "design",
@@ -111,7 +114,7 @@ class IntegrationBase(ABC):
             "tasks",
         }
     )
-    """Command templates needed for the guided Kite workflow."""
+    """Command templates and helpers needed for the guided Kite workflow."""
 
     standard_command_templates: frozenset[str] | None = (
         core_command_templates | frozenset({"research"})
@@ -319,7 +322,21 @@ class IntegrationBase(ABC):
             allowed = self.standard_command_templates
         if allowed is None:
             return templates
-        return [template for template in templates if template.stem in allowed]
+
+        shared_dir = self.shared_commands_dir()
+        shared_dir_resolved = shared_dir.resolve() if shared_dir else None
+        filtered: list[Path] = []
+        for template in templates:
+            is_bundled_template = False
+            if shared_dir_resolved is not None:
+                try:
+                    template.resolve().relative_to(shared_dir_resolved)
+                    is_bundled_template = True
+                except ValueError:
+                    is_bundled_template = False
+            if not is_bundled_template or template.stem in allowed:
+                filtered.append(template)
+        return filtered
 
     def command_filename(self, template_name: str) -> str:
         """Return the destination filename for a command template.
@@ -504,7 +521,11 @@ class IntegrationBase(ABC):
 
         return f"{leading}{opening}{fm_text}{closing}{sep}{rest}"
 
-    def _build_context_section(self, plan_path: str = "") -> str:
+    def _build_context_section(
+        self,
+        plan_path: str = "",
+        parsed_options: dict[str, Any] | None = None,
+    ) -> str:
         """Build the content for the managed section between markers.
 
         *plan_path* is the project-relative path to the current plan
@@ -544,10 +565,29 @@ class IntegrationBase(ABC):
                 "- Responsive UI: when a UI needs small-screen navigation and the user",
                 "  has not specified a different pattern, use a left-side hamburger",
                 "  sidebar/drawer.",
+                "- Workflow invariants: use the active feature directory resolved by",
+                "  Kite scripts or `.kite/feature.json`; do not guess from the latest",
+                "  `specs/` directory when a feature context is available.",
+                "- Workflow invariants: run `kite.analyze` after task generation and",
+                "  before implementation, keep the task approval and contract gates",
+                "  mandatory, and follow backend -> frontend -> docs -> qa ownership.",
+                "- Subagent-first execution: before loading broad context, delegate",
+                "  bounded research, artifact scanning, contract review, codebase",
+                "  evidence gathering, and validation evidence to focused Kite",
+                "  subagents when the integration supports them. Run independent",
+                "  subagent tasks in parallel when supported. Parent commands remain",
+                "  final writers for their owned artifacts, state, and product code.",
+                "- Contract handoff: frontend work consumes `contract.md` only after",
+                "  backend documents Base URL/auth, endpoints, error responses, frontend",
+                "  usage, and local verification commands.",
+                "- Browser ownership: only `kite.frontend` may invoke `kite.browser`,",
+                "  and only as a focused validation subagent after a connected frontend",
+                "  slice exists. QA and other agents consume `browser-report.md` and",
+                "  must not invoke browser validation directly.",
             ]
         )
 
-        hints = self._collect_context_hints()
+        hints = self._collect_context_hints(parsed_options)
         if hints:
             lines.append("")
             lines.append("## External Skills")
@@ -559,7 +599,10 @@ class IntegrationBase(ABC):
 
         return "\n".join(lines)
 
-    def _collect_context_hints(self) -> list[str]:
+    def _collect_context_hints(
+        self,
+        parsed_options: dict[str, Any] | None = None,
+    ) -> list[str]:
         """Return ``context_hint`` values from all command templates.
 
         Reads the YAML frontmatter of each file returned by
@@ -570,7 +613,11 @@ class IntegrationBase(ABC):
         import yaml as _yaml
 
         hints: list[str] = []
-        for tmpl in self.list_command_templates():
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
+        invoke_separator = self.effective_invoke_separator(parsed_options)
+        for tmpl in templates:
             try:
                 raw = tmpl.read_text(encoding="utf-8")
             except OSError:
@@ -591,13 +638,17 @@ class IntegrationBase(ABC):
                 continue
             hint = fm.get("context_hint")
             if hint and isinstance(hint, str):
-                hints.append(hint.strip())
+                normalized = hint.strip()
+                if invoke_separator != ".":
+                    normalized = normalized.replace("/kite.", f"/kite{invoke_separator}")
+                hints.append(normalized)
         return hints
 
     def upsert_context_section(
         self,
         project_root: Path,
         plan_path: str = "",
+        parsed_options: dict[str, Any] | None = None,
     ) -> Path | None:
         """Create or update the managed section in the agent context file.
 
@@ -615,7 +666,7 @@ class IntegrationBase(ABC):
         ctx_path = project_root / self.context_file
         section = (
             f"{self.CONTEXT_MARKER_START}\n"
-            f"{self._build_context_section(plan_path)}\n"
+            f"{self._build_context_section(plan_path, parsed_options)}\n"
             f"{self.CONTEXT_MARKER_END}\n"
         )
 
@@ -897,7 +948,7 @@ class IntegrationBase(ABC):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 
@@ -1074,7 +1125,7 @@ class MarkdownIntegration(IntegrationBase):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 
@@ -1284,7 +1335,7 @@ class TomlIntegration(IntegrationBase):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 
@@ -1400,6 +1451,8 @@ class YamlIntegration(IntegrationBase):
             default_flow_style=False,
         ).strip()
 
+        body = body.rstrip("\n")
+
         # Indent each line for YAML block scalar
         indented = "\n".join(f"  {line}" for line in body.split("\n"))
 
@@ -1471,7 +1524,7 @@ class YamlIntegration(IntegrationBase):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 
@@ -1568,7 +1621,9 @@ class SkillsIntegration(IntegrationBase):
         """
         import yaml
 
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -1664,6 +1719,6 @@ class SkillsIntegration(IntegrationBase):
             created.append(dst)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created

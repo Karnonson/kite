@@ -58,6 +58,40 @@ class TestIntegrationBase:
         assert "never add or update dependencies using `latest`" in content
         assert "left-side hamburger" in content
 
+    def test_context_hints_follow_profile_filter(self):
+        integration = StubIntegration()
+
+        standard = integration._build_context_section()
+        full = integration._build_context_section(parsed_options={"profile": "full"})
+
+        assert "/kite.mastra" not in standard
+        assert "/kite.mastra" in full
+
+    def test_context_hints_follow_skills_invocation_style(self):
+        class StubSkillsIntegration(SkillsIntegration):
+            key = "stub-skills"
+            config = {
+                "name": "Stub Skills",
+                "folder": ".stub/",
+                "commands_subdir": "skills",
+                "install_url": None,
+                "requires_cli": False,
+            }
+            registrar_config = {
+                "dir": ".stub/skills",
+                "format": "markdown",
+                "args": "$ARGUMENTS",
+                "extension": "/SKILL.md",
+            }
+            context_file = "STUB.md"
+
+        content = StubSkillsIntegration()._build_context_section(
+            parsed_options={"profile": "full"}
+        )
+
+        assert "/kite-mastra" in content
+        assert "/kite.mastra" not in content
+
     def test_shared_commands_dir(self):
         i = StubIntegration()
         cmd_dir = i.shared_commands_dir()
@@ -137,6 +171,7 @@ class TestBasePrimitives:
         filtered = i.filter_command_templates(templates, {"profile": "standard"})
         filtered_stems = {template.stem for template in filtered}
         assert "research" in filtered_stems
+        assert {"analyze", "browser", "checklist"} <= filtered_stems
         assert "start" in filtered_stems
         assert "implement" not in filtered_stems
         assert filtered_stems <= (i.core_command_templates | {"research"})
@@ -148,6 +183,7 @@ class TestBasePrimitives:
         filtered_stems = {template.stem for template in filtered}
         assert "start" in filtered_stems
         assert "research" not in filtered_stems
+        assert {"analyze", "browser", "checklist"} <= filtered_stems
         assert filtered_stems <= i.core_command_templates
 
     def test_command_filename_default(self):

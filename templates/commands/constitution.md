@@ -1,9 +1,9 @@
 ---
 description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync.
-handoffs: 
-  - label: Build Specification
-    agent: kite.specify
-    prompt: Implement the feature specification based on the updated constitution. I want to build...
+handoffs:
+  - label: Start Discovery
+    agent: kite.discover
+    prompt: Start discovery based on the updated constitution. I want to build...
 ---
 
 ## User Input
@@ -17,6 +17,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before constitution update)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_constitution` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -26,7 +27,8 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -36,8 +38,10 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -46,6 +50,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Outline
@@ -53,6 +58,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 You are updating the project constitution at `.kite/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
 
 **Note**: If `.kite/memory/constitution.md` does not exist yet, it should have been initialized from `.kite/templates/constitution-template.md` during project setup. If it's missing, copy the template first.
+
+### Subagent Delegation Policy
+
+Use subagent-first execution before widening this command's own context. Delegate bounded artifact scans, repository evidence gathering, or consistency checks to installed Kite subagents when available, and run independent subagent tasks in parallel when the host supports it. This command remains the only final writer for `.kite/memory/constitution.md` and constitution-driven template updates. If no suitable subagent is available, perform the smallest direct read needed and say so briefly. Browser validation is frontend-owned; this command consumes `browser-report.md` only if existing evidence is relevant.
 
 Follow this execution flow:
 
@@ -65,24 +74,27 @@ Follow this execution flow:
     - For missing choices that materially affect project direction, ask the user one question at a time with a recommended default and a short reason.
     - Stop asking only when all material choices are clear, the user says to skip questions / proceed / stop, or an answer remains unhelpful after one follow-up.
     - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded) and record the inference in the Sync Impact Report.
-   - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
-   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
-     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
-     - MINOR: New principle/section added or materially expanded guidance.
-     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
-   - If version bump type ambiguous, propose reasoning before finalizing.
+    - If the user proposes a project-wide workflow or coding rule, encode it in the constitution instead of leaving it only in downstream command prompts or implementation plans. Examples include subagent-first execution, official-doc requirements for AI work, host-environment safety rules, frontend-owned browser validation expectations, and comments that explain why rather than what.
+    - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
+    - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
+      - MAJOR: Backward incompatible governance/principle removals or redefinitions.
+      - MINOR: New principle/section added or materially expanded guidance.
+      - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
+    - If version bump type ambiguous, propose reasoning before finalizing.
 
 3. Draft the updated constitution content:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
    - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
    - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
    - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+   - When the change introduces a general rule that should govern future planning or implementation, place it in a principle or durable workflow section of the constitution instead of burying it in a feature-specific note.
 
 4. Consistency propagation checklist (convert prior checklist into active validations):
    - Read `.kite/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.
    - Read `.kite/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
    - Read `.kite/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
    - Read each command file in `.kite/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
+   - If the constitution now defines general workflow rules such as subagent-first execution, official-doc-first AI work, host safety, frontend-owned browser validation, or rationale-focused comments, update the affected command templates so their execution details align with the constitution instead of contradicting it.
    - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
 
 5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
@@ -98,6 +110,7 @@ Follow this execution flow:
    - Version line matches report.
    - Dates ISO format YYYY-MM-DD.
    - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
+   - Project-wide workflow or coding rules supplied by the user are reflected in the constitution, not only in downstream prompts.
 
 7. Write the completed constitution back to `.kite/memory/constitution.md` (overwrite).
 
@@ -122,7 +135,9 @@ Do not create a new template; always operate on the existing `.kite/memory/const
 ## Post-Execution Checks
 
 **Check for extension hooks (after constitution update)**:
+
 Check if `.kite/extensions.yml` exists in the project root.
+
 - If it exists, read it and look for entries under the `hooks.after_constitution` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
 - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
@@ -131,7 +146,8 @@ Check if `.kite/extensions.yml` exists in the project root.
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Hook**: {extension}
@@ -141,12 +157,15 @@ Check if `.kite/extensions.yml` exists in the project root.
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Hook**: {extension}
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently

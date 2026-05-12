@@ -1,12 +1,8 @@
 ---
 description: Create or update the feature specification from a natural language feature description.
-handoffs: 
-  - label: Build Technical Plan
-    agent: kite.plan
-    prompt: Create a plan for the spec. I am building with...
-  - label: Clarify Spec Requirements
-    agent: kite.clarify
-    prompt: Clarify specification requirements
+handoffs:
+   - { label: "Create Design", agent: "kite.design", prompt: "Create design.md and design-system.md for this specification before planning." }
+   - { label: "Clarify After Design", agent: "kite.clarify", prompt: "After the design artifacts are ready, run a clarification pass before planning." }
 ---
 
 ## User Input
@@ -20,6 +16,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before specification)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_specify` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -29,7 +26,8 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -39,8 +37,10 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -49,6 +49,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Outline
@@ -56,6 +57,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 The text the user typed after `__KITE_COMMAND_SPECIFY__` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
 Given that feature description, do this:
+
+### Subagent Delegation Policy
+
+Use subagent-first execution before widening this command's own context. Delegate bounded discovery-artifact scans, repository evidence gathering, or consistency checks to installed Kite subagents when available, and run independent subagent tasks in parallel when the host supports it. This command remains the final writer for `spec.md`, `.kite/feature.json`, and specification checklists. Browser validation is frontend-owned; do not run browser tooling here.
 
 1. **Generate a concise short name** (2-4 words) for the feature:
    - Analyze the feature description and extract the most meaningful keywords
@@ -96,11 +101,13 @@ Given that feature description, do this:
    - Copy `templates/spec-template.md` to `SPECIFY_FEATURE_DIRECTORY/spec.md` as the starting point
    - Set `SPEC_FILE` to `SPECIFY_FEATURE_DIRECTORY/spec.md`
    - Persist the resolved path to `.kite/feature.json`:
+
      ```json
      {
        "feature_directory": "<resolved feature dir>"
      }
      ```
+
      Write the actual resolved directory path value (for example, `specs/003-user-auth`), not the literal string `SPECIFY_FEATURE_DIRECTORY`.
      This allows downstream commands (`__KITE_COMMAND_PLAN__`, `__KITE_COMMAND_TASKS__`, etc.) to locate the feature directory without relying on git branch name conventions.
    - If `SPECIFY_FEATURE_DIRECTORY/discovery.md` exists, read it and use it as primary context alongside the feature description. If the discovery brief and the current command arguments conflict, ask the user which version to trust before writing `spec.md`.
@@ -246,7 +253,8 @@ Given that feature description, do this:
      - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
    - For each executable hook, output the following based on its `optional` flag:
      - **Optional hook** (`optional: true`):
-       ```
+
+       ```text
        ## Extension Hooks
 
        **Optional Hook**: {extension}
@@ -256,14 +264,17 @@ Given that feature description, do this:
        Prompt: {prompt}
        To execute: `/{command}`
        ```
+
      - **Mandatory hook** (`optional: false`):
-       ```
+
+       ```text
        ## Extension Hooks
 
        **Automatic Hook**: {extension}
        Executing: `/{command}`
        EXECUTE_COMMAND: {command}
        ```
+
    - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 **NOTE:** Branch creation is handled by the `before_specify` hook (git extension). Spec directory and file creation are always handled by this core command.

@@ -146,7 +146,7 @@ If you just want Kite to walk you through the whole lifecycle in plain English, 
 /kite.start "Build a tool that <one-sentence description of your idea>."
 ```
 
-`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, `kite doctor` for a plain-language status report, or `kite check --run-validation` to run the validation commands Kite detected for the project.
+`/kite.start` chains Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Analyze → task gate → Backend → contract gate → Frontend → Docs → QA, pausing for a plain-English approval before major planning and build handoffs. The planning and coding agents can call the `kite.research` subagent internally when they need current official framework guidance. If anything pauses or breaks, run `kite resume` in a terminal to pick up where you left off, `kite doctor` for a plain-language status report, or `kite check --run-validation` to run the validation commands Kite detected for the project.
 
 Prefer to drive each stage manually? The classic step-by-step flow is below.
 
@@ -206,7 +206,15 @@ Use **`/kite.tasks`** to create an actionable task list from your implementation
 /kite.tasks
 ```
 
-### 10. Build the backend
+### 10. Analyze and approve tasks
+
+Use **`/kite.analyze`** after tasks to check consistency across the spec, plan, design, and task list. Approve the task gate only after `tasks.md` and the analysis are ready for implementation.
+
+```bash
+/kite.analyze
+```
+
+### 11. Build the backend
 
 Use **`/kite.backend`** to complete backend-tagged tasks and publish the contract the frontend will use.
 
@@ -214,7 +222,11 @@ Use **`/kite.backend`** to complete backend-tagged tasks and publish the contrac
 /kite.backend
 ```
 
-### 11. Build the frontend
+### 12. Pass the contract gate
+
+Before frontend work starts, the contract gate validates the active `FEATURE_DIR/contract.md` for Base URL/auth, endpoint Method + path entries, error responses, frontend usage, and local verification commands.
+
+### 13. Build the frontend
 
 Use **`/kite.frontend`** after the backend contract is complete.
 
@@ -222,7 +234,15 @@ Use **`/kite.frontend`** after the backend contract is complete.
 /kite.frontend
 ```
 
-### 12. Run QA
+### 14. Update docs
+
+Use **`/kite.docs`** after frontend work to update user-facing documentation before the final QA pass.
+
+```bash
+/kite.docs
+```
+
+### 15. Run QA
 
 Use **`/kite.qa`** to implement QA-tagged tasks, run the checks, and append a plain-English report.
 
@@ -261,14 +281,15 @@ Essential commands for the founder-first Kite workflow:
 | `/kite.docs`          | `kite-docs`         | Update user-facing documentation before QA                                |
 | `/kite.qa`            | `kite-qa`           | Run QA-tagged tasks and append the plain-English QA report                 |
 
-### Optional Commands
+### Helper And Optional Commands
 
-Additional commands for enhanced quality and validation. Copilot's default `standard` profile keeps the agent list small and includes only the core workflow plus `kite.research`; use `--profile minimal` for only the guided workflow commands or `--profile full` when you want every optional command installed.
+Additional commands for enhanced quality and validation. Copilot's default `standard` profile keeps the agent list focused while including the helper commands the guided workflow references (`kite.analyze`, `kite.browser`, `kite.checklist`, and `kite.research`); use `--profile minimal` for the guided workflow plus required helpers without research, or `--profile full` when you want every optional command installed.
 
 | Command              | Agent Skill            | Description                                                                                                                          |
 | -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `/kite.research`  | `kite-research`     | Internal research helper used by plan and coding agents to verify current official stack guidance                                  |
 | `/kite.analyze`   | `kite-analyze`      | Cross-artifact consistency & coverage analysis (run after `/kite.tasks`, before `/kite.backend`)                                |
+| `/kite.browser`   | `kite-browser`      | Frontend-only browser validation helper invoked by `/kite.frontend` after a connected slice                                      |
 | `/kite.checklist` | `kite-checklist`    | Generate custom quality checklists that validate requirements completeness, clarity, and consistency (like "unit tests for English") |
 | `/kite.taskstoissues` | `kite-taskstoissues`| Convert generated task lists into GitHub issues for tracking and execution                                                     |
 | `/kite.implement` | `kite-implement`    | Legacy single-pass implementation helper for custom flows that do not need split handoffs                                       |
@@ -283,8 +304,8 @@ Use `--profile` with `kite init` (or `kite integration install`/`switch`/`upgrad
 
 | Profile    | Commands installed                                              |
 | ---------- | --------------------------------------------------------------- |
-| `minimal`  | Guided workflow only (`kite.start` + core stage agents)         |
-| `standard` | Core workflow + `kite.research` (default)                       |
+| `minimal`  | Guided workflow plus required helpers (`kite.analyze`, `kite.browser`, `kite.checklist`) |
+| `standard` | Minimal profile + `kite.research` (default)                     |
 | `full`     | Every Kite command including optional review helpers            |
 
 To check or change the profile for an existing project:
@@ -419,7 +440,7 @@ Go to the project folder and run your coding agent. In our example, we're using 
 
 ![Bootstrapping Claude Code environment](./media/bootstrap-claude-code.gif)
 
-You will know that things are configured correctly if you see the `/kite.constitution`, `/kite.discover`, `/kite.design`, `/kite.plan`, `/kite.tasks`, `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa` commands available.
+You will know that things are configured correctly if you see the guided workflow commands available: `/kite.constitution`, `/kite.discover`, `/kite.specify`, `/kite.design`, `/kite.clarify`, `/kite.plan`, `/kite.tasks`, `/kite.analyze`, `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa`. Standard installs also include helper commands such as `/kite.browser`, `/kite.checklist`, and `/kite.research`.
 
 The first step should be establishing your project's governing principles using the `/kite.constitution` command. This helps ensure consistent decision-making throughout all subsequent development phases:
 
@@ -616,13 +637,14 @@ This step creates a `tasks.md` file in your feature specification directory that
 - **Test-driven development structure** - If tests are requested, test tasks are included and ordered to be written before implementation
 - **Checkpoint validation** - Each user story phase includes checkpoints to validate independent functionality
 
-The generated tasks.md provides a clear roadmap for `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa`, ensuring each slice can be implemented and checked before the next handoff.
+The generated tasks.md provides a clear roadmap for `/kite.backend`, `/kite.frontend`, `/kite.docs`, and `/kite.qa`, ensuring each slice can be implemented and checked before the next handoff. Before implementation starts, run `/kite.analyze` and approve the task gate so the plan, design, and task list agree.
 
-### **STEP 7:** Backend, frontend, docs, and QA
+### **STEP 7:** Analyze, backend, frontend, docs, and QA
 
 Once ready, run the split implementation commands in order:
 
 ```text
+/kite.analyze
 /kite.backend
 /kite.frontend
 /kite.docs
@@ -633,7 +655,8 @@ The split implementation flow will:
 
 - Validate that all prerequisites are in place (constitution, spec, plan, and tasks)
 - Parse the task breakdown from `tasks.md`
-- Complete backend-tagged tasks and publish `contract.md`
+- Complete backend-tagged tasks and publish `FEATURE_DIR/contract.md`
+- Stop at the contract gate until the active contract has Base URL/auth, endpoint Method + path entries, error responses, frontend usage, and local verification commands
 - Complete frontend-tagged tasks against that contract
 - Complete docs-tagged tasks before final validation
 - Run QA-tagged tasks and append a plain-English report

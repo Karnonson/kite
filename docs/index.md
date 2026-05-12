@@ -2,7 +2,7 @@
 
 *Build software with AI agents, even if you are not a developer.*
 
-Kite helps non-technical builders turn an idea into working software by guiding an AI coding agent through constitution, discovery, design, planning, task generation, and implementation in plain English.
+Kite helps non-technical builders turn an idea into working software by guiding an AI coding agent through constitution, discovery, specification, design, clarification, planning, task generation, consistency analysis, implementation, docs, and QA in plain English.
 
 ## What is Spec-Driven Development?
 
@@ -14,6 +14,12 @@ Kite uses Spec-Driven Development as its operating model, but packages it as a g
 - [Dev Container Guide](devcontainer.md)
 - [Quick Start Guide](quickstart.md)
 - [Upgrade Guide](upgrade.md)
+
+## Guided Workflow
+
+The default founder-friendly flow runs constitution -> discover -> specify -> design -> clarify -> plan -> tasks -> analyze -> task gate -> backend -> contract gate -> frontend -> docs -> qa.
+
+The `minimal` profile installs the guided workflow plus the required helpers `kite.analyze`, `kite.browser`, and `kite.checklist`. The default `standard` profile adds `kite.research`. `kite.browser` is a frontend-only validation helper that `kite.frontend` can invoke after a connected slice.
 
 ## Core Philosophy
 
@@ -34,4 +40,4 @@ Kite's workflow emphasizes:
 
 ## Support
 
-For support, please check our [Support Guide](../SUPPORT.md) or open an issue on GitHub.
+For support, please search existing GitHub issues and discussions first, or review the [Support Guide](https://github.com/Karnonson/kite/blob/main/SUPPORT.md) before opening a new issue.

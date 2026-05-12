@@ -28,27 +28,27 @@ coding assistant (Copilot, Claude, or Codex).
     cd my-app
     ```
 
-    Add `--profile minimal` to install only the guided workflow commands, or
+   Add `--profile minimal` to install the guided workflow plus its required helpers, or
     `--profile full` to include every optional Kite command. The default
     `standard` profile keeps Copilot's visible agent list focused while still
-    including `kite.research` for stack guidance. To change the profile later,
+   including `kite.research` for stack guidance. To change the profile later,
     run `kite profile set <name>` (then `kite integration upgrade --force` to apply).
 
 2. **In your AI assistant**, run the orchestrator:
 
-    ```
+    ```text
     /kite.start "Build a tool that does <one sentence about your idea>."
     ```
 
    Kite will walk you through one stage at a time — Constitution →
-   Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA — and ask
+   Discover → Specify → Design → Clarify → Plan → Tasks → Analyze → task gate → Backend → contract gate → Frontend → Docs → QA — and ask
    "approve and continue?" between each stage. You only ever
    answer plain-English yes/no questions.
 
     For an existing codebase, initialize Kite in that repository and describe
     the change you want:
 
-    ```
+    ```text
     /kite.start "Improve the existing dashboard filters."
     ```
 
@@ -121,10 +121,13 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init .
 
 > [!NOTE]
 > You can also install the CLI persistently with `pipx`:
+>
 > ```bash
 > pipx install git+https://github.com/Karnonson/kite.git
 > ```
+>
 > After installing with `pipx`, run `kite` directly instead of `uvx --from ... kite`, for example:
+>
 > ```bash
 > kite init <PROJECT_NAME>
 > kite init .
@@ -184,13 +187,13 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --
 /kite.tasks
 ```
 
-If your integration installs optional review commands, you can validate the plan with `/kite.analyze`:
+Run the required consistency pass before implementation, then approve the task gate when `tasks.md` and the analysis are ready:
 
 ```markdown
 /kite.analyze
 ```
 
-Then, run the split implementation commands in order.
+Then, run the split implementation commands in order. The backend publishes the active feature's `contract.md`, the contract gate validates it, and the frontend consumes that published contract before docs and QA.
 
 ```markdown
 /kite.backend
@@ -242,7 +245,7 @@ You can continue to refine the spec with more details using `/kite.clarify`:
 
 ### Step 4: Validate the Spec
 
-If your integration installs optional review commands, validate the specification checklist using the `/kite.checklist` command:
+When you want an extra requirements completeness check, validate the specification checklist using the `/kite.checklist` command:
 
 ```bash
 /kite.checklist
@@ -266,17 +269,18 @@ Generate an actionable task list using the `/kite.tasks` command:
 
 ### Step 7: Validate and Implement
 
-If available, have your coding agent audit the implementation plan using `/kite.analyze`:
+Have your coding agent audit the implementation plan and tasks using `/kite.analyze`, then approve the task gate before implementation:
 
 ```bash
 /kite.analyze
 ```
 
-Finally, implement the solution:
+Finally, implement the solution. Run docs before QA, and do not start frontend work until the backend contract gate has passed:
 
 ```bash
 /kite.backend
 /kite.frontend
+/kite.docs
 /kite.qa
 ```
 

@@ -6,7 +6,7 @@
     "kite": {
       "id": "kite",
       "name": "Full SDD Cycle",
-      "description": "Runs constitution \u2192 discover \u2192 specify \u2192 design \u2192 clarify \u2192 plan \u2192 tasks \u2192 backend \u2192 frontend \u2192 docs \u2192 qa with review gates",
+      "description": "Runs constitution \u2192 discover \u2192 specify \u2192 design \u2192 clarify \u2192 plan \u2192 tasks \u2192 analyze \u2192 task gate \u2192 backend \u2192 contract gate \u2192 frontend \u2192 docs \u2192 qa with review gates",
       "author": "Kite",
       "version": "1.2.1",
       "url": "https://raw.githubusercontent.com/Karnonson/kite/main/workflows/kite/workflow.yml",

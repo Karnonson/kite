@@ -5,6 +5,9 @@ handoffs:
     agent: kite.qa
     prompt: Documentation is updated. Run QA and produce the final report.
     send: true
+scripts:
+   sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
+   ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
 ---
 
 ## User Input
@@ -31,8 +34,12 @@ This command runs after `kite.frontend` and before `kite.qa` in the approved imp
 5. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, STOP before editing. Create/switch to a feature branch if safe; otherwise report the exact branch issue.
 6. **Validation required.** Verify changed docs by checking links, commands, referenced paths, and examples against the current project. Do not invent commands or capabilities.
 7. **No repeated approval after tasks gate.** If this command is running after the approved `tasks.md` gate, proceed without asking for another approval unless blocked or unsafe. If run directly without prior task approval, ask once before editing.
+8. **Honor host-environment safety.** Before global package installs, system package commands, Docker commands, or writes outside the approved workspace, run the appropriate guard utility (`.kite/scripts/bash/check-dev-environment.sh` or `.kite/scripts/powershell/check-dev-environment.ps1`). If it blocks the action, stop and report instead of bypassing it. Approved environments set `KITE_DEV_ENV=1`.
+9. **Subagent-first execution.** Delegate bounded artifact scans, link/command verification, and consistency checks to focused Kite subagents when installed, and run independent subagent tasks in parallel when the host supports it. This command remains the final writer for documentation changes and the `[docs]` task status. Browser validation is frontend-owned; do not run browser tooling here.
 
 ### Step 1 — Read existing artifacts
+
+Run `{SCRIPT}` from the repo root and parse `FEATURE_DIR`. Use that active feature directory for every feature artifact path. Use the latest directory under `specs/` only as a fallback when no active feature context exists.
 
 Required:
 
@@ -85,12 +92,14 @@ Before finishing:
 ### Step 5 — Update state and present a summary
 
 1. Update `.kite/state.yml`:
+
    ```yaml
    stage: docs
    updated_at: "<ISO-8601 timestamp now>"
    artifacts:
-     tasks: specs/<latest>/tasks.md
+       tasks: FEATURE_DIR/tasks.md
    ```
+
 2. Print a concise summary:
    - Number of `[docs]` tasks completed and blocked.
    - Files changed.

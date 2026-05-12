@@ -107,7 +107,10 @@ class CopilotIntegration(IntegrationBase):
     # Mutable flag set by setup() — indicates the active scaffolding mode.
     _skills_mode: bool = False
     _default_agent_templates = {
+        "analyze",
         "backend",
+        "browser",
+        "checklist",
         "clarify",
         "constitution",
         "design",
@@ -133,6 +136,26 @@ class CopilotIntegration(IntegrationBase):
         if self._skills_mode:
             return "-"
         return self.invoke_separator
+
+    def _collect_context_hints(
+        self,
+        parsed_options: dict[str, Any] | None = None,
+    ) -> list[str]:
+        hints = super()._collect_context_hints(parsed_options)
+        if self.effective_invoke_separator(parsed_options) != ".":
+            return hints
+
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
+        skill_only_stems = {
+            template.stem
+            for template in templates
+            if template.stem in self._skill_only_templates
+        }
+        for stem in skill_only_stems:
+            hints = [hint.replace(f"/kite.{stem}", f"/kite-{stem}") for hint in hints]
+        return hints
 
     @classmethod
     def options(cls) -> list[IntegrationOption]:
@@ -443,7 +466,7 @@ class CopilotIntegration(IntegrationBase):
                 created.append(dst_settings)
 
         # 4. Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 

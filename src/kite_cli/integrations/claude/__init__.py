@@ -29,6 +29,7 @@ ARGUMENT_HINTS: dict[str, str] = {
     "plan": "Optional guidance for the planning phase",
     "tasks": "Optional task generation constraints",
     "backend": "Optional stack hints or task filter for backend work",
+    "browser": "Optional URL, flow, or browser validation focus",
     "frontend": "Optional stack hints or task filter for frontend work",
     "docs": "Optional documentation scope or task filter",
     "qa": "Optional test runner or task filter for QA",

@@ -1,5 +1,5 @@
 ---
-description: Run the founder-friendly Kite SDLC end-to-end (constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → docs → qa) with human planning gates and one implementation approval.
+description: Run the founder-friendly Kite SDLC end-to-end (constitution → discover → specify → design → clarify → plan → tasks → analyze → task gate → backend → contract gate → frontend → docs → qa) with human planning gates and mandatory implementation gates.
 handoffs:
   - label: Discovery only
     agent: kite.discover
@@ -47,15 +47,16 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 4. **Brownfield-first.** If the repository already has application code, docs, config, tests, or specs, instruct every stage to inspect that evidence before asking feature or architecture questions. Existing implemented behavior is answered context; ask only about the desired change, missing evidence, or conflicts.
 5. **Plain English.** Every gate prompt is one short plain-English question. Forbidden: *epic, story, Gherkin, schema, endpoint, payload, scope creep, non-functional, KPI, OKR, RFC, MVP*.
 6. **Split implementation stages.** In the founder fast path, building happens through `kite.backend`, the hard contract gate, `kite.frontend`, `kite.docs`, then `kite.qa`. Do not use `kite.implement` for the default guided flow.
-7. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, create or switch to a feature branch before writing feature artifacts. STOP IF branch creation/switching fails, and tell the user to resolve the branch issue before continuing. If there is no git repository, continue without branch changes.
+7. **Feature branch guardrail.** If this is a git repository and the current branch is `main` or `master`, stop before writing feature artifacts and tell the user to create or switch to a feature branch. If there is no git repository, continue without branch changes.
 8. **No self-recursive auto-send.** NEVER invoke or hand off to `kite.start` automatically. It is acceptable to tell the user to run `kite.start` manually to resume.
+9. **Subagent-first execution and browser ownership.** Each persona command MUST use subagent-first delegation before widening its own context. `kite.browser` is invoked only by `kite.frontend` after a connected frontend slice exists; QA and other stages consume `browser-report.md` instead of invoking browser tooling.
 
 ### Step 1 — Resolve inputs
 
 1. Parse `$ARGUMENTS` for any of:
    - `idea=<one line>`
    - `persona=<founder|junior>` (default: `founder`)
-    - `auto_approve=<true|false>` (default: `false`; never skips the task-list approval gate)
+   - `auto_approve=<true|false>` (default: `false`; never skips the task-list approval gate)
    - `integration=<copilot|claude|codex|...>` (default: read from `kite.config.yml` if present, else `copilot`)
    - Any free-form text not matching the above is treated as the idea.
 
@@ -70,8 +71,8 @@ This command is for hosts that do **not** natively run workflow YAML. If the hos
 ### Step 2 — Branch and state guardrails
 
 1. If `.git/` exists or `git rev-parse --is-inside-work-tree` succeeds, read the current branch.
-2. If the branch is `main` or `master`, create or switch to a feature branch named from the idea (for example `kite/<short-feature-name>` or the numbering convention already configured by Kite).
-3. STOP IF the working tree, permissions, or branch conflicts prevent a safe branch switch. Do not proceed on `main` or `master`; print the exact command the user can run after resolving the issue.
+2. If the branch is `main` or `master`, STOP before writing feature artifacts. Tell the user to create or switch to a feature branch named from the idea (for example `kite/<short-feature-name>` or the numbering convention already configured by Kite), then rerun or resume the workflow.
+3. Do not proceed on `main` or `master`; print the exact command the user can run after resolving the issue.
 4. If no git repository exists, skip this guardrail and continue.
 
 ### Step 3 — Read or create `.kite/state.yml`
@@ -108,29 +109,32 @@ Execute these steps in order. Each numbered item is one persona invocation. Cons
 11. `kite.plan` — pass `persona=<persona>` if non-default.
 12. **Gate (skippable):** "Plan approved — generate the task list?"
 13. `kite.tasks` — pass `persona=<persona>` if non-default.
-14. **Gate (REQUIRED — never skipped by `auto_approve`):** "Approve tasks.md before automated implementation starts?"
-15. `kite.backend` — implement `[backend]`-tagged tasks and produce `contract.md`.
-16. **Contract gate (HARD — never skipped):** verify `specs/<latest>/contract.md` exists and contains no `TODO` or `<placeholder>` markers. If the check fails, **abort** with: "Backend contract is incomplete. Run `kite.backend` again to finish it before the frontend can build."
-17. `kite.frontend` — implement `[frontend]`-tagged tasks against the published contract.
-18. `kite.docs` — implement `[docs]`-tagged documentation tasks.
-19. `kite.qa` — implement and run `[qa]`-tagged tasks and append the QA report.
+14. `kite.analyze` — run a read-only consistency pass across spec, plan, tasks, constitution, design, and contract readiness.
+15. **Gate (REQUIRED — never skipped by `auto_approve`):** "Approve tasks.md and the consistency analysis before automated implementation starts?"
+16. `kite.backend` — implement `[backend]`-tagged tasks and produce `contract.md`.
+17. **Contract gate (HARD — never skipped):** verify the active `FEATURE_DIR/contract.md` exists, contains no `TODO` or `<placeholder>` markers, and includes filled Base URL/auth, endpoint Method + path entries, an Error contract, a Frontend usage map, and Local verification commands. If the check fails, **abort** with: "Backend contract is incomplete. Run `kite.backend` again to finish it before the frontend can build."
+18. `kite.frontend` — implement `[frontend]`-tagged tasks against the published contract.
+19. `kite.docs` — implement `[docs]`-tagged documentation tasks.
+20. `kite.qa` — implement and run `[qa]`-tagged tasks and append the QA report.
 
 For each persona invocation:
 
-- **Print the stage banner:** "Stage X/11 — <persona name>".
+- **Print the stage banner:** "Stage X/12 — <persona name>".
 - **Invoke the persona command** with the prepared arguments. The persona writes its own files and updates `.kite/state.yml` itself.
 - **For brownfield repositories**, include the instruction: "Read existing docs, config, tests, source layout, and relevant implemented features first. Do not ask the user to restate existing behavior unless the repository evidence conflicts or is missing."
 - **After the persona returns**, read its 5-bullet summary back to the user (the persona always prints one).
-- **Run the gate** if required. Planning gates are one yes/no question and may be skipped only when `auto_approve` is true. The tasks gate is ALWAYS required. After the tasks gate is approved, continue backend → frontend → docs → qa without repeated approval prompts unless blocked or unsafe.
+- **Run the gate** if required. Planning gates are one yes/no question and may be skipped only when `auto_approve` is true. The tasks gate is ALWAYS required. After the tasks gate is approved, continue backend → contract gate → frontend → docs → qa without repeated approval prompts unless blocked or unsafe.
 
 ### Step 5 — Hard gates
 
-The contract gate (step 16) is **never** skipped. Algorithm:
+The contract gate is **never** skipped. Algorithm:
 
-1. Find `specs/<latest>/`. The latest spec directory is the highest-numbered one (e.g. `specs/003-…/` beats `specs/002-…/`).
-2. Check `<latest>/contract.md` exists. If missing, abort with the message above.
-3. `grep -E 'TODO|<[a-zA-Z][^>]*>' <latest>/contract.md`. If any match, abort.
-4. On pass, print "Contract gate passed — frontend may proceed."
+1. Resolve the active feature directory from the prerequisite scripts, `SPECIFY_FEATURE_DIRECTORY`, or `.kite/feature.json`. Use highest-numbered `specs/` only as a fallback when no active feature context exists.
+2. Check `FEATURE_DIR/contract.md` exists. If missing, abort with the message above.
+3. Reject `TODO` or `<placeholder>` markers.
+4. Require `## 1. Base URL & auth`, `## 2. Endpoints`, `## 5. Error contract`, `## 6. Frontend usage map`, and `## 7. Local verification commands` to be filled.
+5. Require at least one endpoint entry, `**Method + path:**` for every endpoint entry, and at least one local verification command.
+6. On pass, print `contract gate: OK (<contract path>)`.
 
 If the run is aborted at this gate, leave `.kite/state.yml.stage` set to `backend` so a follow-up `kite.start` can resume.
 
@@ -147,7 +151,7 @@ After `kite.qa` completes:
 
 2. Print a final summary:
    - One-line verdict from the QA report.
-    - Number of tasks completed by persona (`backend`, `frontend`, `docs`, `qa`).
+   - Number of tasks completed by persona (`backend`, `frontend`, `docs`, `qa`).
    - Path to the final `tasks.md` and `contract.md`.
    - What to do next: ship this loop, re-run the failing layer command, or investigate the blocker and resume from the affected persona.
 

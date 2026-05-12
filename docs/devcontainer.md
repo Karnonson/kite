@@ -75,10 +75,16 @@ In your AI coding assistant, use the Kite commands:
 /kite.specify "Add appointment reminders by email."
 /kite.plan
 /kite.tasks
+/kite.analyze
+# approve the task gate
 /kite.backend
+# contract gate must pass
 /kite.frontend
+/kite.docs
 /kite.qa
 ```
+
+On the default `standard` profile, Copilot also gets helper commands such as `/kite.browser`, `/kite.checklist`, and `/kite.research`. `kite.browser` is frontend-only and is usually invoked from `/kite.frontend` after a connected slice rather than as a top-level workflow step.
 
 For most new projects, start with `/kite.start` and let Kite walk you
 through the full flow.
@@ -92,8 +98,9 @@ through the full flow.
 - Ports started by tools inside the container are not opened automatically. Use
   the VS Code Ports view when you want to expose a generated app preview.
 - `pnpm` installed globally for TypeScript projects.
-- `kite-cli` installed via `pipx` on every build.
-- GitHub Copilot and Copilot Chat extensions recommended in VS Code.
+- `kite-cli` installed via `pipx` on every build from `KITE_INSTALL_SPEC`, which defaults to `git+https://github.com/Karnonson/kite.git@main` in the scaffolded template until Kite is published to PyPI.
+- `KITE_DEV_ENV=1` exported inside the container so Kite's `check-dev-environment` guard treats the dev container as an approved environment for package installs, Docker commands, and other host-affecting actions.
+- GitHub Copilot and Copilot Chat extensions recommended in VS Code, with prompt recommendations enabled for guided workflow commands and helpers such as `/kite.analyze`, `/kite.browser`, `/kite.checklist`, `/kite.docs`, and `/kite.research`.
 
 ## What gets re-created on rebuild
 
@@ -108,12 +115,13 @@ through the full flow.
 Most users do not need to change these. If you do, edit
 `.devcontainer/devcontainer.json` → `remoteEnv`:
 
-| Variable                    | Effect                                                  |
-| --------------------------- | ------------------------------------------------------- |
-| `KITE_VERSION`              | Pin a Kite version. |
-| `KITE_INSTALL_SPEC`         | Install Kite from a specific package source or git URL. |
-| `KITE_PNPM_VERSION`         | Pin the `pnpm` version. |
-| `KITE_DEFAULT_INTEGRATION`  | Default `kite init` integration. Defaults to `copilot`. |
+| Variable                    | Default in template                                      | Effect |
+| --------------------------- | -------------------------------------------------------- | ------ |
+| `KITE_DEV_ENV`             | `1`                                                      | Marks the dev container as an approved Kite environment for environment-guarded commands. |
+| `KITE_VERSION`             | *(empty)*                                                | Pin a Kite version. |
+| `KITE_INSTALL_SPEC`        | `git+https://github.com/Karnonson/kite.git@main`         | Install Kite from a specific package source or git URL. Switch to `kite-cli` after the PyPI release or pin a tag or SHA here. |
+| `KITE_PNPM_VERSION`        | `10.10.0`                                                | Pin the `pnpm` version. |
+| `KITE_DEFAULT_INTEGRATION` | `copilot`                                                | Default `kite init` integration. |
 
 ## Security note
 

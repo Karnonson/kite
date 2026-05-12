@@ -68,6 +68,7 @@ kite init <PROJECT_NAME>
 
 > [!NOTE]
 > `pipx` works equally well for a persistent install:
+>
 > ```bash
 > pipx install git+https://github.com/Karnonson/kite.git
 > ```
@@ -127,9 +128,20 @@ This helps verify you are running the official Kite build from GitHub, not an un
 
 After initialization, you should see the following commands available in your coding agent:
 
+- `/kite.constitution` - Establish project principles
+- `/kite.discover` - Frame the problem and user need
 - `/kite.specify` - Create specifications
-- `/kite.plan` - Generate implementation plans  
+- `/kite.design` - Create design and design-system artifacts
+- `/kite.clarify` - Resolve missing decisions before planning
+- `/kite.plan` - Generate implementation plans
 - `/kite.tasks` - Break down into actionable tasks
+- `/kite.analyze` - Run the required consistency pass before implementation
+- `/kite.backend` - Implement backend tasks and publish the frontend contract
+- `/kite.frontend` - Implement frontend tasks against the published contract
+- `/kite.docs` - Update user-facing documentation
+- `/kite.qa` - Run QA tasks and append a plain-English report
+
+Standard installs also include helper commands such as `/kite.browser`, `/kite.checklist`, and `/kite.research`.
 
 The `.kite/scripts` directory will contain both `.sh` and `.ps1` scripts.
 

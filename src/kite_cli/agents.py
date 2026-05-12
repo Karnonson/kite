@@ -480,6 +480,10 @@ class CommandRegistrar:
 
             frontmatter = self._adjust_script_paths(frontmatter)
 
+            # context_hint is consumed by built-in integration context generation;
+            # extension/preset command files should not leak it into agent commands.
+            frontmatter.pop("context_hint", None)
+
             for key in agent_config.get("strip_frontmatter_keys", []):
                 frontmatter.pop(key, None)
 

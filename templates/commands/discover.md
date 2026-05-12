@@ -20,6 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 ## Pre-Execution Checks
 
 **Check for extension hooks (before discovery)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_discover` key.
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally.
@@ -29,7 +30,8 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation.
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -39,8 +41,10 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -49,6 +53,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently.
 
 ## Outline
@@ -66,11 +71,13 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
 5. **Never invent a stack.** This command does not pick a tech stack. That happens later in `kite.plan`. If the user volunteers stack info, capture it in *Constraints* but do not lead with it.
 6. **No code.** This command never writes code, schemas, API shapes, or UI wireframes. Those belong to `kite.design`, `kite.backend`, `kite.frontend`.
 7. **Brownfield first.** In a **brownfield** or otherwise **existing** feature directory, inspect any existing discovery artifact **before asking** new questions. **Ask only** about missing evidence, contradictions, or scope changes.
+8. **Subagent-first context gathering.** Before widening your own context, delegate bounded repository scans or artifact checks to installed Kite subagents when available, and run independent subagent tasks in parallel when the host supports it. This command remains the final writer for `discovery.md` and `.kite/state.yml`. Browser validation is frontend-owned; do not run browser tooling here.
 
 ### Step 1 — Locate or create the project marker
 
 1. If `.kite/` does not exist at the repo root, create it: `mkdir -p .kite`.
 2. If `.kite/state.yml` does not exist, create it with:
+
    ```yaml
    schema_version: "1.0"
    workflow: kite
@@ -78,6 +85,7 @@ This command is the **first** stop in the Kite SDLC and is optimised for **non-t
    updated_at: "<ISO-8601 timestamp now>"
    artifacts: {}
    ```
+
 3. If `.kite/state.yml` exists, update its `stage` to `discover` and `updated_at`. Preserve other keys.
 
 ### Step 2 — Create the feature workspace
@@ -92,11 +100,13 @@ Discovery artifacts live with the rest of the feature artifacts under `specs/<fe
    - If `branch_numbering` is `sequential` or absent, scan `specs/` and use the next available 3+ digit prefix (`001`, `002`, ...).
    - Create `FEATURE_DIR=specs/<prefix>-<short-name>`.
 4. Persist the feature directory to `.kite/feature.json`:
+
    ```json
    {
      "feature_directory": "<FEATURE_DIR>"
    }
    ```
+
    Store the project-relative path, such as `specs/001-coach-training-plans`.
 
 ### Step 3 — Read the user's idea, decide what is already answered
@@ -133,10 +143,12 @@ If `kite.config.yml` does not yet exist at the repo root, ask exactly one extra 
 > "Last housekeeping question: are you the **builder** (you'll be writing/reading code) or the **founder** (you want the AI to do the building)?  [founder]"
 
 Map their answer:
+
 - "founder", "pm", "owner", "non-technical", default → `persona: founder`
 - "builder", "junior", "engineer", "dev" → `persona: junior`
 
 Write `kite.config.yml`:
+
 ```yaml
 schema_version: "1.0"
 persona: <founder|junior>
@@ -211,12 +223,14 @@ The next command, `kite.specify`, will turn this brief into a formal feature spe
 ### Step 7 — Update state and present a summary
 
 1. Update `.kite/state.yml`:
+
    ```yaml
    stage: discover
    updated_at: "<ISO-8601 timestamp now>"
    artifacts:
      discovery: <FEATURE_DIR>/discovery.md
    ```
+
 2. Print a **5-bullet** summary to the user:
    - Who it's for
    - The problem

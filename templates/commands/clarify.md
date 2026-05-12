@@ -1,9 +1,12 @@
 ---
 description: Identify underspecified areas in the current feature spec by asking targeted clarification questions and encoding answers back into the spec.
 handoffs:
- - label: Build Technical Plan
-   agent: kite.plan
-   prompt: Create a plan for the spec and design. Use the kite.research subagent for current official guidance when needed.
+  - label: Verify with Research
+    agent: kite.research
+    prompt: Verify framework, hosting, or AI SDK guidance from official docs before planning.
+  - label: Build Technical Plan
+    agent: kite.plan
+    prompt: Create a plan for the spec and design. Use the kite.research subagent for current official guidance when needed.
 scripts:
  sh: scripts/bash/check-prerequisites.sh --json --paths-only
  ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
@@ -62,6 +65,10 @@ Goal: Detect and reduce ambiguity or missing decision points in the active featu
 
 Note: This clarification workflow is expected to run (and be completed) AFTER `__KITE_COMMAND_DESIGN__` and BEFORE `__KITE_COMMAND_PLAN__`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
 
+### Subagent Delegation Policy
+
+Use subagent-first execution before widening this command's own context. Delegate bounded artifact scans, official-doc checks, or consistency checks to installed Kite subagents when available, and run independent subagent tasks in parallel when the host supports it. This command remains the final writer for clarification updates to `spec.md`. Browser validation is frontend-owned; do not run browser tooling here.
+
 Execution steps:
 
 1. Run `{SCRIPT}` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
@@ -72,6 +79,8 @@ Execution steps:
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. Load the current spec file. Perform a structured ambiguity & coverage scan using this taxonomy. For each category, mark status: Clear / Partial / Missing. Produce an internal coverage map used for prioritization (do not output raw map unless no questions will be asked).
+   - Read `FEATURE_DIR/design.md` and `FEATURE_DIR/design-system.md` when present so design decisions can remove or expose ambiguities.
+   - Read `.kite/memory/constitution.md` when present and treat workflow, quality, accessibility, or browser-ownership rules as clarification constraints.
 
    Functional Scope & Behavior:
    - Core user goals & success criteria
@@ -129,13 +138,13 @@ Execution steps:
 
 3. Generate (internally) a prioritized queue of candidate clarification questions. Do NOT output them all at once. Apply these constraints:
    - Ask every high-impact question needed before planning. Use 5 questions as the default target, but continue beyond 5 when unresolved choices would materially change architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
-    - Each question must be answerable with EITHER:
-       - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
-       - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").
-    - Only include questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
-    - Ensure category coverage balance: attempt to cover the highest impact unresolved categories first; avoid asking two low-impact questions when a single high-impact area (e.g., security posture) is unresolved.
-    - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
-    - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
+   - Each question must be answerable with EITHER:
+      - A short multiple‑choice selection (2–5 distinct, mutually exclusive options), OR
+      - A one-word / short‑phrase answer (explicitly constrain: "Answer in <=5 words").
+   - Only include questions whose answers materially impact architecture, data modeling, task decomposition, test design, UX behavior, operational readiness, or compliance validation.
+   - Ensure category coverage balance: attempt to cover the highest impact unresolved categories first; avoid asking two low-impact questions when a single high-impact area (e.g., security posture) is unresolved.
+   - Exclude questions already answered, trivial stylistic preferences, or plan-level execution details (unless blocking correctness).
+   - Favor clarifications that reduce downstream rework risk or prevent misaligned acceptance tests.
    - If many categories remain unresolved, ask them in descending (Impact * Uncertainty) order and stop when the user says to proceed, skip questions, stop, or no longer provides useful answers.
 
 4. Sequential questioning loop (interactive):
@@ -216,6 +225,7 @@ Behavior rules:
 - If spec file missing, instruct user to run `__KITE_COMMAND_SPECIFY__` first (do not create a new spec here).
 - Prefer 5 or fewer questions for speed, but do not leave a high-impact ambiguity unresolved just to fit a fixed quota.
 - Avoid low-level implementation-version questions, but do ask about planning-critical constraints when their absence would cause rework: hosting target, budget posture, regulated environments, or whether the product needs an AI SDK / agent framework.
+- If the product appears to need an AI SDK or agent framework, tell the caller that planning must verify official docs, current version guidance, and MCP/skills support through `kite.research` before implementation begins.
 - Respect user early termination signals ("stop", "done", "proceed").
 - If no questions asked due to full coverage, output a compact coverage summary (all categories Clear) then suggest advancing.
 - If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.

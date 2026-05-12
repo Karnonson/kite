@@ -2,11 +2,24 @@
 
 import json
 import os
+from pathlib import Path
 
 import yaml
 
 from kite_cli.integrations import get_integration
 from kite_cli.integrations.manifest import IntegrationManifest
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FULL_COMMAND_STEMS = [
+    path.stem for path in sorted((REPO_ROOT / "templates" / "commands").glob("*.md"))
+]
+MINIMAL_COMMAND_STEMS = [
+    "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+    "design", "discover", "docs", "frontend", "plan", "qa", "specify",
+    "start", "tasks",
+]
+STANDARD_COMMAND_STEMS = [*MINIMAL_COMMAND_STEMS, "research"]
 
 
 class TestCopilotIntegration:
@@ -66,6 +79,12 @@ class TestCopilotIntegration:
         assert mastra_skill.exists()
         assert not (tmp_path / ".github" / "agents" / "kite.mastra.agent.md").exists()
         assert not (tmp_path / ".github" / "prompts" / "kite.mastra.prompt.md").exists()
+
+        context = (tmp_path / ".github" / "copilot-instructions.md").read_text(
+            encoding="utf-8"
+        )
+        assert "/kite-mastra" in context
+        assert "/kite.mastra" not in context
 
     def test_setup_creates_vscode_settings_new(self, tmp_path):
         from kite_cli.integrations.copilot import CopilotIntegration
@@ -136,11 +155,8 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         assert agents_dir.is_dir()
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
-        assert len(agent_files) == 13
-        expected_commands = {
-            "backend", "clarify", "constitution", "design", "discover", "docs",
-            "frontend", "plan", "qa", "research", "specify", "start", "tasks",
-        }
+        assert len(agent_files) == len(STANDARD_COMMAND_STEMS)
+        expected_commands = set(STANDARD_COMMAND_STEMS)
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
         assert actual_commands == expected_commands
 
@@ -153,10 +169,7 @@ class TestCopilotIntegration:
         agents_dir = tmp_path / ".github" / "agents"
         agent_files = sorted(agents_dir.glob("kite.*.agent.md"))
         actual_commands = {f.name.removeprefix("kite.").removesuffix(".agent.md") for f in agent_files}
-        assert actual_commands == {
-            "backend", "clarify", "constitution", "design", "discover", "docs",
-            "frontend", "plan", "qa", "specify", "start", "tasks",
-        }
+        assert actual_commands == set(MINIMAL_COMMAND_STEMS)
         assert not (tmp_path / ".github" / "agents" / "kite.research.agent.md").exists()
         assert not (tmp_path / ".github" / "skills" / "kite-mastra" / "SKILL.md").exists()
 
@@ -230,32 +243,8 @@ class TestCopilotIntegration:
         assert result.exit_code == 0
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
-            ".github/agents/kite.backend.agent.md",
-            ".github/agents/kite.clarify.agent.md",
-            ".github/agents/kite.constitution.agent.md",
-            ".github/agents/kite.design.agent.md",
-            ".github/agents/kite.discover.agent.md",
-            ".github/agents/kite.docs.agent.md",
-            ".github/agents/kite.frontend.agent.md",
-            ".github/agents/kite.plan.agent.md",
-            ".github/agents/kite.qa.agent.md",
-            ".github/agents/kite.research.agent.md",
-            ".github/agents/kite.specify.agent.md",
-            ".github/agents/kite.start.agent.md",
-            ".github/agents/kite.tasks.agent.md",
-            ".github/prompts/kite.backend.prompt.md",
-            ".github/prompts/kite.clarify.prompt.md",
-            ".github/prompts/kite.constitution.prompt.md",
-            ".github/prompts/kite.design.prompt.md",
-            ".github/prompts/kite.discover.prompt.md",
-            ".github/prompts/kite.docs.prompt.md",
-            ".github/prompts/kite.frontend.prompt.md",
-            ".github/prompts/kite.plan.prompt.md",
-            ".github/prompts/kite.qa.prompt.md",
-            ".github/prompts/kite.research.prompt.md",
-            ".github/prompts/kite.specify.prompt.md",
-            ".github/prompts/kite.start.prompt.md",
-            ".github/prompts/kite.tasks.prompt.md",
+            *[f".github/agents/kite.{command}.agent.md" for command in STANDARD_COMMAND_STEMS],
+            *[f".github/prompts/kite.{command}.prompt.md" for command in STANDARD_COMMAND_STEMS],
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -265,6 +254,7 @@ class TestCopilotIntegration:
             ".kite/integrations/kite.manifest.json",
             ".gitignore",
             "kite.config.yml",
+            ".kite/scripts/bash/check-dev-environment.sh",
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",
             ".kite/scripts/bash/create-new-feature.sh",
@@ -300,32 +290,8 @@ class TestCopilotIntegration:
         assert result.exit_code == 0
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
-            ".github/agents/kite.backend.agent.md",
-            ".github/agents/kite.clarify.agent.md",
-            ".github/agents/kite.constitution.agent.md",
-            ".github/agents/kite.design.agent.md",
-            ".github/agents/kite.discover.agent.md",
-            ".github/agents/kite.docs.agent.md",
-            ".github/agents/kite.frontend.agent.md",
-            ".github/agents/kite.plan.agent.md",
-            ".github/agents/kite.qa.agent.md",
-            ".github/agents/kite.research.agent.md",
-            ".github/agents/kite.specify.agent.md",
-            ".github/agents/kite.start.agent.md",
-            ".github/agents/kite.tasks.agent.md",
-            ".github/prompts/kite.backend.prompt.md",
-            ".github/prompts/kite.clarify.prompt.md",
-            ".github/prompts/kite.constitution.prompt.md",
-            ".github/prompts/kite.design.prompt.md",
-            ".github/prompts/kite.discover.prompt.md",
-            ".github/prompts/kite.docs.prompt.md",
-            ".github/prompts/kite.frontend.prompt.md",
-            ".github/prompts/kite.plan.prompt.md",
-            ".github/prompts/kite.qa.prompt.md",
-            ".github/prompts/kite.research.prompt.md",
-            ".github/prompts/kite.specify.prompt.md",
-            ".github/prompts/kite.start.prompt.md",
-            ".github/prompts/kite.tasks.prompt.md",
+            *[f".github/agents/kite.{command}.agent.md" for command in STANDARD_COMMAND_STEMS],
+            *[f".github/prompts/kite.{command}.prompt.md" for command in STANDARD_COMMAND_STEMS],
             ".vscode/settings.json",
             ".github/copilot-instructions.md",
             ".kite/integration.json",
@@ -335,6 +301,7 @@ class TestCopilotIntegration:
             ".kite/integrations/kite.manifest.json",
             ".gitignore",
             "kite.config.yml",
+            ".kite/scripts/powershell/check-dev-environment.ps1",
             ".kite/scripts/powershell/check-prerequisites.ps1",
             ".kite/scripts/powershell/common.ps1",
             ".kite/scripts/powershell/create-new-feature.ps1",
@@ -358,8 +325,7 @@ class TestCopilotSkillsMode:
     """Tests for Copilot integration in --skills mode."""
 
     _SKILL_COMMANDS = [
-        "analyze", "backend", "checklist", "clarify", "constitution", "design",
-        "discover", "docs", "frontend", "implement", "mastra", "plan", "qa", "research", "specify", "start", "tasks", "taskstoissues",
+        *FULL_COMMAND_STEMS,
     ]
 
     def _make_copilot(self):
@@ -675,7 +641,7 @@ class TestCopilotSkillsMode:
         actual = sorted(p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file())
         expected = sorted([
             # Skill files
-            *[f".github/skills/kite-{cmd}/SKILL.md" for cmd in self._SKILL_COMMANDS],
+            *[f".github/skills/kite-{cmd}/SKILL.md" for cmd in STANDARD_COMMAND_STEMS],
             # Context file
             ".github/copilot-instructions.md",
             # Integration metadata
@@ -687,6 +653,7 @@ class TestCopilotSkillsMode:
             ".gitignore",
             "kite.config.yml",
             # Scripts (sh)
+            ".kite/scripts/bash/check-dev-environment.sh",
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",
             ".kite/scripts/bash/create-new-feature.sh",
@@ -773,10 +740,10 @@ class TestCopilotSkillsMode:
             )
 
     def test_dispatch_uses_skill_only_for_matching_command(self, tmp_path):
-        """A default-mode Mastra skill must not force other commands into skills mode."""
+        """A full-profile default-mode Mastra skill must not force other commands into skills mode."""
         copilot = self._make_copilot()
         m = IntegrationManifest("copilot", tmp_path)
-        copilot.setup(tmp_path, m)
+        copilot.setup(tmp_path, m, parsed_options={"profile": "full"})
 
         import unittest.mock as mock
         with mock.patch("subprocess.run") as mock_run:

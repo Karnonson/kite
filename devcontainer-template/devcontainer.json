@@ -18,6 +18,7 @@
 		"onAutoForward": "ignore"
 	},
 	"remoteEnv": {
+		"KITE_DEV_ENV": "1",
 		// Default installs Kite from the upstream repo until kite-cli is published to PyPI.
 		// Pin to a tag/SHA: "KITE_INSTALL_SPEC": "git+https://github.com/Karnonson/kite.git@v0.7.2"
 		// Once on PyPI, switch to: "KITE_INSTALL_SPEC": "kite-cli" (and optionally set KITE_VERSION).
@@ -38,6 +39,9 @@
 			],
 			"settings": {
 				"chat.promptFilesRecommendations": {
+					"kite.analyze": true,
+					"kite.browser": true,
+					"kite.checklist": true,
 					"kite.constitution": true,
 					"kite.discover": true,
 					"kite.specify": true,
@@ -47,6 +51,7 @@
 					"kite.tasks": true,
 					"kite.backend": true,
 					"kite.frontend": true,
+					"kite.docs": true,
 					"kite.qa": true,
 					"kite.research": true,
 					"kite.implement": true

@@ -61,7 +61,8 @@ class TestDoctor:
         monkeypatch.chdir(proj)
         result = runner.invoke(app, ["doctor"])
         assert result.exit_code == 0
-        assert "implement" in result.stdout.lower()
+        assert "analyze" in result.stdout.lower()
+        assert "backend" in result.stdout.lower()
 
 
 class TestResume:

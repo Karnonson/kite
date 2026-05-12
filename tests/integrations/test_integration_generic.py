@@ -9,6 +9,13 @@ from kite_cli.integrations.base import MarkdownIntegration
 from kite_cli.integrations.manifest import IntegrationManifest
 
 
+STANDARD_COMMAND_STEMS = [
+    "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+    "design", "discover", "docs", "frontend", "plan", "qa", "research",
+    "specify", "start", "tasks",
+]
+
+
 class TestGenericIntegration:
     """Tests for GenericIntegration — requires --commands-dir option."""
 
@@ -246,19 +253,7 @@ class TestGenericIntegration:
         )
         expected = sorted([
             "AGENTS.md",
-            ".myagent/commands/kite.clarify.md",
-            ".myagent/commands/kite.constitution.md",
-            ".myagent/commands/kite.backend.md",
-            ".myagent/commands/kite.design.md",
-            ".myagent/commands/kite.discover.md",
-            ".myagent/commands/kite.frontend.md",
-            ".myagent/commands/kite.docs.md",
-            ".myagent/commands/kite.qa.md",
-            ".myagent/commands/kite.research.md",
-            ".myagent/commands/kite.plan.md",
-            ".myagent/commands/kite.specify.md",
-            ".myagent/commands/kite.start.md",
-            ".myagent/commands/kite.tasks.md",
+            *[f".myagent/commands/kite.{stem}.md" for stem in STANDARD_COMMAND_STEMS],
             ".kite/init-options.json",
             ".kite/integration.json",
             ".kite/project-context.json",
@@ -267,6 +262,7 @@ class TestGenericIntegration:
             ".kite/memory/constitution.md",
             ".gitignore",
             "kite.config.yml",
+            ".kite/scripts/bash/check-dev-environment.sh",
             ".kite/scripts/bash/check-prerequisites.sh",
             ".kite/scripts/bash/common.sh",
             ".kite/scripts/bash/create-new-feature.sh",
@@ -308,19 +304,7 @@ class TestGenericIntegration:
         )
         expected = sorted([
             "AGENTS.md",
-            ".myagent/commands/kite.clarify.md",
-            ".myagent/commands/kite.constitution.md",
-            ".myagent/commands/kite.backend.md",
-            ".myagent/commands/kite.design.md",
-            ".myagent/commands/kite.discover.md",
-            ".myagent/commands/kite.frontend.md",
-            ".myagent/commands/kite.docs.md",
-            ".myagent/commands/kite.qa.md",
-            ".myagent/commands/kite.research.md",
-            ".myagent/commands/kite.plan.md",
-            ".myagent/commands/kite.specify.md",
-            ".myagent/commands/kite.start.md",
-            ".myagent/commands/kite.tasks.md",
+            *[f".myagent/commands/kite.{stem}.md" for stem in STANDARD_COMMAND_STEMS],
             ".kite/init-options.json",
             ".kite/integration.json",
             ".kite/project-context.json",
@@ -329,6 +313,7 @@ class TestGenericIntegration:
             ".kite/memory/constitution.md",
             ".gitignore",
             "kite.config.yml",
+            ".kite/scripts/powershell/check-dev-environment.ps1",
             ".kite/scripts/powershell/check-prerequisites.ps1",
             ".kite/scripts/powershell/common.ps1",
             ".kite/scripts/powershell/create-new-feature.ps1",

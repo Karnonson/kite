@@ -726,6 +726,21 @@ class TestShellStep:
         assert result.output["exit_code"] == 1
         assert result.error is not None
 
+    def test_execute_uses_bash_on_posix_when_available(self):
+        if not shutil.which("bash"):
+            pytest.skip("bash is not available")
+
+        from kite_cli.workflows.steps.shell import ShellStep
+        from kite_cli.workflows.base import StepContext, StepStatus
+
+        step = ShellStep()
+        ctx = StepContext()
+        config = {"id": "test", "run": '[[ -n "$BASH_VERSION" ]] && echo bash-ok'}
+        result = step.execute(config, ctx)
+
+        assert result.status == StepStatus.COMPLETED
+        assert "bash-ok" in result.output["stdout"]
+
     def test_validate_missing_run(self):
         from kite_cli.workflows.steps.shell import ShellStep
 

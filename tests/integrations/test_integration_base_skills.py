@@ -100,8 +100,9 @@ class SkillsIntegrationTests:
         skill_files = [f for f in created if "scripts" not in f.parts]
 
         expected_commands = {
-            "backend", "clarify", "constitution", "design", "discover", "docs",
-            "frontend", "plan", "qa", "research", "specify", "start", "tasks",
+            "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+            "design", "discover", "docs", "frontend", "plan", "qa", "research",
+            "specify", "start", "tasks",
         }
 
         # Derive command names from the skill directory names
@@ -362,8 +363,9 @@ class SkillsIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     _SKILL_COMMANDS = [
-        "backend", "clarify", "constitution", "design", "discover", "docs",
-        "frontend", "plan", "qa", "research", "specify", "start", "tasks",
+        "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+        "design", "discover", "docs", "frontend", "plan", "qa", "research",
+        "specify", "start", "tasks",
     ]
 
     def _expected_files(self, script_variant: str) -> list[str]:
@@ -389,6 +391,7 @@ class SkillsIntegrationTests:
         # Script variant
         if script_variant == "sh":
             files += [
+                ".kite/scripts/bash/check-dev-environment.sh",
                 ".kite/scripts/bash/check-prerequisites.sh",
                 ".kite/scripts/bash/common.sh",
                 ".kite/scripts/bash/create-new-feature.sh",
@@ -396,6 +399,7 @@ class SkillsIntegrationTests:
             ]
         else:
             files += [
+                ".kite/scripts/powershell/check-dev-environment.ps1",
                 ".kite/scripts/powershell/check-prerequisites.ps1",
                 ".kite/scripts/powershell/common.ps1",
                 ".kite/scripts/powershell/create-new-feature.ps1",

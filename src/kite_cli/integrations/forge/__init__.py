@@ -102,7 +102,9 @@ class ForgeIntegration(MarkdownIntegration):
         Extends MarkdownIntegration.setup() to inject Forge-specific transformations
         after standard template processing.
         """
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -149,7 +151,7 @@ class ForgeIntegration(MarkdownIntegration):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created
 

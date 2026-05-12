@@ -119,7 +119,7 @@ kite workflow catalog remove <index>
 
 Here is the shape of the built-in **Kite Full SDLC** workflow:
 
-The design stage writes two coordinated artifacts: `design.md` for founder-facing page and flow intent, and `design-system.md` for AI-facing tokens and reusable component rules. Early review gates can be skipped with `auto_approve`, but the task-list gate and contract gate remain mandatory before implementation continues.
+The design stage writes two coordinated artifacts: `design.md` for founder-facing page and flow intent, and `design-system.md` for AI-facing tokens and reusable component rules. Early review gates can be skipped with `auto_approve`, but the task-list gate, consistency analysis, branch guard, and contract gate remain mandatory before implementation continues.
 
 ```yaml
 schema_version: "1.0"
@@ -128,7 +128,7 @@ workflow:
   name: "Kite Full SDLC"
   version: "0.5.0"
   author: "Kite"
-  description: "Founder-friendly guided SDLC: constitution -> discover -> specify -> design -> clarify -> plan -> tasks -> backend -> frontend -> docs -> qa."
+  description: "Founder-friendly guided SDLC: constitution -> discover -> specify -> design -> clarify -> plan -> tasks -> analyze -> task gate -> backend -> contract gate -> frontend -> docs -> qa."
 
 requires:
   kite_version: ">=0.7.2"
@@ -152,6 +152,9 @@ inputs:
     default: false
 
 steps:
+  - id: branch-guard
+    type: shell
+    run: "stop on main/master when inside a git repo"
   - id: constitution
     command: kite.constitution
   - id: discover
@@ -166,14 +169,16 @@ steps:
     command: kite.plan
   - id: tasks
     command: kite.tasks
+  - id: analyze
+    command: kite.analyze
   - id: gate-tasks
     type: gate
-    message: "Approve the task list in specs/<feature>/tasks.md before backend implementation?"
+    message: "Approve tasks.md and the consistency analysis before backend implementation?"
   - id: backend
     command: kite.backend
   - id: contract-gate
     type: shell
-    run: "verify specs/<latest>/contract.md"
+    run: "verify active FEATURE_DIR/contract.md"
   - id: frontend
     command: kite.frontend
   - id: docs
@@ -186,20 +191,22 @@ This produces the following execution flow:
 
 ```mermaid
 flowchart TB
-    A["constitution"] --> B["discover"]
-    B --> C["specify"]
-    C --> D["design\ndesign.md + design-system.md"]
-    D --> E["clarify"]
-    E --> F["plan"]
-    F --> G["tasks"]
-    G --> H{"task gate"}
-    H -- approve --> I["backend"]
-    I --> J{"contract gate"}
-    J -- pass --> K["frontend"]
-    K --> L["docs"]
-    L --> M["qa"]
-    H -- reject --> X["Abort"]
-    J -- fail --> X
+    A["branch guard"] --> B["constitution"]
+  B --> C["discover"]
+  C --> D["specify"]
+  D --> E["design\ndesign.md + design-system.md"]
+  E --> F["clarify"]
+  F --> G["plan"]
+  G --> H["tasks"]
+  H --> I["analyze"]
+  I --> J{"task gate"}
+  J -- approve --> K["backend"]
+  K --> L{"contract gate"}
+  L -- pass --> M["frontend"]
+  M --> N["docs"]
+  N --> O["qa"]
+  J -- reject --> X["Abort"]
+  L -- fail --> X
 ```
 
 ## Step Types

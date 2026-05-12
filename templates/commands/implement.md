@@ -16,6 +16,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before implementation)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_implement` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -24,8 +25,9 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
-  - **Optional hook** (`optional: true`):
-    ```
+  - **Optional hook** (`optional: true**):
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -35,19 +37,31 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
-    
+
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Outline
+
+### Consistency rules for this command
+
+1. **Fallback implementation mode.** Prefer the founder workflow split (`kite.backend` → `kite.frontend` → `kite.docs` → `kite.qa`) when those stage-specific commands are available. Use `kite.implement` only when the user explicitly wants a single implementation pass or the host cannot orchestrate the split flow.
+2. **Use subagent-first execution before widening your own context.** Delegate bounded official-doc verification to `kite.research`, read-only consistency analysis to `kite.analyze`, and frontend-only browser validation to `kite.browser` (invoked only while you are acting on frontend tasks). Run independent subagent tasks in parallel when the host supports it. Other agents and stages consume `browser-report.md` instead of invoking browser tooling directly.
+3. **Comments explain why, not what.** Add code comments only when they clarify rationale, invariants, tradeoffs, or framework workarounds that are not obvious from the code itself.
+4. **Honor host-environment safety.** Before global package installs, system package commands, Docker commands, or writes outside the approved workspace, run the appropriate guard utility (`.kite/scripts/bash/check-dev-environment.sh` or `.kite/scripts/powershell/check-dev-environment.ps1`). If it blocks the action, stop and report instead of bypassing it. Approved environments set `KITE_DEV_ENV=1`.
+
+### Implementation Steps
 
 1. Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
@@ -91,6 +105,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **IF EXISTS**: Read quickstart.md for integration scenarios
    - For brownfield projects, inspect existing docs, package/build manifests, source layout, tests, and relevant implemented features before changing code. Treat existing behavior as answered context and ask only about missing evidence or conflicts.
    - If you need to add or upgrade a framework or dependency and the current version is not clearly verified in plan.md or research.md, invoke the `kite.research` subagent before choosing a version. Do not guess from memory. Never use `latest` or floating dependency versions.
+   - If AI-agent or workflow-framework work is in scope, do not write framework-specific implementation tasks until official docs, current version guidance, and MCP/skills support are verified in `research.md`.
 
 4. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
@@ -173,7 +188,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `__KITE_COMMAND_TASKS__` first to regenerate the task list.
 
-10. **Check for extension hooks**: After completion validation, check if `.kite/extensions.yml` exists in the project root.
+### Post-Execution Checks
+
+1. **Check for extension hooks**: After completion validation, check if `.kite/extensions.yml` exists in the project root.
     - If it exists, read it and look for entries under the `hooks.after_implement` key
     - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
     - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
@@ -182,7 +199,8 @@ Note: This command assumes a complete task breakdown exists in tasks.md. If task
       - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
     - For each executable hook, output the following based on its `optional` flag:
       - **Optional hook** (`optional: true`):
-        ```
+
+        ```text
         ## Extension Hooks
 
         **Optional Hook**: {extension}
@@ -192,12 +210,15 @@ Note: This command assumes a complete task breakdown exists in tasks.md. If task
         Prompt: {prompt}
         To execute: `/{command}`
         ```
+
       - **Mandatory hook** (`optional: false`):
-        ```
+
+        ```text
         ## Extension Hooks
 
         **Automatic Hook**: {extension}
         Executing: `/{command}`
         EXECUTE_COMMAND: {command}
         ```
+
     - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently

@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Verification**: Tests and/or framework-appropriate verification are REQUIRED for code changes. Depth adapts to the project and framework, but every phase must prove its slice works before the next phase starts.
+**Verification**: Tests and/or framework-appropriate verification are REQUIRED for code changes. Per `.kite/memory/constitution.md`, depth adapts to the project and framework, but every phase must prove its slice works before the next phase starts.
 
 **Organization**: Tasks are grouped into tracer-bullet phases so each phase can be verified on its own before the next one starts. When both backend and frontend are in scope, tasks are split into separate backend and frontend sections so each agent can stay within its lane.
 
@@ -26,6 +26,7 @@ description: "Task list template for feature implementation"
 - Phase 1 MUST include a setup task that creates the approved structure before feature work starts.
 - Framework-native root layouts are allowed only when plan.md explicitly explains why.
 - If a task needs a root path not listed in the approved layout, rewrite it into an approved path or stop and update the plan first.
+- Express constitution-backed delivery rules such as subagent-first execution, official-doc-first AI work, frontend-owned browser validation, host safety, or extra verification gates as explicit tasks or verification notes rather than leaving them implicit.
 
 <!-- 
   ============================================================================
@@ -110,7 +111,7 @@ Examples of foundational tasks (adjust based on your project):
 
 ### QA Coverage for User Story 1
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+Place these tasks before implementation only when the feature specification or user requests TDD; otherwise run them after backend and frontend verification for the slice.
 
 - [ ] T019 [P] [US1] [qa] Contract test for [endpoint] in tests/contract/test_[name].py
 - [ ] T020 [P] [US1] [qa] Integration test for [user journey] in tests/integration/test_[name].py
@@ -292,6 +293,7 @@ With multiple developers:
 - Each user story should be independently completable and testable
 - Each phase must end with an explicit verification task before the next phase starts
 - Verify framework-required tests or checks before marking implementation complete
+- If the constitution requires subagent-first execution, official-doc-first AI work, host safety checks, or rationale-focused comments, reflect that in the generated tasks or verification notes.
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, mixed backend/frontend ownership, cross-story dependencies that break independence

@@ -16,6 +16,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Pre-Execution Checks
 
 **Check for extension hooks (before analysis)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_analyze` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
@@ -25,7 +26,8 @@ You **MUST** consider the user input before proceeding (if not empty).
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -35,8 +37,10 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -45,6 +49,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Goal.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Goal
@@ -55,7 +60,9 @@ Identify inconsistencies, duplications, ambiguities, and underspecified items ac
 
 **STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
 
-**Constitution Authority**: The project constitution (`/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `__KITE_COMMAND_ANALYZE__`.
+**Constitution Authority**: The project constitution (`.kite/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `__KITE_COMMAND_ANALYZE__`.
+
+**Subagent Delegation Policy**: Use subagent-first execution before widening this command's own context. Delegate bounded artifact scans, official-doc verification, and codebase evidence gathering to focused Kite subagents (for example `kite.research`) when installed, and run independent subagent tasks in parallel when the host supports it. This command remains the final writer for the analysis report and never writes to product files. Browser validation is frontend-owned; consume `FEATURE_DIR/browser-report.md` only as existing evidence and never invoke browser tooling from here.
 
 ## Execution Steps
 
@@ -99,7 +106,7 @@ Load only the minimal necessary context from each artifact:
 
 **From constitution:**
 
-- Load `/memory/constitution.md` for principle validation
+- Load `.kite/memory/constitution.md` for principle validation
 
 ### 3. Build Semantic Models
 
@@ -191,9 +198,9 @@ Output a Markdown report (no file writes) with the following structure:
 
 At end of report, output a concise Next Actions block:
 
-- If CRITICAL issues exist: Recommend resolving before `__KITE_COMMAND_IMPLEMENT__`
+- If CRITICAL issues exist: Recommend resolving before approving the task gate and running `__KITE_COMMAND_BACKEND__`
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run __KITE_COMMAND_SPECIFY__ with refinement", "Run __KITE_COMMAND_PLAN__ to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+- Provide explicit command suggestions: e.g., "Run `__KITE_COMMAND_SPECIFY__` with refinement", "Run `__KITE_COMMAND_PLAN__` to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
 
 ### 8. Offer Remediation
 
@@ -202,6 +209,7 @@ Ask the user: "Would you like me to suggest concrete remediation edits for the t
 ### 9. Check for extension hooks
 
 After reporting, check if `.kite/extensions.yml` exists in the project root.
+
 - If it exists, read it and look for entries under the `hooks.after_analyze` key
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
 - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
@@ -210,7 +218,8 @@ After reporting, check if `.kite/extensions.yml` exists in the project root.
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Hook**: {extension}
@@ -220,14 +229,17 @@ After reporting, check if `.kite/extensions.yml` exists in the project root.
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Hook**: {extension}
     Executing: `/{command}`
     EXECUTE_COMMAND: {command}
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently
 
 ## Operating Principles

@@ -1982,7 +1982,7 @@ def init(
 
     steps_lines.append(f"{step_num}. Start using {usage_label} with your coding agent:")
 
-    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Backend → Frontend → Docs → QA")
+    steps_lines.append(f"   {step_num}.1 [cyan]{_display_cmd('start')}[/] [bold]\"<your idea in one sentence>\"[/bold] - One-shot: walk Constitution → Discover → Specify → Design → Clarify → Plan → Tasks → Analyze → task gate → Backend → contract gate → Frontend → Docs → QA")
     steps_lines.append("")
     steps_lines.append("   Or run each persona stage manually:")
     steps_lines.append(f"   {step_num}.2 [cyan]{_display_cmd('constitution')}[/] - Establish project principles")
@@ -1992,7 +1992,8 @@ def init(
     steps_lines.append(f"   {step_num}.6 [cyan]{_display_cmd('clarify')}[/] - Resolve missing decisions before planning")
     steps_lines.append(f"   {step_num}.7 [cyan]{_display_cmd('plan')}[/] - Create implementation plan")
     steps_lines.append(f"   {step_num}.8 [cyan]{_display_cmd('tasks')}[/] - Generate actionable tasks for implementation")
-    steps_lines.append(f"   {step_num}.9 [cyan]{_display_cmd('backend')}[/] → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('qa')}[/] - Implement and verify each layer")
+    steps_lines.append(f"   {step_num}.9 [cyan]{_display_cmd('analyze')}[/] - Run the required consistency pass before implementation")
+    steps_lines.append(f"   {step_num}.10 Approve the task gate, then run [cyan]{_display_cmd('backend')}[/] → contract gate → [cyan]{_display_cmd('frontend')}[/] → [cyan]{_display_cmd('docs')}[/] → [cyan]{_display_cmd('qa')}[/]")
     steps_lines.append("")
     steps_lines.append("   Stuck? Run [cyan]kite doctor[/] for a plain-language status report, or [cyan]kite resume[/] to pick up where you left off.")
     steps_lines.append("")
@@ -2012,7 +2013,7 @@ def init(
         enhancement_intro,
         "",
         f"○ [cyan]{_display_cmd('clarify')}[/] [bright_black](optional)[/bright_black] - Ask structured questions to de-risk ambiguous areas before planning (run before [cyan]{_display_cmd('plan')}[/] if used)",
-        f"○ [cyan]{_display_cmd('analyze')}[/] [bright_black](optional)[/bright_black] - Cross-artifact consistency & alignment report (after [cyan]{_display_cmd('tasks')}[/], before [cyan]{_display_cmd('implement')}[/])",
+        f"○ [cyan]{_display_cmd('analyze')}[/] [bright_black](required in guided flow)[/bright_black] - Cross-artifact consistency & alignment report (after [cyan]{_display_cmd('tasks')}[/], before the task gate and [cyan]{_display_cmd('backend')}[/])",
         f"○ [cyan]{_display_cmd('checklist')}[/] [bright_black](optional)[/bright_black] - Generate quality checklists to validate requirements completeness, clarity, and consistency (after [cyan]{_display_cmd('plan')}[/])"
     ]
     enhancements_title = "Enhancement Skills" if native_skill_mode else "Enhancement Commands"
@@ -6085,7 +6086,7 @@ def doctor():
             tasks_text = tasks_path.read_text(encoding="utf-8", errors="replace")
             if "- [ ]" in tasks_text:
                 issues.append(("warn", "Open items remain in [cyan]tasks.md[/cyan] — implementation is not finished."))
-                suggestions.append("Run [cyan]/kite.start[/cyan] to resume, or run the next layer command: [cyan]/kite.backend[/cyan], [cyan]/kite.frontend[/cyan], then [cyan]/kite.qa[/cyan].")
+                suggestions.append("Run [cyan]/kite.start[/cyan] to resume, or continue manually: [cyan]/kite.analyze[/cyan], approve the task gate, then [cyan]/kite.backend[/cyan], contract gate, [cyan]/kite.frontend[/cyan], [cyan]/kite.docs[/cyan], and [cyan]/kite.qa[/cyan].")
             else:
                 console.print("[green]✓[/green] Task list has no open checklist items.")
 

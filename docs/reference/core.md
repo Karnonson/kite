@@ -24,8 +24,8 @@ kite init [<project_name>]
 
 | Profile    | Description                                                                 |
 | ---------- | --------------------------------------------------------------------------- |
-| `minimal`  | Guided workflow only — `kite.start` plus the core stage commands            |
-| `standard` | Core workflow + `kite.research` (default, keeps the agent list focused)     |
+| `minimal`  | Guided workflow plus required helpers (`kite.analyze`, `kite.browser`, `kite.checklist`) |
+| `standard` | Minimal profile + `kite.research` (default, keeps the agent list focused)   |
 | `full`     | Every Kite command including optional review and helper agents               |
 
 ```bash
@@ -107,7 +107,7 @@ kite profile show
 
 Displays the active install profile and integration details for the current project:
 
-```
+```text
 Kite project profile
   Profile:     standard
   Integration: copilot

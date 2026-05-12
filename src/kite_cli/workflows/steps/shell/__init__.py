@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 from typing import Any
 
@@ -30,9 +32,13 @@ class ShellStep(StepBase):
         # control commands; catalog-installed workflows should be reviewed
         # before use (see PUBLISHING.md for security guidance).
         try:
+            executable = None
+            if os.name != "nt":
+                executable = shutil.which("bash")
             proc = subprocess.run(
                 run_cmd,
                 shell=True,
+                executable=executable,
                 capture_output=True,
                 text=True,
                 cwd=cwd,

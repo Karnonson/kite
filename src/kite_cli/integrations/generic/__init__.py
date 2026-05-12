@@ -95,7 +95,9 @@ class GenericIntegration(MarkdownIntegration):
         """Install commands to the user-provided commands directory."""
         commands_dir = self._resolve_commands_dir(parsed_options, opts)
 
-        templates = self.list_command_templates()
+        templates = self.filter_command_templates(
+            self.list_command_templates(), parsed_options
+        )
         if not templates:
             return []
 
@@ -133,6 +135,6 @@ class GenericIntegration(MarkdownIntegration):
             created.append(dst_file)
 
         # Upsert managed context section into the agent context file
-        self.upsert_context_section(project_root)
+        self.upsert_context_section(project_root, parsed_options=parsed_options)
 
         return created

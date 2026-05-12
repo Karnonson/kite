@@ -11,8 +11,9 @@ from kite_cli import app
 
 
 KITE_REQUIRED = [
-    "discover", "design", "backend", "frontend", "qa",
-    "start", "specify", "plan", "tasks",
+    "analyze", "backend", "browser", "checklist", "clarify", "constitution",
+    "design", "discover", "docs", "frontend", "plan", "qa", "research",
+    "specify", "start", "tasks",
 ]
 
 

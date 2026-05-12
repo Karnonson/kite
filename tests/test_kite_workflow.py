@@ -48,6 +48,7 @@ class TestKiteWorkflowStructure:
             "kite.clarify",
             "kite.plan",
             "kite.tasks",
+            "kite.analyze",
             "kite.backend",
             "kite.frontend",
             "kite.docs",
@@ -77,7 +78,9 @@ class TestKiteWorkflowStructure:
         steps = kite_workflow["steps"]
         ids = [s["id"] for s in steps]
         assert "constitution" in ids
+        assert "branch-guard" in ids
         assert "clarify" in ids
+        assert "analyze" in ids
         assert "backend" in ids
         assert "frontend" in ids
         assert "docs" in ids
@@ -85,8 +88,16 @@ class TestKiteWorkflowStructure:
         assert "contract-gate" in ids
         assert "implement" not in ids
         assert ids.index("design") < ids.index("clarify") < ids.index("plan")
-        assert ids.index("tasks") < ids.index("backend")
+        assert ids.index("tasks") < ids.index("analyze") < ids.index("gate-tasks") < ids.index("backend")
         assert ids.index("backend") < ids.index("contract-gate") < ids.index("frontend") < ids.index("docs") < ids.index("qa")
+
+    def test_branch_guard_is_hard_shell_step(self, kite_workflow):
+        guard = next(s for s in kite_workflow["steps"] if s["id"] == "branch-guard")
+
+        assert guard["type"] == "shell"
+        assert "main" in guard["run"]
+        assert "master" in guard["run"]
+        assert "feature branch" in guard["run"]
 
     def test_tasks_gate_is_required_before_implementation(self, kite_workflow):
         steps = kite_workflow["steps"]
@@ -94,7 +105,8 @@ class TestKiteWorkflowStructure:
         gate = next(s for s in steps if s["id"] == "gate-tasks")
         assert gate["type"] == "gate"
         assert "tasks.md" in gate["message"]
-        assert ids.index("tasks") < ids.index("gate-tasks") < ids.index("backend")
+        assert "consistency analysis" in gate["message"]
+        assert ids.index("tasks") < ids.index("analyze") < ids.index("gate-tasks") < ids.index("backend")
         assert "auto_approve" not in str(gate)
 
     def test_contract_gate_is_hard_shell_step(self, kite_workflow):
@@ -103,6 +115,21 @@ class TestKiteWorkflowStructure:
         assert gate["type"] == "shell"
         assert "contract.md" in gate["run"]
         assert "TODO" in gate["run"]
+        assert "feature.json" in gate["run"]
+        assert "Base URL & auth" in gate["run"]
+        assert "Frontend usage map" in gate["run"]
+        assert "Local verification commands" in gate["run"]
+
+    def test_workflow_commands_resolve_to_templates(self, kite_workflow):
+        command_dir = REPO_ROOT / "templates" / "commands"
+        available = {path.stem for path in command_dir.glob("*.md")}
+
+        for step in kite_workflow["steps"]:
+            command = step.get("command")
+            if not command:
+                continue
+            assert command.startswith("kite."), command
+            assert command.removeprefix("kite.") in available
 
 
 class TestKiteWorkflowValidates:

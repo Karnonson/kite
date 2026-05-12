@@ -19,9 +19,11 @@ BACKEND_COMMAND = REPO_ROOT / "templates" / "commands" / "backend.md"
 FRONTEND_COMMAND = REPO_ROOT / "templates" / "commands" / "frontend.md"
 DOCS_COMMAND = REPO_ROOT / "templates" / "commands" / "docs.md"
 QA_COMMAND = REPO_ROOT / "templates" / "commands" / "qa.md"
+BROWSER_COMMAND = REPO_ROOT / "templates" / "commands" / "browser.md"
 DESIGN_COMMAND = REPO_ROOT / "templates" / "commands" / "design.md"
 DISCOVER_COMMAND = REPO_ROOT / "templates" / "commands" / "discover.md"
 IMPLEMENT_COMMAND = REPO_ROOT / "templates" / "commands" / "implement.md"
+ANALYZE_COMMAND = REPO_ROOT / "templates" / "commands" / "analyze.md"
 PLAN_COMMAND = REPO_ROOT / "templates" / "commands" / "plan.md"
 RESEARCH_COMMAND = REPO_ROOT / "templates" / "commands" / "research.md"
 SPECIFY_COMMAND = REPO_ROOT / "templates" / "commands" / "specify.md"
@@ -130,6 +132,24 @@ class TestTasksPromptRules:
         assert "Only `[docs]` tasks" in _read_text(DOCS_COMMAND)
         assert "kite.docs" in _read_text(FRONTEND_COMMAND)
 
+    def test_browser_command_exists_and_is_referenced(self):
+        assert BROWSER_COMMAND.exists()
+        assert "kite.browser" in _read_text(FRONTEND_COMMAND)
+        assert "browser-report.md" in _read_text(BROWSER_COMMAND)
+        assert "browser-report.md" in _read_text(QA_COMMAND)
+
+    def test_browser_agent_is_frontend_only_subagent(self):
+        browser_frontmatter = _frontmatter(BROWSER_COMMAND)
+        browser_content = _read_text(BROWSER_COMMAND)
+        frontend_content = _read_text(FRONTEND_COMMAND)
+        qa_content = _read_text(QA_COMMAND)
+
+        assert browser_frontmatter.get("handoffs") in (None, [])
+        assert "validation helper for `kite.frontend` only" in browser_content
+        assert "should only be invoked by `kite.frontend`" in browser_content
+        assert "frontend-only validation helper" in frontend_content
+        assert "kite.browser" not in qa_content
+
     def test_brownfield_commands_inspect_existing_project_before_questions(self):
         for path in BROWNFIELD_COMMANDS:
             content = _read_text(path).lower()
@@ -146,6 +166,139 @@ class TestTasksPromptRules:
             content = _read_text(path)
             assert "`latest`" in content, path.name
             assert "floating" in content.lower(), path.name
+
+    def test_plan_backend_and_frontend_prefer_subagent_first_execution(self):
+        for path in (PLAN_COMMAND, BACKEND_COMMAND, FRONTEND_COMMAND):
+            content = _read_text(path)
+            assert "subagent-first" in content.lower(), path.name
+
+        plan_content = _read_text(PLAN_COMMAND)
+        assert "only final writer" in plan_content.lower()
+
+    def test_clarify_and_tasks_require_verified_ai_agent_guidance(self):
+        clarify_content = _read_text(COMMANDS_DIR / "clarify.md").lower()
+        tasks_content = _read_text(TASKS_COMMAND).lower()
+
+        assert "official docs" in clarify_content
+        assert "mcp/skills support" in clarify_content
+        assert "kite.research" in clarify_content
+        assert "official docs" in tasks_content
+        assert "kite.research" in tasks_content
+        assert "blocking research task" in tasks_content
+
+    def test_founder_workflow_handoffs_match_stage_order(self):
+        specify_handoffs = _frontmatter(SPECIFY_COMMAND).get("handoffs", [])
+        backend_handoffs = _frontmatter(BACKEND_COMMAND).get("handoffs", [])
+        docs_handoffs = _frontmatter(DOCS_COMMAND).get("handoffs", [])
+
+        assert any(handoff.get("agent") == "kite.design" for handoff in specify_handoffs)
+        assert any(handoff.get("agent") == "kite.frontend" for handoff in backend_handoffs)
+        assert any(handoff.get("agent") == "kite.qa" for handoff in docs_handoffs)
+
+        backend_qa_handoff = next(
+            handoff for handoff in backend_handoffs if handoff.get("agent") == "kite.qa"
+        )
+        assert "backend-only" in backend_qa_handoff.get("prompt", "").lower()
+
+        backend_frontend_handoff = next(
+            handoff for handoff in backend_handoffs if handoff.get("agent") == "kite.frontend"
+        )
+        assert backend_frontend_handoff.get("send") is not True
+        assert "contract gate" in backend_frontend_handoff.get("prompt", "").lower()
+
+    def test_backend_and_frontend_comments_explain_why_not_what(self):
+        for path in (BACKEND_COMMAND, FRONTEND_COMMAND):
+            content = _read_text(path).lower()
+            assert "why, not what" in content, path.name
+            assert "rationale" in content, path.name
+
+    def test_tasks_and_qa_cover_ai_agent_guidance_and_browser_evidence(self):
+        tasks_content = _read_text(TASKS_COMMAND)
+        qa_content = _read_text(QA_COMMAND)
+
+        assert "framework-native tasks" in tasks_content
+        assert "official docs" in tasks_content.lower()
+        assert "browser-report.md" in qa_content
+        assert "official docs" in qa_content.lower()
+
+    def test_implementation_and_docs_prompts_reference_host_safety_guard(self):
+        for path in (BACKEND_COMMAND, FRONTEND_COMMAND, QA_COMMAND, DOCS_COMMAND, IMPLEMENT_COMMAND):
+            content = _read_text(path)
+            assert "check-dev-environment" in content, path.name
+            assert "KITE_DEV_ENV" in content, path.name
+
+    def test_implement_prompt_inherits_split_workflow_and_subagent_rules(self):
+        content = _read_text(IMPLEMENT_COMMAND).lower()
+
+        assert "subagent-first" in content
+        assert "kite.backend` → `kite.frontend` → `kite.docs` → `kite.qa" in _read_text(IMPLEMENT_COMMAND)
+        assert "kite.browser" in content
+        assert "why, not what" in content
+
+    def test_command_templates_use_project_constitution_path(self):
+        for path in (ANALYZE_COMMAND, PLAN_COMMAND):
+            content = _read_text(path)
+
+            assert ".kite/memory/constitution.md" in content, path.name
+            assert "`/memory/constitution.md`" not in content, path.name
+
+    def test_backend_frontend_and_gates_require_complete_contract_sections(self):
+        backend_content = _read_text(BACKEND_COMMAND)
+        frontend_content = _read_text(FRONTEND_COMMAND)
+        start_content = _read_text(START_COMMAND)
+
+        for content in (backend_content, frontend_content, start_content):
+            assert "Base URL" in content
+            assert "Method + path" in content
+            assert "Error contract" in content
+            assert "Frontend usage map" in content
+            assert "Local verification commands" in content
+
+        assert "for every endpoint entry" in start_content
+
+    def test_browser_uses_active_feature_directory(self):
+        content = _read_text(BROWSER_COMMAND)
+        browser_frontmatter = _frontmatter(BROWSER_COMMAND)
+
+        assert browser_frontmatter["scripts"]["sh"] == "scripts/bash/check-prerequisites.sh --json"
+        assert "FEATURE_DIR/browser-report.md" in content
+        assert "Do not guess by sorting `specs/`" in content
+        assert "specs/<latest>" not in content
+
+    def test_commands_use_active_feature_artifact_paths(self):
+        for path in (DESIGN_COMMAND, QA_COMMAND, BACKEND_COMMAND, FRONTEND_COMMAND, DOCS_COMMAND):
+            content = _read_text(path)
+            assert "FEATURE_DIR" in content, path.name
+            assert "specs/<latest>" not in content, path.name
+
+        assert "FEATURE_DIR/design.md" in _read_text(DESIGN_COMMAND)
+        assert "FEATURE_DIR/design-system.md" in _read_text(DESIGN_COMMAND)
+        assert "FEATURE_DIR/tasks.md" in _read_text(QA_COMMAND)
+        assert "FEATURE_DIR/contract.md" in _read_text(BACKEND_COMMAND)
+        assert "FEATURE_DIR/tasks.md" in _read_text(FRONTEND_COMMAND)
+        assert "FEATURE_DIR/tasks.md" in _read_text(DOCS_COMMAND)
+
+        for path in (BACKEND_COMMAND, FRONTEND_COMMAND, DOCS_COMMAND):
+            scripts = _frontmatter(path)["scripts"]
+            assert "--require-tasks --include-tasks" in scripts["sh"], path.name
+            assert "-RequireTasks -IncludeTasks" in scripts["ps"], path.name
+            assert "Run `{SCRIPT}` from the repo root and parse `FEATURE_DIR`" in _read_text(path)
+
+    def test_qa_followups_use_full_task_format(self):
+        content = _read_text(QA_COMMAND)
+
+        assert "- [ ] T### [qa] Add integration test" in content
+        assert "- [ ] T### [qa] Add smoke test" in content
+        assert "- [ ] [qa]" not in content
+        assert "[contract]` findings to `[backend]` contract-update tasks" in content
+        assert "[unknown]` findings to `[qa]` triage tasks" in content
+
+    def test_tasks_generate_qa_coverage_by_default(self):
+        content = _read_text(TASKS_COMMAND)
+
+        assert "Generate `[qa]` coverage tasks for every code-changing slice by default" in content
+        assert "otherwise place QA tasks after backend/frontend verification" in content
+        assert "Only generate new test-authoring tasks" not in content
 
     def test_ui_prompts_default_to_hamburger_sidebar_on_small_screens(self):
         for path in (DESIGN_COMMAND, TASKS_COMMAND, FRONTEND_COMMAND):

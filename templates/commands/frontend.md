@@ -1,6 +1,9 @@
 ---
 description: Implement tasks tagged [frontend] from tasks.md, consuming design.md, design-system.md, and the backend contract. Refuses to run if the required artifacts are missing.
 handoffs:
+  - label: Validate In Browser
+    agent: kite.browser
+    prompt: The frontend slice is connected to the backend. Validate the primary browser flows as a frontend-only subagent and report issues.
   - label: Update Docs
     agent: kite.docs
     prompt: The frontend is in place. Update user-facing documentation before QA.
@@ -8,6 +11,9 @@ handoffs:
   - label: Refine the Design
     agent: kite.design
     prompt: I want to revise the design before continuing.
+scripts:
+  sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
 ---
 
 ## User Input
@@ -21,6 +27,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 ## Pre-Execution Checks
 
 **Check for extension hooks (before frontend)**:
+
 - Check if `.kite/extensions.yml` exists in the project root.
 - If it exists, read it and look for entries under the `hooks.before_frontend` key.
 - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally.
@@ -30,7 +37,8 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation.
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Optional Pre-Hook**: {extension}
@@ -40,8 +48,10 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
     Prompt: {prompt}
     To execute: `/{command}`
     ```
+
   - **Mandatory hook** (`optional: false`):
-    ```
+
+    ```text
     ## Extension Hooks
 
     **Automatic Pre-Hook**: {extension}
@@ -50,6 +60,7 @@ You **MUST** consider the user input before proceeding (if not empty). The user 
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
+
 - If no hooks are registered or `.kite/extensions.yml` does not exist, skip silently.
 
 ## Outline
@@ -60,16 +71,23 @@ This command runs **after** `kite.backend` has produced `contract.md`. It is the
 
 1. **Refuse to run without inputs.** If `design.md` or `design-system.md` is missing, abort and say "Run `kite.design` first." If `contract.md` is missing or marked incomplete, abort and say "The backend contract is not ready. Run `kite.backend` first."
 2. **Only `[frontend]` tasks.** Filter `tasks.md` to tasks tagged `[frontend]`. Do not touch backend code.
-3. **Never invent an endpoint.** Every network call must reference an endpoint declared in `contract.md`. If a task needs an endpoint that does not exist, **stop**, mark the task blocked with the line "needs new endpoint", and tell the user to run `kite.backend` again.
+3. **Never invent an endpoint.** Every network call must reference an endpoint declared in `contract.md`. Do not inspect backend implementation to discover routes or request shapes. If a task needs an endpoint that does not exist, **stop**, mark the task blocked with the line "needs new endpoint", and tell the user to run `kite.backend` again.
 4. **Match the design.** Page layout, screen purpose, and navigation come from `design.md`. Exact style values and reusable component inventory come from `design-system.md`. Do not freelance new tokens or shared components. If a screen needs a new shared component, ask the user before adding it.
 5. **No backend code.** Do not edit anything under `api/`, `server/`, `backend/`, or modify the database. If a task seems to require it, mark blocked.
 6. **Plain English commit messages.** Every task you complete gets a one-line summary in the task list ("Built the sign-in screen — calls `POST /api/auth/login`.").
 7. **Respect tracer-bullet phase gates.** Work through `[frontend]` tasks in phase order. Do not start a later-phase frontend slice until the current phase's frontend verification task is complete or explicitly blocked.
 8. **Keep docs ownership separate.** If a task turns into user-facing documentation work, stop and recommend `kite.docs` instead of editing docs in this command.
+9. **Use subagent-first execution before widening your own context.** Delegate bounded official-doc lookups, contract review, and codebase evidence gathering to focused Kite subagents (for example `kite.research`) when installed, and run independent subagent tasks in parallel when the host supports it. Invoke `kite.browser` as a focused frontend-only subagent for connected browser validation once a slice is wired to backend data, and consume the resulting `browser-report.md`. `kite.browser` is a frontend-only validation helper: only `kite.frontend` may invoke it, and the frontend agent remains the only writer of frontend code.
+10. **Comments explain why, not what.** Add code comments only when they clarify rationale, contract constraints, accessibility tradeoffs, or framework workarounds that are not obvious from the code itself.
+11. **Use verified framework guidance.** Reuse `research.md` when available and invoke `kite.research` when it is installed before guessing framework-specific or AI-agent UI patterns. If it is not installed, stop and add a blocking research task instead of guessing.
+12. **Honor host-environment safety.** Before global package installs, system package commands, Docker commands, or writes outside the approved workspace, run the appropriate guard utility (`.kite/scripts/bash/check-dev-environment.sh` or `.kite/scripts/powershell/check-dev-environment.ps1`). If it blocks the action, stop and report instead of bypassing it. Approved environments set `KITE_DEV_ENV=1`.
 
 ### Step 1 — Read existing artifacts
 
+Run `{SCRIPT}` from the repo root and parse `FEATURE_DIR`. Use that active feature directory for every feature artifact path. Use the latest directory under `specs/` only as a fallback when no active feature context exists.
+
 Required (abort with the indicated message if missing):
+
 - `FEATURE_DIR/discovery.md` — "Run `kite.discover` first."
 - `FEATURE_DIR/spec.md` — "Run `kite.specify` first."
 - `FEATURE_DIR/design.md` — "Run `kite.design` first."
@@ -79,6 +97,8 @@ Required (abort with the indicated message if missing):
 - `FEATURE_DIR/contract.md` — "The backend contract is not ready. Run `kite.backend` first."
 
 Optional:
+
+- `FEATURE_DIR/research.md` — preferred source for verified framework, hosting, and AI-agent guidance.
 - `kite.config.yml` — read `persona`, `stack.frontend`.
 - `.kite/state.yml` — confirm previous stage was `backend`.
 
@@ -91,9 +111,12 @@ For a **brownfield** or otherwise **existing** frontend, inspect the implemented
 ### Step 2 — Validate the contract is complete
 
 Open `contract.md` and check:
+
 - Section 1 (Base URL & auth) is filled.
-- Section 2 (Endpoints) has at least one endpoint **and** no `TODO` / `<...>` placeholder strings.
+- Section 2 (Endpoints) has at least one endpoint, each frontend endpoint lists `Method + path`, **and** no `TODO` / `<...>` placeholder strings.
 - Section 5 (Error contract) is filled.
+- Section 6 (Frontend usage map) names the screen/component/client module that consumes each endpoint.
+- Section 7 (Local verification commands) lists the backend server command and at least one endpoint verification command.
 
 If anything is missing or contains a placeholder, **abort** with:
 > "The backend contract is incomplete (missing: <list>). Run `kite.backend` again before I can build the UI."
@@ -101,6 +124,7 @@ If anything is missing or contains a placeholder, **abort** with:
 ### Step 3 — Validate the design artifacts
 
 Open `design.md` and `design-system.md` and check:
+
 - `design.md` still contains Section 2.1 (Page list) and the page you need is present there.
 - `design-system.md` has YAML frontmatter between `---` delimiters.
 - `design-system.md` defines `colors.primary`.
@@ -115,6 +139,7 @@ If anything is missing or contradictory, **abort** with:
 ### Step 4 — Confirm or pick the frontend stack
 
 Read `kite.config.yml`:
+
 - If `stack.frontend` is set, **reuse it without asking**.
 - If unset, ask **one** consolidated question:
   > "Pick a frontend stack. Defaults are sensible — answer with a number or paste your own:
@@ -125,6 +150,7 @@ Read `kite.config.yml`:
   > 5. Other (tell me)"
 
   Map the answer, then update `kite.config.yml`:
+
   ```yaml
   stack:
     frontend:
@@ -133,7 +159,7 @@ Read `kite.config.yml`:
       bundler: <vite|next|none>
   ```
 
-  After you have a candidate stack, invoke the `kite.research` subagent before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen frontend framework and any AI SDK or agent framework that appears in scope. Never use `latest` or floating dependency versions.
+  After you have a candidate stack, invoke the `kite.research` subagent when it is installed before you scaffold dependencies or pin versions. It must verify the current official version guidance for the chosen frontend framework and any AI SDK or agent framework that appears in scope. If it is not installed, add a blocking research task instead of guessing. Never use `latest` or floating dependency versions.
 
 ### Step 5 — Filter tasks
 
@@ -157,9 +183,10 @@ For each `[frontend]` task:
     - Handle the errors listed in `contract.md` Section 5. At minimum: a generic error message and a sign-in redirect on `401`.
     - Preserve keyboard access, visible focus, readable contrast, clear labels, clear error messages, and non-color-only signaling.
     - If the approved navigation pattern calls for it, preserve the left-side hamburger sidebar/drawer on small screens.
-    - Add a `## What this screen does` plain-English comment block at the top of each new component file.
+    - Add a short code comment only when a non-obvious UI decision, contract workaround, accessibility constraint, or framework quirk would be hard to infer later. The comment must explain why, not what.
 4. If the task is a frontend verification task, run the exact browser, component-test, or dev-preview flow written in `tasks.md` before marking it done.
-    - Launch the app and complete the primary flow in a browser/dev preview when the verification task expects a manual smoke check.
+    - launch the app and complete the primary flow in a browser/dev preview when the verification task expects a manual smoke check.
+    - If the slice is connected to backend data and `kite.browser` is available, prefer it as the first browser validation path before broad manual debugging.
     - If your change causes a validation or verification failure and the fix is still inside frontend scope, fix it before continuing.
 5. Update `tasks.md`: change `[ ]` to `[x]` for the completed task and append the one-line summary.
 6. After every 3 tasks, print a one-line progress summary.
@@ -169,6 +196,7 @@ If you discover the design is unclear (e.g. a page in the spec has no entry in `
 ### Step 7 — Wire up the data layer
 
 If this is the first frontend task in the project, create one shared module that:
+
 - Reads the base URL from a single config entry (no scattered hard-codes).
 - Wraps fetch / axios with the auth header described in the contract.
 - Exposes one typed function per endpoint (or, for plain HTML, one fetch helper per endpoint).
@@ -178,12 +206,14 @@ All subsequent tasks use this module. If the module already exists, extend it �
 ### Step 8 — Update state and present a summary
 
 1. Update `.kite/state.yml`:
+
    ```yaml
    stage: frontend
    updated_at: "<ISO-8601 timestamp now>"
    artifacts:
-     tasks: specs/<latest>/tasks.md
+     tasks: FEATURE_DIR/tasks.md
    ```
+
 2. Print a **6-bullet** summary:
     - Frontend stack used
     - Number of `[frontend]` tasks completed (and any blocked, with reason)

@@ -12,15 +12,17 @@ lifecycle through dedicated persona agents.
 ### Added
 
 - New persona commands: `/kite.discover`, `/kite.design`, `/kite.backend`,
-  `/kite.frontend`, `/kite.qa`. Each uses ≤6 plain-English questions and
+  `/kite.frontend`, `/kite.docs`, `/kite.qa`. Each uses ≤6 plain-English questions and
   refuses jargon (`epic`, `Gherkin`, `non-functional`, `KPI`, …).
 - Orchestrator command `/kite.start` and bundled workflow `kite` that run
-  the full lifecycle (discover → specify → design → plan → tasks →
-  backend → contract gate → frontend → qa) with human-review gates
+  the full lifecycle (constitution → discover → specify → design → clarify →
+  plan → tasks → analyze → task gate → backend → contract gate → frontend → docs → qa) with human-review gates
   between stages and an `auto_approve` short-circuit for trusted runs.
 - **Backend contract gate**: orchestrator and dedicated test verify that
-  `specs/<latest>/contract.md` exists and is free of `TODO` /
-  `<placeholder>` markers before the frontend persona is allowed to start.
+  the active feature's `contract.md` exists, has Base URL/auth, endpoint
+  Method + path entries, error responses, frontend usage, and local
+  verification commands, and is free of `TODO` / `<placeholder>` markers
+  before the frontend persona is allowed to start.
 - `kite init --persona founder|junior` writes `kite.config.yml` so every
   persona invocation can adapt its plain-English level.
 - `kite resume` — auto-resumes the most recent paused/failed workflow run.
@@ -705,15 +707,15 @@ lifecycle through dedicated persona agents.
 - Update CHANGELOG.md
 - Update agent configuration
 - Update scripts/powershell/create-new-feature.ps1
-- Update src/kite_cli/__init__.py
+- Update src/kite_cli/`__init__.py`
 - Create create-release-packages.ps1
 - Script changes
 - Update taskstoissues.md
 - Create taskstoissues.md
-- Update src/kite_cli/__init__.py
+- Update src/kite_cli/`__init__.py`
 - Update CONTRIBUTING.md
 - Potential fix for code scanning alert no. 3: Workflow does not contain permissions
-- Update src/kite_cli/__init__.py
+- Update src/kite_cli/`__init__.py`
 - Update CHANGELOG.md
 - Fixes #970
 - Fixes #975
@@ -896,13 +898,13 @@ lifecycle through dedicated persona agents.
 
 ### Changed
 
-- Update __init__.py
+- Update `__init__.py`
 - Consolidate Cursor naming
 - Update CHANGELOG.md
 - Git errors are now highlighted.
-- Update __init__.py
+- Update `__init__.py`
 - Refactor agent configuration
-- Update src/kite_cli/__init__.py
+- Update src/kite_cli/`__init__.py`
 - Update scripts/powershell/update-agent-context.ps1
 - Update AGENTS.md
 - Update templates/commands/implement.md
@@ -966,10 +968,10 @@ lifecycle through dedicated persona agents.
 
 - Update URLs to Contributing and Support Guides in Docs
 - fix: add UTF-8 encoding to file read/write operations in update-agent-context.ps1
-- Update __init__.py
-- Update src/kite_cli/__init__.py
+- Update `__init__.py`
+- Update src/kite_cli/`__init__.py`
 - docs: fix the paths of generated files (moved under a `.kite/` folder)
-- Update src/kite_cli/__init__.py
+- Update src/kite_cli/`__init__.py`
 - feat: support 'kite init .' for current directory initialization
 - feat: Add emacs-style up/down keys
 
@@ -979,7 +981,7 @@ lifecycle through dedicated persona agents.
 
 - Update CONTRIBUTING.md
 - Refine `plan-template.md` with improved project type detection, clarified structure decision process, and enhanced research task guidance.
-- Update __init__.py
+- Update `__init__.py`
 
 ## [0.0.53] - 2025-09-24
 
@@ -1089,23 +1091,23 @@ lifecycle through dedicated persona agents.
 - Update update-agent-context.ps1
 - Update package release
 - Update config
-- Update __init__.py
-- Update __init__.py
+- Update `__init__.py`
+- Update `__init__.py`
 - Remove Codex-specific logic in the initialization script
 - Update version rev
-- Update __init__.py
+- Update `__init__.py`
 - Enhance Codex support by auto-syncing prompt files, allowing spec generation without git, and documenting clearer /specify usage.
 - Consistency tweaks
 - Consistent step coloring
-- Update __init__.py
-- Update __init__.py
+- Update `__init__.py`
+- Update `__init__.py`
 - Quick UI tweak
 - Update package release
 - Limit workspace command seeding to Codex init and update Codex documentation accordingly.
 - Clarify Codex-specific README note with rationale for its different workflow.
 - Bump to 0.0.7 and document Codex support
 - Normalize Codex command templates to the scripts-based schema and auto-upgrade generated commands.
-- Fix remaining merge conflict markers in __init__.py
+- Fix remaining merge conflict markers in `__init__.py`
 - Add Codex CLI support with AGENTS.md and commands bootstrap
 
 ## [0.0.45] - 2025-09-19
@@ -1121,7 +1123,7 @@ lifecycle through dedicated persona agents.
 ### Changed
 
 - Update specify.md
-- Update __init__.py
+- Update `__init__.py`
 
 ## [0.0.43] - 2025-09-18
 
@@ -1259,11 +1261,11 @@ lifecycle through dedicated persona agents.
 ### Changed
 
 - Update config
-- Update __init__.py
+- Update `__init__.py`
 - Refactor with platform-specific constraints
 - Update README.md
 - Update CLI reference
-- Update __init__.py
+- Update `__init__.py`
 - refactor: extract Claude local path to constant for maintainability
 - fix: support Claude CLI installed via migrate-installer
 
@@ -1413,4 +1415,3 @@ lifecycle through dedicated persona agents.
 ### Changed
 
 - Update release.yml
-

@@ -4,7 +4,7 @@ workflow:
   name: "Kite Full SDLC"
   version: "0.5.0"
   author: "Kite"
-  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → backend → frontend → docs → qa."
+  description: "Founder-friendly guided SDLC: constitution → discover → specify → design → clarify → plan → tasks → analyze → task gate → backend → contract gate → frontend → docs → qa. Every command uses subagent-first bounded delegation; browser validation is invoked only by kite.frontend through kite.browser."
 
 requires:
   kite_version: ">=0.7.2"
@@ -31,6 +31,20 @@ inputs:
     prompt: "Auto-approve early review gates? (task and contract gates still require approval/pass)"
 
 steps:
+  # 0. Safety preflight ---------------------------------------------
+  - id: branch-guard
+    type: shell
+    run: |
+      set -e
+      if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        branch="$(git branch --show-current 2>/dev/null || true)"
+        if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+          echo "branch guard: current branch is $branch. Create or switch to a feature branch before running the Kite workflow." >&2
+          exit 1
+        fi
+      fi
+      echo "branch guard: OK"
+
   # 1. Constitution --------------------------------------------------
   - id: constitution
     command: kite.constitution
@@ -140,9 +154,15 @@ steps:
     input:
       args: "persona={{ inputs.persona }}"
 
+  - id: analyze
+    command: kite.analyze
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "Review spec, plan, tasks, constitution, design, and contract readiness before implementation."
+
   - id: gate-tasks
     type: gate
-    message: "Approve the task list in specs/<feature>/tasks.md before backend implementation?"
+    message: "Approve tasks.md and the consistency analysis before backend implementation?"
     options: [approve, reject]
     on_reject: abort
 
@@ -162,18 +182,116 @@ steps:
     type: shell
     run: |
       set -e
-      latest_spec_dir="$(ls -1d specs/*/ 2>/dev/null | sort | tail -1)"
-      if [ -z "$latest_spec_dir" ]; then
-        echo "contract gate: no specs/<feature>/ directory found." >&2
+      repo_root="$PWD"
+      feature_dir=""
+
+      if [ -f ".kite/scripts/bash/common.sh" ]; then
+        # shellcheck source=/dev/null
+        . ".kite/scripts/bash/common.sh"
+        if paths="$(get_feature_paths 2>/dev/null)"; then
+          eval "$paths"
+          feature_dir="${FEATURE_DIR:-}"
+        fi
+      fi
+
+      if [ -z "$feature_dir" ] && [ -n "${SPECIFY_FEATURE_DIRECTORY:-}" ]; then
+        feature_dir="$SPECIFY_FEATURE_DIRECTORY"
+        case "$feature_dir" in /*) ;; *) feature_dir="$repo_root/$feature_dir" ;; esac
+      fi
+
+      if [ -z "$feature_dir" ] && [ -f ".kite/feature.json" ]; then
+        if command -v jq >/dev/null 2>&1; then
+          feature_dir="$(jq -r '.feature_directory // empty' .kite/feature.json 2>/dev/null || true)"
+        elif command -v python3 >/dev/null 2>&1; then
+          feature_dir="$(python3 -c "import json; d=json.load(open('.kite/feature.json')); print(d.get('feature_directory') or '')" 2>/dev/null || true)"
+        else
+          feature_dir="$(grep -E '"feature_directory"[[:space:]]*:' .kite/feature.json 2>/dev/null | head -n 1 | sed -E 's/^[^:]*:[[:space:]]*"([^"]*)".*$/\1/' || true)"
+        fi
+        if [ -n "$feature_dir" ]; then
+          case "$feature_dir" in /*) ;; *) feature_dir="$repo_root/$feature_dir" ;; esac
+        fi
+      fi
+
+      if [ -z "$feature_dir" ]; then
+        latest_spec_dir="$(ls -1d specs/*/ 2>/dev/null | sort -V | tail -1)"
+        if [ -n "$latest_spec_dir" ]; then
+          feature_dir="${latest_spec_dir%/}"
+        fi
+      fi
+
+      if [ -z "$feature_dir" ] || [ ! -d "$feature_dir" ]; then
+        echo "contract gate: no active specs/<feature>/ directory found." >&2
         exit 1
       fi
-      contract="${latest_spec_dir}contract.md"
+      contract="$feature_dir/contract.md"
       if [ ! -f "$contract" ]; then
         echo "contract gate: $contract is missing. Run kite.backend until it produces a contract." >&2
         exit 1
       fi
       if grep -qE 'TODO|<[a-zA-Z][^>]*>' "$contract"; then
         echo "contract gate: $contract still contains TODO or placeholder markers. Finish kite.backend before frontend." >&2
+        exit 1
+      fi
+
+      require_heading() {
+        heading="$1"
+        label="$2"
+        if ! grep -qF "$heading" "$contract"; then
+          echo "contract gate: $contract is incomplete: missing $label." >&2
+          exit 1
+        fi
+      }
+
+      require_heading "## 1. Base URL & auth" "Section 1 (Base URL & auth)"
+      require_heading "## 2. Endpoints" "Section 2 (Endpoints)"
+      require_heading "## 5. Error contract" "Section 5 (Error contract)"
+      require_heading "## 6. Frontend usage map" "Section 6 (Frontend usage map)"
+      require_heading "## 7. Local verification commands" "Section 7 (Local verification commands)"
+
+      if ! grep -Eq '^- \*\*Base URL:\*\*[[:space:]]*[^[:space:]]+' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 1 needs a Base URL value." >&2
+        exit 1
+      fi
+      if ! grep -Eq '^- \*\*Auth:\*\*[[:space:]]*[^[:space:]]+' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 1 needs an Auth value." >&2
+        exit 1
+      fi
+      if ! awk '/^## 2[.] Endpoints/{inside=1; next} /^## [0-9]+[.] /{inside=0} inside && /^### /{found=1} END{exit !found}' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 2 needs at least one endpoint entry." >&2
+        exit 1
+      fi
+      if ! awk '
+        /^## 2[.] Endpoints/{inside=1; next}
+        /^## [0-9]+[.] /{
+          if (inside && in_endpoint && !has_method) bad=1
+          inside=0
+        }
+        inside && /^### /{
+          if (in_endpoint && !has_method) bad=1
+          in_endpoint=1
+          has_method=0
+          found=1
+          next
+        }
+        inside && in_endpoint && /\*\*Method \+ path:\*\*[[:space:]]*[^[:space:]]/{has_method=1}
+        END{
+          if (inside && in_endpoint && !has_method) bad=1
+          exit !(found && !bad)
+        }
+      ' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 2 needs Method + path for each frontend endpoint." >&2
+        exit 1
+      fi
+      if ! awk '/^## 5[.] Error contract/{inside=1; next} /^## [0-9]+[.] /{inside=0} inside && /[^[:space:]>-]/{found=1} END{exit !found}' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 5 needs an error response shape." >&2
+        exit 1
+      fi
+      if ! awk '/^## 6[.] Frontend usage map/{inside=1; next} /^## [0-9]+[.] /{inside=0} inside && /[^[:space:]>-]/{found=1} END{exit !found}' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 6 needs a frontend usage map." >&2
+        exit 1
+      fi
+      if ! awk '/^## 7[.] Local verification commands/{inside=1; next} /^## [0-9]+[.] /{inside=0} inside && /`[^`]+`/{found=1} END{exit !found}' "$contract"; then
+        echo "contract gate: $contract is incomplete: Section 7 needs at least one local verification command." >&2
         exit 1
       fi
       echo "contract gate: OK ($contract)"

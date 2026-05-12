@@ -5,8 +5,11 @@ The Kite CLI supports a wide range of AI coding agents. When you run `kite init`
 ## Day-one (supported) vs. experimental
 
 Kite's MVP focuses on three day-one integrations: **Copilot**, **Claude**, and
-**Codex**. These are the integrations the persona commands (`/kite.discover`,
-`/kite.design`, `/kite.backend`, `/kite.frontend`, `/kite.qa`, `/kite.start`)
+**Codex**. These are the integrations the persona commands (`/kite.constitution`,
+`/kite.discover`, `/kite.specify`, `/kite.design`, `/kite.clarify`, `/kite.plan`,
+`/kite.tasks`, `/kite.analyze`, `/kite.backend`, `/kite.frontend`, `/kite.docs`,
+`/kite.qa`, `/kite.start`) and guided helpers (`/kite.browser`, `/kite.checklist`,
+`/kite.research` in the standard profile)
 were authored against and are exercised by dedicated tests.
 
 Every other integration listed below is **experimental**: it ships and is

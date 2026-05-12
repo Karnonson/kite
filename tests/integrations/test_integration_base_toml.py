@@ -486,7 +486,10 @@ class TomlIntegrationTests:
     # -- Complete file inventory ------------------------------------------
 
     COMMAND_STEMS = [
+        "analyze",
         "backend",
+        "browser",
+        "checklist",
         "clarify",
         "constitution",
         "design",
@@ -522,6 +525,7 @@ class TomlIntegrationTests:
 
         if script_variant == "sh":
             for name in [
+                "check-dev-environment.sh",
                 "check-prerequisites.sh",
                 "common.sh",
                 "create-new-feature.sh",
@@ -530,6 +534,7 @@ class TomlIntegrationTests:
                 files.append(f".kite/scripts/bash/{name}")
         else:
             for name in [
+                "check-dev-environment.ps1",
                 "check-prerequisites.ps1",
                 "common.ps1",
                 "create-new-feature.ps1",
