@@ -112,15 +112,26 @@ the workspace automatically.
 Direct CLI install:
 
 ```bash
+# One-time usage: runs Kite without installing a persistent `kite` command
+uvx --from git+https://github.com/Karnonson/kite.git@main kite --help
+
 # Create a new project directory
-uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <PROJECT_NAME>
 
 # OR initialize in the current directory
-uvx --from git+https://github.com/Karnonson/kite.git kite init .
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init .
 ```
 
 The `uvx` form must include `kite` after `--from`; `uvx --from <package>`
-alone is incomplete and does not leave a persistent CLI install behind.
+alone is incomplete and does not leave a persistent CLI install behind. If you
+want `kite` only in the current project directory, use a local virtual
+environment instead:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install git+https://github.com/Karnonson/kite.git
+```
 
 > [!NOTE]
 > You can also install the CLI persistently with `pipx`:
@@ -139,7 +150,7 @@ alone is incomplete and does not leave a persistent CLI install behind.
 Use Bash scripts explicitly if needed:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME> --script sh
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <PROJECT_NAME> --script sh
 ```
 
 ### Step 2: Define Your Constitution

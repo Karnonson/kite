@@ -108,6 +108,7 @@ through the full flow.
 - `pnpm` installed globally for TypeScript projects.
 - `kite-cli` installed via `pipx` on every build from `KITE_INSTALL_SPEC`, which defaults to `git+https://github.com/Karnonson/kite.git@main` in the scaffolded template until Kite is published to PyPI.
 - `KITE_DEV_ENV=1` exported inside the container so Kite's `check-dev-environment` guard treats the dev container as an approved environment for package installs, Docker commands, and other host-affecting actions.
+- Dev container editor sessions run as the built-in `codespace` user, and the template leaves `updateRemoteUserUID` disabled by default to avoid server-attach ownership failures seen on some Linux hosts.
 - No editor-specific extensions are forced by the scaffold. Install the ones
   your chosen integration needs in your own editor profile.
 
@@ -123,6 +124,12 @@ through the full flow.
 
 Most users do not need to change these. If you do, edit
 `.devcontainer/devcontainer.json` → `remoteEnv`:
+
+If you change `remoteUser`, `containerUser`, or `updateRemoteUserUID`, rebuild
+the container instead of just reopening it. On Linux, re-enabling
+`updateRemoteUserUID` can help when your host UID does not match the
+container's `codespace` user, but it also reintroduces the UID-rewrite path
+that this template avoids by default.
 
 | Variable                    | Default in template                                      | Effect |
 | --------------------------- | -------------------------------------------------------- | ------ |

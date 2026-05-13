@@ -10,8 +10,8 @@
 |----------------|---------|-------------|
 | **CLI Tool Only (dry run)** | `kite self upgrade` | Check the latest release and print the exact safe upgrade command without touching your install |
 | **CLI Tool Only (apply)** | `kite self upgrade --apply` | Run the detected `uv tool` or `pipx` reinstall command after confirmation |
-| **CLI Tool Only (manual uv)** | `uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@v1.0` | Get latest CLI features without touching project files |
-| **CLI Tool Only (manual pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@v1.0` | Reinstall/upgrade a pipx-installed CLI to a specific release |
+| **CLI Tool Only (manual uv)** | `uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@main` | Get the current Git-based CLI build without touching project files |
+| **CLI Tool Only (manual pipx)** | `pipx install --force git+https://github.com/Karnonson/kite.git@main` | Reinstall or upgrade a pipx-installed CLI from the current default branch |
 | **Project Files** | `kite init --here --force --integration <your-agent>` | Update slash commands, templates, and scripts in your project |
 | **Both** | Run CLI upgrade, then project update | Recommended for major version updates |
 
@@ -47,26 +47,27 @@ If Kite cannot safely detect `uv tool` or `pipx`, it will not mutate your instal
 
 ### If you installed with `uv tool install`
 
-Upgrade to a specific release (check [Releases](https://github.com/Karnonson/kite/releases) for the latest tag):
+The Git repository does not currently publish a `v1.0` tag that matches the
+CLI version string, so use the default branch or pin a commit SHA:
 
 ```bash
-uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@v1.0
+uv tool install kite-cli --force --from git+https://github.com/Karnonson/kite.git@main
 ```
 
 ### If you use one-shot `uvx` commands
 
-Specify the desired release tag:
+Use the default branch or a commit SHA:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init --here --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init --here --integration copilot
 ```
 
 ### If you installed with `pipx`
 
-Upgrade to a specific release:
+Upgrade from the default branch or pin a commit SHA:
 
 ```bash
-pipx install --force git+https://github.com/Karnonson/kite.git@v1.0
+pipx install --force git+https://github.com/Karnonson/kite.git@main
 ```
 
 ### Verify the upgrade

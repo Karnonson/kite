@@ -76,31 +76,55 @@ kite init <PROJECT_NAME>
 If you only want to scaffold a single project and don't need the CLI afterwards, you can run a one-shot init via `uvx`:
 
 ```bash
+# Run the Kite CLI once without creating a project
+uvx --from git+https://github.com/Karnonson/kite.git@main kite --help
+
 # One-shot — leaves no `kite` binary behind; `kite doctor` / `kite resume` won't work in the new dir
-uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <PROJECT_NAME>
 ```
 
 The command to run comes **after** `--from`. `uvx --from git+https://github.com/Karnonson/kite.git`
 by itself is incomplete and will ask you which command to execute.
 
+`uvx` does not leave a persistent `kite` command behind. If you later run bare
+`kite`, your shell will use some other install already on `PATH`, such as an
+older `uv tool`, `pipx`, or project-local virtual environment install.
+
 Or initialize in the current directory:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init .
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init .
 # or use the --here flag
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init --here
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init --here
 ```
+
+If you want `kite` available only inside the current project directory, install
+it into a local virtual environment:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install git+https://github.com/Karnonson/kite.git
+kite --version
+```
+
+This keeps the CLI scoped to `.venv/` in the current folder instead of adding a
+global `kite` command.
+
+The package version is currently `1.0`, but the Git repository does not
+publish a matching `v1.0` tag yet. Use `@main` for Git-based installs unless
+you are pinning a specific commit SHA.
 
 #### Specify Integration
 
 You can proactively specify your coding agent integration during initialization:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration claude
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration gemini
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration copilot
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration codebuddy
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration pi
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration claude
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration gemini
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration codebuddy
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration pi
 ```
 
 #### Specify Script Type
@@ -108,7 +132,7 @@ uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_nam
 Use Bash scripts for the currently supported Linux setup:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --script sh
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --script sh
 ```
 
 #### Ignore Agent Tools Check
@@ -116,7 +140,7 @@ uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_nam
 If you prefer to get the templates without checking for the right tools:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration claude --ignore-agent-tools
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <project_name> --integration claude --ignore-agent-tools
 ```
 
 ## Verification
@@ -156,12 +180,21 @@ If you are using `uvx`, make sure the command includes `kite` after the package
 specification:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <PROJECT_NAME>
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <PROJECT_NAME>
 ```
 
 `uvx --from <package>` by itself does **not** install a persistent `kite`
 binary. If you run `kite` afterwards and get an `ImportError`, you are usually
 calling an older global install from `uv tool` or `pipx`.
+
+If you want `kite` in the current directory only, use a local virtual
+environment instead of `uvx`:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install git+https://github.com/Karnonson/kite.git
+```
 
 Remove the stale install, refresh your shell, and then either rerun the full
 `uvx` command or install Kite persistently:
@@ -170,6 +203,27 @@ Remove the stale install, refresh your shell, and then either rerun the full
 uv tool uninstall kite-cli || true
 pipx uninstall kite-cli || true
 hash -r
+```
+
+### `ImportError: cannot import name 'main' from 'kite_cli'`
+
+If a persistent `kite` install fails with this message, the command is usually
+coming from a stale editable install that still points at an older local
+checkout or git worktree.
+
+Remove the stale tool, clear your shell's command cache, and reinstall from a
+valid source:
+
+```bash
+uv tool uninstall kite-cli || true
+pipx uninstall kite-cli || true
+hash -r
+
+# Reinstall from GitHub
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
+
+# Or reinstall from the current local checkout
+uv tool install . --force
 ```
 
 ### Enterprise / Air-Gapped Installation

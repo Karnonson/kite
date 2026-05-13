@@ -65,17 +65,15 @@ See the [Dev Container Guide](./docs/devcontainer.md) for details.
 
 #### Option 2: Persistent CLI Installation
 
-Install once and use everywhere. Pin a specific release tag for stability (check [Releases](https://github.com/Karnonson/kite/releases) for the latest):
+Install once and use everywhere. The CLI currently reports version `1.0`, but
+the Git repository does not publish a matching `v1.0` tag yet, so the working
+default for Git-based installs is `@main`.
 
 ```bash
-# Install the current stable release (recommended)
-uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git@v1.0
-
-# Or install latest from main (may include unreleased changes)
+# Install from the current default branch
 uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
 
 # Alternative: using pipx (also works)
-pipx install git+https://github.com/Karnonson/kite.git@v1.0
 pipx install git+https://github.com/Karnonson/kite.git
 ```
 
@@ -125,17 +123,31 @@ kite self upgrade --apply
 Run directly without installing:
 
 ```bash
-# Initialize the current directory
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init --integration copilot
+# Run the Kite CLI once without creating a persistent install
+uvx --from git+https://github.com/Karnonson/kite.git@main kite --help
+
+# Initialize the current directory with a specific integration (copilot here)
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init . --integration copilot
 
 # Or create a new project directory explicitly
-uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <PROJECT_NAME> --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@main kite init <PROJECT_NAME> --integration copilot
 ```
 
 The one-time `uvx` form must include `kite` after `--from`. Running
-`uvx --from git+https://github.com/Karnonson/kite.git@v1.0` by itself only
+`uvx --from git+https://github.com/Karnonson/kite.git@main` by itself only
 asks uv which command to execute and does not install a persistent `kite`
-binary.
+binary. If you later run bare `kite`, your shell will use whatever global or
+project-local install is already on `PATH`.
+
+If you want `kite` available only inside the current directory, install it into
+a local virtual environment instead of using `uvx`:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install git+https://github.com/Karnonson/kite.git
+kite --version
+```
 
 #### Option 4: Enterprise / Air-Gapped Installation
 

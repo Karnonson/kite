@@ -6,8 +6,8 @@
 		"dockerfile": "Dockerfile",
 		"context": "."
 	},
-	"containerUser": "codespace",
-	"updateRemoteUserUID": true,
+	"remoteUser": "codespace",
+	"updateRemoteUserUID": false,
 	"otherPortsAttributes": {
 		"onAutoForward": "ignore"
 	},

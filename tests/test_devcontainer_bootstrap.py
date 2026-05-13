@@ -57,10 +57,11 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
 
     assert data["build"]["dockerfile"] == "Dockerfile"
     assert data["build"]["context"] == "."
-    assert data["containerUser"] == "codespace"
-    assert data["updateRemoteUserUID"] is True
+    assert data["remoteUser"] == "codespace"
+    assert data["updateRemoteUserUID"] is False
     assert data["otherPortsAttributes"]["onAutoForward"] == "ignore"
     assert data.get("features", {}) == {}
+    assert "containerUser" not in data
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"
     assert data["postStartCommand"] == "bash .devcontainer/post-start.sh"
     assert data["remoteEnv"]["KITE_DEV_ENV"] == "1"
