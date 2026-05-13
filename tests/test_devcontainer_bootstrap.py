@@ -40,6 +40,7 @@ def test_shell_scripts_pass_bash_syntax_check() -> None:
         BOOTSTRAP,
         TEMPLATE_DIR / "post-create.sh",
         TEMPLATE_DIR / "post-start.sh",
+        REPO_ROOT / "tests" / "smoke" / "smoke-devcontainer.sh",
     ):
         result = subprocess.run(
             ["bash", "-n", str(script)],
@@ -57,9 +58,9 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
     assert data["build"]["dockerfile"] == "Dockerfile"
     assert data["build"]["context"] == "."
     assert data["containerUser"] == "codespace"
+    assert data["updateRemoteUserUID"] is True
     assert data["otherPortsAttributes"]["onAutoForward"] == "ignore"
-    assert "ghcr.io/devcontainers/features/docker-in-docker:2" in data["features"]
-    assert "ghcr.io/devcontainers/features/common-utils:2" not in data["features"]
+    assert data.get("features", {}) == {}
     assert data["postCreateCommand"] == "bash .devcontainer/post-create.sh"
     assert data["postStartCommand"] == "bash .devcontainer/post-start.sh"
     assert data["remoteEnv"]["KITE_DEV_ENV"] == "1"
@@ -67,12 +68,7 @@ def test_devcontainer_json_parses_and_has_required_keys() -> None:
     # Until kite-cli is on PyPI, the default install source must be a git ref.
     assert data["remoteEnv"]["KITE_INSTALL_SPEC"].startswith("git+")
     assert data["remoteEnv"]["KITE_PNPM_VERSION"] == "10.10.0"
-    recommendations = data["customizations"]["vscode"]["settings"]["chat.promptFilesRecommendations"]
-    assert recommendations["kite.analyze"] is True
-    assert recommendations["kite.browser"] is True
-    assert recommendations["kite.checklist"] is True
-    assert recommendations["kite.docs"] is True
-    assert "chat.tools.terminal.autoApprove" not in data["customizations"]["vscode"].get("settings", {})
+    assert "customizations" not in data
 
 
 # --- Bootstrap script behavior ---------------------------------------------
@@ -94,6 +90,8 @@ def _run_bootstrap(args: list[str], env_extra: dict[str, str] | None = None) -> 
 def test_bootstrap_scaffolds_into_empty_dir(tmp_path: Path) -> None:
     result = _run_bootstrap(["--dest", str(tmp_path)])
     assert result.returncode == 0, result.stderr
+    assert "Dev Container-compatible IDE" in result.stdout
+    assert "VS Code" not in result.stdout
 
     dc = tmp_path / ".devcontainer"
     assert dc.is_dir()

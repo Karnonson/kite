@@ -16,10 +16,10 @@ coding assistant (Copilot, Claude, or Codex).
     mkdir my-app
     cd my-app
     curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
-    code .
     ```
 
-    Then run **Dev Containers: Reopen in Container** in VS Code.
+   Then open the folder in your Dev Container-capable editor and use its
+   command to open or reopen the folder in the container.
 
     Direct install, if Kite is already installed on your machine:
 
@@ -103,11 +103,11 @@ Dev container:
 mkdir <PROJECT_NAME>
 cd <PROJECT_NAME>
 curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
-code .
 ```
 
-Then run **Dev Containers: Reopen in Container** in VS Code. Kite installs
-and initializes the workspace automatically.
+Then open the folder in your Dev Container-capable editor and use its command
+to open or reopen the folder in the container. Kite installs and initializes
+the workspace automatically.
 
 Direct CLI install:
 
@@ -118,6 +118,9 @@ uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
 # OR initialize in the current directory
 uvx --from git+https://github.com/Karnonson/kite.git kite init .
 ```
+
+The `uvx` form must include `kite` after `--from`; `uvx --from <package>`
+alone is incomplete and does not leave a persistent CLI install behind.
 
 > [!NOTE]
 > You can also install the CLI persistently with `pipx`:

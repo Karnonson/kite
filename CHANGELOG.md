@@ -86,7 +86,7 @@ lifecycle through dedicated persona agents.
 ### Changed
 
 - fix: resolve skill placeholders for all SKILL.md agents, not just codex/kimi (#2313)
-- feat(cli): add specify self check and self upgrade stub (#2316)
+- feat(cli): add self check and self upgrade stub (#2316)
 - Update version-guard to v1.1.0 (#2318)
 - docs: move community presets from README to docs/community (#2314)
 - catalog: add wireframe extension (v0.1.1) (#2262)

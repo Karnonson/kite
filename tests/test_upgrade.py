@@ -1,4 +1,4 @@
-"""Tests for the `specify self` sub-app (`self check` and `self upgrade`).
+"""Tests for the `kite self` sub-app (`self check` and `self upgrade`).
 
 Network isolation contract (SC-004 / FR-014): every test that exercises
 `kite self check` or `_fetch_latest_release_tag()` MUST mock

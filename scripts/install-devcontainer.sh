@@ -97,8 +97,8 @@ cat <<EOF
 ✅ Done.
 
 Next steps:
-  1. Open the project in VS Code:           code "${dest}"
-  2. Run "Dev Containers: Reopen in Container" from the Command Palette.
+  1. Open the project in your Dev Container-compatible IDE.
+  2. Open or reopen the folder in its dev container using that IDE's container command.
   3. Wait for the build — Kite CLI will be installed automatically.
 
 Customize KITE_VERSION / KITE_INSTALL_SPEC in .devcontainer/devcontainer.json

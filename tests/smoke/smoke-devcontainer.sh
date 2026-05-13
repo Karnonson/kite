@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # smoke-devcontainer.sh — end-to-end validation of the Kite dev container scaffold.
 #
-# What this verifies (without launching VS Code):
+# What this verifies (without launching an editor):
 #   1. install-devcontainer.sh scaffolds .devcontainer/ from a local checkout.
 #   2. devcontainer CLI builds the container from the scaffolded files.
 #   3. post-create.sh installs kite-cli inside the container.
 #   4. `kite init` ran on a fresh workspace and produced .kite/.
 #   5. Re-running post-create.sh leaves the existing .kite/ untouched (idempotent).
-#   6. docker-in-docker actually works inside the container.
+#   6. No Docker daemon is exposed inside the container by default.
 #
 # Requires on the host:
 #   - docker (running)
@@ -65,10 +65,10 @@ run 'test -d "$PWD/.kite"' \
   || fail ".kite/ was not created by post-create"
 ok ".kite/ exists"
 
-step "Verifying docker-in-docker"
-run 'docker version --format "{{.Server.Version}}"' >/dev/null \
-  || fail "docker-in-docker not functional"
-ok "docker-in-docker functional"
+step "Verifying Docker daemon is not exposed by default"
+run '! docker info >/dev/null 2>&1' \
+  || fail "docker daemon unexpectedly reachable inside the isolated baseline"
+ok "no Docker daemon exposed"
 
 # --- Idempotency check ------------------------------------------------------
 step "Re-running post-create.sh (should NOT re-init Kite)"

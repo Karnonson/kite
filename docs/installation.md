@@ -80,12 +80,15 @@ If you only want to scaffold a single project and don't need the CLI afterwards,
 uvx --from git+https://github.com/Karnonson/kite.git kite init <PROJECT_NAME>
 ```
 
+The command to run comes **after** `--from`. `uvx --from git+https://github.com/Karnonson/kite.git`
+by itself is incomplete and will ask you which command to execute.
+
 Or initialize in the current directory:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init .
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init .
 # or use the --here flag
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init --here
 ```
 
 #### Specify Integration
@@ -93,11 +96,11 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --here
 You can proactively specify your coding agent integration during initialization:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration claude
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration gemini
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration copilot
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration codebuddy
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration pi
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration claude
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration gemini
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration codebuddy
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration pi
 ```
 
 #### Specify Script Type
@@ -105,7 +108,7 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_n
 Use Bash scripts for the currently supported Linux setup:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --script sh
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --script sh
 ```
 
 #### Ignore Agent Tools Check
@@ -113,7 +116,7 @@ uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_n
 If you prefer to get the templates without checking for the right tools:
 
 ```bash
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <project_name> --integration claude --ignore-agent-tools
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <project_name> --integration claude --ignore-agent-tools
 ```
 
 ## Verification
@@ -146,6 +149,28 @@ Standard installs also include helper commands such as `/kite.browser`, `/kite.c
 The `.kite/scripts` directory will contain both `.sh` and `.ps1` scripts.
 
 ## Troubleshooting
+
+### `uvx` One-Shot Usage
+
+If you are using `uvx`, make sure the command includes `kite` after the package
+specification:
+
+```bash
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <PROJECT_NAME>
+```
+
+`uvx --from <package>` by itself does **not** install a persistent `kite`
+binary. If you run `kite` afterwards and get an `ImportError`, you are usually
+calling an older global install from `uv tool` or `pipx`.
+
+Remove the stale install, refresh your shell, and then either rerun the full
+`uvx` command or install Kite persistently:
+
+```bash
+uv tool uninstall kite-cli || true
+pipx uninstall kite-cli || true
+hash -r
+```
 
 ### Enterprise / Air-Gapped Installation
 

@@ -6,12 +6,6 @@
 		"dockerfile": "Dockerfile",
 		"context": "."
 	},
-	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {
-			"version": "latest",
-			"moby": true
-		}
-	},
 	"containerUser": "codespace",
 	"updateRemoteUserUID": true,
 	"otherPortsAttributes": {
@@ -28,35 +22,5 @@
 		"KITE_DEFAULT_INTEGRATION": "copilot"
 	},
 	"postCreateCommand": "bash .devcontainer/post-create.sh",
-	"postStartCommand": "bash .devcontainer/post-start.sh",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"GitHub.copilot",
-				"GitHub.copilot-chat",
-				"ms-python.python",
-				"ms-azuretools.vscode-docker"
-			],
-			"settings": {
-				"chat.promptFilesRecommendations": {
-					"kite.analyze": true,
-					"kite.browser": true,
-					"kite.checklist": true,
-					"kite.constitution": true,
-					"kite.discover": true,
-					"kite.specify": true,
-					"kite.design": true,
-					"kite.clarify": true,
-					"kite.plan": true,
-					"kite.tasks": true,
-					"kite.backend": true,
-					"kite.frontend": true,
-					"kite.docs": true,
-					"kite.qa": true,
-					"kite.research": true,
-					"kite.implement": true
-				}
-			}
-		}
-	}
+	"postStartCommand": "bash .devcontainer/post-start.sh"
 }

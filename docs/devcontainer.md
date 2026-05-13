@@ -1,16 +1,19 @@
 # Kite Dev Container
 
 The dev container is the easiest way to start with Kite. It gives you a
-ready Linux workspace with Python, Node, Git, Docker, GitHub Copilot for VS
-Code, and the Kite CLI already installed. Use it when you do not want to
-set up developer tools on your computer by hand.
+ready Linux workspace with Python, Node, Git, and the Kite CLI already
+installed. The scaffold sticks to an isolated `.devcontainer/` baseline so it
+can be opened from Dev Container-capable, VS Code-style IDEs without requiring
+privileged Docker features in the container by default.
 
 ## What you need first
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) or a
   compatible Docker engine
-- [Visual Studio Code](https://code.visualstudio.com/)
-- The [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- A Dev Container-capable editor based on VS Code, such as VS Code,
+  VSCodium, Cursor, Windsurf, or a similar IDE that supports
+  `.devcontainer/devcontainer.json`
+- The matching Dev Container support for your editor
 
 ## Install in an empty project folder
 
@@ -22,13 +25,17 @@ curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install
 
 This creates a `.devcontainer/` folder. Then:
 
-1. Open the folder in VS Code.
-2. Run **Dev Containers: Reopen in Container** (Command Palette).
+1. Open the folder in your editor.
+2. Use that editor's command to open or reopen the folder in the dev
+  container.
 3. Wait for the container build to finish.
 
 On the first build, Kite installs automatically and initializes the
-workspace with the default `copilot` integration. When the build completes,
-open Copilot Chat and run:
+workspace with the default `copilot` integration. If you want a different
+integration, change `KITE_DEFAULT_INTEGRATION` in
+`.devcontainer/devcontainer.json` before the first build. When the build
+completes, use the command format for the integration you selected. With the
+default `copilot` integration, start with:
 
 ```text
 /kite.start "Build a tool that helps me <describe your idea>."
@@ -43,10 +50,9 @@ project folder:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash -s -- --dest ./my-app
-code ./my-app
 ```
 
-Then run **Dev Containers: Reopen in Container** from VS Code.
+Then open the folder in your editor and use its dev container command.
 
 ## Reinstall or replace the container files
 
@@ -68,7 +74,8 @@ kite doctor
 kite resume
 ```
 
-In your AI coding assistant, use the Kite commands:
+In your AI coding assistant, use the Kite commands for the integration you
+selected. With the default `copilot` integration, they look like this:
 
 ```text
 /kite.start "Build a simple booking app for a small salon."
@@ -93,14 +100,16 @@ through the full flow.
 
 - Base image: `mcr.microsoft.com/devcontainers/universal:2-linux`
   (Python 3.11, Node 22 LTS, Git, GitHub CLI pre-installed).
-- Docker-in-Docker support, so generated apps can use Docker from inside the
-  container without exposing your host socket.
+- An isolated default: no host Docker socket and no Docker-in-Docker feature
+  are enabled unless you add them yourself.
 - Ports started by tools inside the container are not opened automatically. Use
-  the VS Code Ports view when you want to expose a generated app preview.
+  your editor's port forwarding UI when you want to expose a generated app
+  preview.
 - `pnpm` installed globally for TypeScript projects.
 - `kite-cli` installed via `pipx` on every build from `KITE_INSTALL_SPEC`, which defaults to `git+https://github.com/Karnonson/kite.git@main` in the scaffolded template until Kite is published to PyPI.
 - `KITE_DEV_ENV=1` exported inside the container so Kite's `check-dev-environment` guard treats the dev container as an approved environment for package installs, Docker commands, and other host-affecting actions.
-- GitHub Copilot and Copilot Chat extensions recommended in VS Code, with prompt recommendations enabled for guided workflow commands and helpers such as `/kite.analyze`, `/kite.browser`, `/kite.checklist`, `/kite.docs`, and `/kite.research`.
+- No editor-specific extensions are forced by the scaffold. Install the ones
+  your chosen integration needs in your own editor profile.
 
 ## What gets re-created on rebuild
 
@@ -121,7 +130,25 @@ Most users do not need to change these. If you do, edit
 | `KITE_VERSION`             | *(empty)*                                                | Pin a Kite version. |
 | `KITE_INSTALL_SPEC`        | `git+https://github.com/Karnonson/kite.git@main`         | Install Kite from a specific package source or git URL. Switch to `kite-cli` after the PyPI release or pin a tag or SHA here. |
 | `KITE_PNPM_VERSION`        | `10.10.0`                                                | Pin the `pnpm` version. |
-| `KITE_DEFAULT_INTEGRATION` | `copilot`                                                | Default `kite init` integration. |
+| `KITE_DEFAULT_INTEGRATION` | `copilot`                                                | Default `kite init` integration. Change it before the first build if you use a different agent. |
+
+## Optional Docker access
+
+The default template does not expose a Docker daemon inside the container. If
+your generated app really needs in-container Docker, opt in by adding the
+following feature to `.devcontainer/devcontainer.json`:
+
+```json5
+"features": {
+  "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    "version": "latest",
+    "moby": true
+  }
+}
+```
+
+This weakens isolation and can fail on restricted hosts such as Antigravity or
+other cloud IDE environments.
 
 ## Security note
 

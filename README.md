@@ -41,21 +41,21 @@ Choose your preferred setup path:
 
 #### Option 1: Dev Container (Recommended for New Builders)
 
-Use this when you want a ready VS Code workspace and do not want to install
-Python, Node, Docker tooling, and Kite by hand.
+Use this when you want a ready Dev Container workspace and do not want to
+install Python, Node, Docker tooling, and Kite by hand.
 
 ```bash
 mkdir my-app
 cd my-app
 curl -fsSL https://raw.githubusercontent.com/Karnonson/kite/main/scripts/install-devcontainer.sh | bash
-code .
 ```
 
-In VS Code, run **Dev Containers: Reopen in Container** from the Command
-Palette. Kite installs automatically and initializes the workspace with the
-default `copilot` integration.
+Then open the folder in your Dev Container-capable editor and use its command
+to open or reopen the folder in the container. Kite installs automatically and
+initializes the workspace with the default `copilot` integration.
 
-When the container is ready, open Copilot Chat and run:
+When the container is ready, use the command format for your selected
+integration. With the default `copilot` integration, start with:
 
 ```text
 /kite.start "Build a tool that helps me <describe your idea>."
@@ -68,14 +68,14 @@ See the [Dev Container Guide](./docs/devcontainer.md) for details.
 Install once and use everywhere. Pin a specific release tag for stability (check [Releases](https://github.com/Karnonson/kite/releases) for the latest):
 
 ```bash
-# Install a specific stable release (recommended — replace vX.Y.Z with the latest tag)
-uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git@vX.Y.Z
+# Install the current stable release (recommended)
+uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git@v1.0
 
 # Or install latest from main (may include unreleased changes)
 uv tool install kite-cli --from git+https://github.com/Karnonson/kite.git
 
 # Alternative: using pipx (also works)
-pipx install git+https://github.com/Karnonson/kite.git@vX.Y.Z
+pipx install git+https://github.com/Karnonson/kite.git@v1.0
 pipx install git+https://github.com/Karnonson/kite.git
 ```
 
@@ -126,11 +126,16 @@ Run directly without installing:
 
 ```bash
 # Initialize the current directory
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init --integration copilot
 
 # Or create a new project directory explicitly
-uvx --from git+https://github.com/Karnonson/kite.git@vX.Y.Z kite init <PROJECT_NAME> --integration copilot
+uvx --from git+https://github.com/Karnonson/kite.git@v1.0 kite init <PROJECT_NAME> --integration copilot
 ```
+
+The one-time `uvx` form must include `kite` after `--from`. Running
+`uvx --from git+https://github.com/Karnonson/kite.git@v1.0` by itself only
+asks uv which command to execute and does not install a persistent `kite`
+binary.
 
 #### Option 4: Enterprise / Air-Gapped Installation
 
